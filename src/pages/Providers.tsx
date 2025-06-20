@@ -1,326 +1,270 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
+import HorizontalCarousel from '@/components/HorizontalCarousel';
+import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, MapPin, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from '@/components/ui/drawer';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-const Providers = () => {
-  const [selectedCategory, setSelectedCategory] = useState('audio');
-  const [selectedFilter, setSelectedFilter] = useState('all');
+interface User {
+  id: string;
+  name: string;
+  subCategory?: string;
+  location?: string;
+  profilepicture?: string;
+}
 
-  const categories = [
-    { id: 'audio', name: 'Audio & Son', count: 120 },
-    { id: 'video', name: 'Vidéo & Clips', count: 85 },
-    { id: 'marketing', name: 'Marketing Musical', count: 95 },
-    { id: 'training', name: 'Formation & Coaching', count: 70 },
-    { id: 'legal', name: 'Juridique & Business', count: 40 }
-  ];
-
-  const mockProviders = {
-    audio: [
-      {
-        id: 1,
-        name: "Studio SoundWave",
-        specialty: "Mixage & Mastering",
-        location: "Paris, France",
-        rating: 4.9,
-        reviews: 127,
-        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=300&fit=crop"
-      },
-      {
-        id: 2,
-        name: "Beat Producer Max",
-        specialty: "Production de beats",
-        location: "Lyon, France",
-        rating: 4.8,
-        reviews: 89,
-        image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop"
-      },
-      {
-        id: 3,
-        name: "Echo Studio",
-        specialty: "Enregistrement vocal",
-        location: "Marseille, France",
-        rating: 5.0,
-        reviews: 45,
-        image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=300&fit=crop"
-      },
-      {
-        id: 4,
-        name: "Sound Engineer Pro",
-        specialty: "Post-production audio",
-        location: "Toulouse, France",
-        rating: 4.7,
-        reviews: 92,
-        image: "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&h=300&fit=crop"
-      }
+const providerGroupsConfig = [
+  {
+    title: 'Promotion et marketing',
+    icon: Megaphone,
+    sections: [
+      { title: 'Programmateurs de radio/playlist', subCategories: ['radio_curator'] },
+      { title: 'Community manager', subCategories: ['community_manager'] },
     ],
-    video: [
-      {
-        id: 5,
-        name: "VideoBeats Pro",
-        specialty: "Clips musicaux",
-        location: "Paris, France",
-        rating: 4.8,
-        reviews: 156,
-        image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?w=400&h=300&fit=crop"
-      },
-      {
-        id: 6,
-        name: "Motion Graphics Studio",
-        specialty: "Animation & VFX",
-        location: "Lyon, France",
-        rating: 4.9,
-        reviews: 73,
-        image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=400&h=300&fit=crop"
-      }
-    ]
-  };
+  },
+  {
+    title: 'VISUEL',
+    icon: Camera,
+    sections: [
+      { title: 'CLIPMAKERS', subCategories: ['clipmaker'] },
+      { title: 'Monteurs', subCategories: ['video_editor'] },
+      { title: 'Photographes', subCategories: ['photographer'] },
+      { title: 'Graphistes', subCategories: ['graphic_designer'] },
+    ],
+  },
+  {
+    title: 'Droits et distribution',
+    icon: Gavel,
+    sections: [
+      { title: 'Distributeurs de musique', subCategories: ['distributor'] },
+      { title: 'Avocats spécialisés', subCategories: ['music_lawyer'] },
+    ],
+  },
+  {
+    title: 'Formation',
+    icon: GraduationCap,
+    sections: [
+      { title: 'Coach vocal', subCategories: ['vocal_coach'] },
+      { title: 'Ateliers et cours de musique', subCategories: ['music_workshop'] },
+    ],
+  },
+];
 
-  const scrollContainer = (direction: 'left' | 'right', containerId: string) => {
-    const container = document.getElementById(containerId);
-    if (container) {
-      const scrollAmount = 320;
-      container.scrollBy({ 
-        left: direction === 'left' ? -scrollAmount : scrollAmount, 
-        behavior: 'smooth' 
-      });
-    }
-  };
+const FilterBar = ({ locations, onFilterChange }: any) => {
+  const isMobile = useIsMobile();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('all');
+  const [selectedDomain, setSelectedDomain] = useState('all');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    onFilterChange({ searchTerm, selectedLocation, selectedDomain });
+  }, [searchTerm, selectedLocation, selectedDomain]);
+
+  const filters = (
+    <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
+        <Input
+          type="text"
+          placeholder="Rechercher un nom..."
+          className="pl-10 h-12 text-base border-slate-200 bg-slate-50 text-zinc-900 placeholder:text-zinc-500 focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+        <SelectTrigger className="h-12 text-base border-slate-200 bg-slate-50 text-zinc-900 focus:ring-2 focus:ring-blue-500 [&>span]:data-[placeholder]:text-zinc-500">
+          <MapPin className="h-5 w-5 text-zinc-400 mr-2" />
+          <SelectValue placeholder="Toutes les villes" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Toutes les villes</SelectItem>
+          {locations.map((loc: string) => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Select value={selectedDomain} onValueChange={setSelectedDomain}>
+        <SelectTrigger className="h-12 text-base border-slate-200 bg-slate-50 text-zinc-900 focus:ring-2 focus:ring-blue-500 [&>span]:data-[placeholder]:text-zinc-500">
+           <ChevronDown className="h-5 w-5 text-zinc-400 mr-2" />
+          <SelectValue placeholder="Tous les domaines" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tous les domaines</SelectItem>
+          {providerGroupsConfig.map(group => <SelectItem key={group.title} value={group.title}>{group.title}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerTrigger asChild>
+          <Button variant="outline" className="w-full h-12 text-base font-semibold shadow-sm border-slate-200">
+            <SlidersHorizontal className="mr-2 h-5 w-5" />
+            Filtres
+          </Button>
+        </DrawerTrigger>
+        <DrawerContent className="bg-white rounded-t-2xl shadow-xl p-6 border-none focus:outline-none">
+          <div className="relative mb-6 text-center">
+            <img
+              src="/lovable-uploads/451a0a63-4154-4a97-91cf-b1db62593cb0.png"
+              alt="MusicLinks Logo"
+              className="h-8 w-auto inline-block mb-4"
+            />
+            <DrawerHeader className="text-center p-0">
+              <DrawerTitle className="font-semibold text-zinc-900 text-xl">Filtres</DrawerTitle>
+            </DrawerHeader>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-0 right-0 rounded-full h-9 w-9 text-zinc-500 hover:bg-slate-100 hover:text-zinc-900"
+              onClick={() => setIsDrawerOpen(false)}
+            >
+              <X className="h-5 w-5" />
+              <span className="sr-only">Fermer</span>
+            </Button>
+          </div>
+          {filters}
+        </DrawerContent>
+      </Drawer>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-ml-white">
+    <div className="sticky top-[65px] z-40 bg-gray-50/80 backdrop-blur-sm py-4">
+      {filters}
+    </div>
+  );
+};
+
+const ProvidersPage = () => {
+  const [allProviders, setAllProviders] = useState<User[]>([]);
+  const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [locations, setLocations] = useState<string[]>([]);
+  const [filters, setFilters] = useState({
+    searchTerm: '',
+    selectedLocation: 'all',
+    selectedDomain: 'all',
+  });
+
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      setLoading(true);
+      const { data: users, error } = await supabase
+        .from('User')
+        .select('*')
+        .eq('role', 'provider')
+        .eq('verified', 1)
+        .eq('disabled', 0);
+
+      if (error) {
+        console.error('Error fetching providers:', error);
+      } else if (users) {
+        setAllProviders(users);
+        const distinctLocations = [...new Set(users.map(u => u.location).filter(Boolean) as string[])];
+        setLocations(distinctLocations.sort());
+      }
+      setLoading(false);
+    };
+
+    fetchInitialData();
+  }, []);
+
+  useEffect(() => {
+    let filteredProviders = [...allProviders];
+    const { searchTerm, selectedLocation, selectedDomain } = filters;
+
+    if (searchTerm) {
+      filteredProviders = filteredProviders.filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (selectedLocation !== 'all') {
+      filteredProviders = filteredProviders.filter(user => user.location === selectedLocation);
+    }
+
+    const groupsWithUsers = providerGroupsConfig
+      .map(groupConfig => {
+        if (selectedDomain !== 'all' && groupConfig.title !== selectedDomain) {
+          return { ...groupConfig, sections: [] };
+        }
+
+        const sectionsWithUsers = groupConfig.sections
+          .map(sectionConfig => {
+            const usersInSection = filteredProviders.filter(user =>
+              sectionConfig.subCategories.includes(user.subCategory || '')
+            );
+            return { ...sectionConfig, users: usersInSection };
+          })
+          .filter(section => section.users.length > 0);
+
+        return { ...groupConfig, sections: sectionsWithUsers };
+      })
+      .filter(group => group.sections.length > 0);
+    
+    setFilteredGroups(groupsWithUsers);
+
+  }, [filters, allProviders]);
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
-      <main className="pt-8">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-ml-teal/10 to-ml-navy/10 py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 w-full py-12 md:py-16">
             <div className="text-center mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-ml-charcoal mb-4">
-                Trouvez votre prestataire idéal
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
+              Trouvez les meilleurs <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Prestataires</span>
               </h1>
-              <p className="text-xl text-ml-charcoal/70 max-w-2xl mx-auto">
-                Découvrez des professionnels vérifiés prêts à donner vie à vos projets musicaux
+            <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-600">
+              Des professionnels qualifiés pour donner vie à vos projets musicaux.
               </p>
             </div>
 
-            {/* Barre de recherche */}
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-white rounded-2xl shadow-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="md:col-span-2">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ml-charcoal/40 h-5 w-5" />
-                      <Input
-                        placeholder="Rechercher un service..."
-                        className="pl-10 border-ml-light-gray/30 focus:border-ml-teal focus:ring-ml-teal rounded-xl"
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ml-charcoal/40 h-5 w-5" />
-                      <Input
-                        placeholder="Localisation"
-                        className="pl-10 border-ml-light-gray/30 focus:border-ml-teal focus:ring-ml-teal rounded-xl"
-                      />
-                    </div>
-                    <Select value={selectedFilter} onValueChange={setSelectedFilter}>
-                      <SelectTrigger className="text-sm border-ml-light-gray/30 focus:border-ml-teal rounded-xl">
-                        <SelectValue placeholder="Filtrer par..." />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white border border-ml-light-gray/30 rounded-xl shadow-lg">
-                        <SelectItem value="all">Tous les prestataires</SelectItem>
-                        <SelectItem value="verified">Vérifiés uniquement</SelectItem>
-                        <SelectItem value="available">Disponibles maintenant</SelectItem>
-                        <SelectItem value="top-rated">Mieux notés</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button className="bg-ml-teal hover:bg-ml-navy rounded-xl">
-                    <Search className="h-4 w-4 mr-2" />
-                    Rechercher
-                  </Button>
-                </div>
-              </div>
-            </div>
+          <div className="mb-8">
+            <FilterBar locations={locations} onFilterChange={setFilters} />
           </div>
-        </section>
 
-        {/* Categories Navigation */}
-        <section className="py-8 border-b border-ml-light-gray/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex space-x-6 overflow-x-auto pb-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`whitespace-nowrap px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                    selectedCategory === category.id
-                      ? 'bg-ml-teal text-white shadow-lg'
-                      : 'bg-ml-light-gray/20 text-ml-charcoal hover:bg-ml-light-gray/40'
-                  }`}
-                >
-                  {category.name} ({category.count})
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Netflix-style provider sections */}
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Audio & Son Section */}
-            <div className="mb-16">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-ml-charcoal">
-                  Audio & Son ({mockProviders.audio.length} prestataires)
+          {loading ? (
+            <div className="text-center text-gray-500 text-lg">Chargement des prestataires...</div>
+          ) : (
+            <div className="space-y-16">
+              {filteredGroups.length > 0 ? (
+                filteredGroups.map(group => (
+                  <div key={group.title}>
+                    <div className="flex items-center gap-x-4 mb-8">
+                      <group.icon className="h-8 w-8 text-blue-600 flex-shrink-0" />
+                      <h2 className="text-3xl font-bold text-gray-800 tracking-tight shrink-0">
+                        {group.title}
                 </h2>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => scrollContainer('left', 'audio-scroll')}
-                    className="rounded-full border-ml-light-gray/30 hover:bg-ml-light-gray/20"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => scrollContainer('right', 'audio-scroll')}
-                    className="rounded-full border-ml-light-gray/30 hover:bg-ml-light-gray/20"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div 
-                id="audio-scroll"
-                className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {mockProviders.audio.map((provider) => (
-                  <div key={provider.id} className="flex-none w-80 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                    <div className="relative">
-                      <img
-                        src={provider.image}
-                        alt={provider.name}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+                      <hr className="w-full border-t-2 border-gray-200" />
                     </div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-bold text-ml-charcoal">{provider.name}</h3>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-ml-teal fill-current" />
-                          <span className="text-sm font-medium text-ml-charcoal ml-1">{provider.rating}</span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-ml-teal font-medium mb-2">{provider.specialty}</p>
-                      
-                      <div className="flex items-center text-ml-charcoal/60 mb-4">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{provider.location}</span>
-                      </div>
-                      
-                      <p className="text-sm text-ml-charcoal/60 mb-4">
-                        {provider.reviews} avis clients
-                      </p>
-                      
-                      <Button className="w-full bg-ml-teal hover:bg-ml-navy rounded-xl">
-                        Voir le profil
-                      </Button>
+                    <div className="space-y-12">
+                      {group.sections.map((section: any) => (
+                         <HorizontalCarousel key={section.title} title={section.title} users={section.users} />
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Video & Clips Section */}
-            <div className="mb-16">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-ml-charcoal">
-                  Vidéo & Clips ({mockProviders.video.length} prestataires)
-                </h2>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => scrollContainer('left', 'video-scroll')}
-                    className="rounded-full border-ml-light-gray/30 hover:bg-ml-light-gray/20"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => scrollContainer('right', 'video-scroll')}
-                    className="rounded-full border-ml-light-gray/30 hover:bg-ml-light-gray/20"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                ))
+              ) : (
+                <div className="text-center py-16">
+                  <p className="text-lg text-gray-500">Aucun prestataire ne correspond à votre recherche.</p>
                 </div>
-              </div>
-              
-              <div 
-                id="video-scroll"
-                className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {mockProviders.video.map((provider) => (
-                  <div key={provider.id} className="flex-none w-80 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
-                    <div className="relative">
-                      <img
-                        src={provider.image}
-                        alt={provider.name}
-                        className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-xl font-bold text-ml-charcoal">{provider.name}</h3>
-                        <div className="flex items-center">
-                          <Star className="h-4 w-4 text-ml-teal fill-current" />
-                          <span className="text-sm font-medium text-ml-charcoal ml-1">{provider.rating}</span>
-                        </div>
-                      </div>
-                      
-                      <p className="text-ml-teal font-medium mb-2">{provider.specialty}</p>
-                      
-                      <div className="flex items-center text-ml-charcoal/60 mb-4">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{provider.location}</span>
-                      </div>
-                      
-                      <p className="text-sm text-ml-charcoal/60 mb-4">
-                        {provider.reviews} avis clients
-                      </p>
-                      
-                      <Button className="w-full bg-ml-teal hover:bg-ml-navy rounded-xl">
-                        Voir le profil
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
+          )}
           </div>
-        </section>
       </main>
-      
       <Footer />
     </div>
   );
 };
 
-export default Providers;
+export default ProvidersPage;

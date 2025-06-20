@@ -21,7 +21,6 @@ export default {
 			colors: {
 				// MusicLinks Custom Palette
 				'ml-charcoal': '#353535',
-				'ml-teal': '#3C6E71',
 				'ml-white': '#FFFFFF',
 				'ml-light-gray': '#D9D9D9',
 				'ml-navy': '#284B63',
@@ -70,7 +69,22 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				brand: {
+					DEFAULT: '#2665DA',
+					light: '#4B85F2',
+					dark: '#1749A6',
+					accent: '#E6F0FA',
+					faded: '#F5F8FC',
+				},
+				'ml-blue': '#2665DA',
+				'ml-blue-light': '#4B85F2',
+				'ml-blue-dark': '#1749A6',
+				'ml-blue-accent': '#E6F0FA',
+				'ml-blue-faded': '#F5F8FC',
+				'ml-gray': '#F5F7FA',
+				'ml-gray-dark': '#222B45',
+				'ml-gray-medium': '#6B7280',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -98,6 +112,9 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			fontFamily: {
+				sans: ['Poppins', 'sans-serif']
 			}
 		}
 	},

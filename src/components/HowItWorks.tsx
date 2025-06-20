@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, Music } from 'lucide-react';
+import { Search, Users, Music, ArrowRight, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const steps = [
@@ -10,84 +9,106 @@ const steps = [
     title: 'Trouvez votre prestataire',
     description: 'Parcourez nos profils vérifiés et trouvez le prestataire qui correspond à votre projet et votre budget.',
     icon: Search,
-    color: 'text-ml-teal'
+    color: 'from-blue-500 to-indigo-600',
+    bgColor: 'bg-gradient-to-br from-blue-50 to-indigo-50'
   },
   {
     step: '02',
     title: 'Échangez et collaborez',
     description: 'Contactez directement votre prestataire, discutez de votre projet et définissez ensemble les modalités.',
     icon: Users,
-    color: 'text-ml-navy'
+    color: 'from-green-500 to-emerald-600',
+    bgColor: 'bg-gradient-to-br from-green-50 to-emerald-50'
   },
   {
     step: '03',
     title: 'Créez ensemble',
     description: 'Donnez vie à votre projet musical avec l\'expertise de professionnels passionnés et talentueux.',
     icon: Music,
-    color: 'text-ml-teal'
+    color: 'from-purple-500 to-pink-600',
+    bgColor: 'bg-gradient-to-br from-purple-50 to-pink-50'
   }
 ];
 
 const HowItWorks = () => {
   return (
-    <section className="py-16 bg-gradient-to-br from-ml-light-gray/20 to-ml-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-ml-charcoal mb-4">
+    <section className="relative py-20 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-hidden">
+      {/* Musical background elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400 rounded-full blur-2xl"></div>
+        <div className="absolute top-20 right-20 w-16 h-16 bg-purple-400 rounded-full blur-xl"></div>
+        <div className="absolute bottom-10 left-1/3 w-24 h-24 bg-pink-400 rounded-full blur-2xl"></div>
+      </div>
+      
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6">
+            <Play className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
             Comment ça marche ?
           </h2>
-          <p className="text-xl text-ml-charcoal/70 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Trois étapes simples pour concrétiser vos projets musicaux
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+          {/* Connecting line */}
+          <div className="hidden md:block absolute top-20 left-1/4 right-1/4 h-1 bg-gradient-to-r from-blue-200 via-green-200 to-purple-200 rounded-full z-0"></div>
+          
           {steps.map((step, index) => {
             const IconComponent = step.icon;
             return (
-              <div key={index} className="text-center relative">
-                {/* Connector line (hidden on mobile) */}
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-16 left-1/2 w-full h-0.5 bg-ml-light-gray z-0">
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 rounded-full bg-ml-teal"></div>
+              <div key={index} className="text-center relative z-10 group">
+                {/* Step circle with animation */}
+                <div className="relative mb-8">
+                  <div className="w-20 h-20 mx-auto bg-white rounded-full shadow-lg border-4 border-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg`}>
+                      <span className="text-xl font-bold text-white">{step.step}</span>
+                    </div>
                   </div>
-                )}
-                
-                <div className="relative z-10">
-                  {/* Step number */}
-                  <div className="w-16 h-16 mx-auto mb-6 bg-white border-4 border-ml-teal rounded-full flex items-center justify-center">
-                    <span className="text-2xl font-bold text-ml-teal">{step.step}</span>
-                  </div>
-
-                  {/* Icon */}
-                  <div className={`w-12 h-12 mx-auto mb-4 ${step.color}`}>
-                    <IconComponent className="w-full h-full" />
-                  </div>
-
-                  {/* Content */}
-                  <h3 className="text-xl font-semibold text-ml-charcoal mb-4">
-                    {step.title}
-                  </h3>
                   
-                  <p className="text-ml-charcoal/70 leading-relaxed">
-                    {step.description}
-                  </p>
+                  {/* Pulse animation */}
+                  <div className="absolute inset-0 w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-400 opacity-20 animate-ping"></div>
                 </div>
+
+                {/* Icon with background */}
+                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl ${step.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-8 h-8 text-gray-700" />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-gray-800 transition-colors">
+                  {step.title}
+                </h3>
+                
+                <p className="text-gray-600 leading-relaxed">
+                  {step.description}
+                </p>
               </div>
             );
           })}
         </div>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-16">
+        <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mt-20">
           <Link to="/signup">
-            <Button size="lg" className="bg-ml-teal hover:bg-ml-navy text-white font-semibold px-8 py-4 rounded-full text-lg shadow-lg hover:shadow-xl transition-all duration-300">
+            <Button 
+              size="lg" 
+              className="font-semibold px-10 py-5 rounded-2xl text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border-0"
+            >
               Créer mon profil
+              <ArrowRight className="ml-3 h-5 w-5" />
             </Button>
           </Link>
           <Link to="/providers">
-            <Button size="lg" variant="outline" className="border-2 border-ml-charcoal/20 text-ml-charcoal hover:bg-ml-charcoal hover:text-white font-semibold px-8 py-4 rounded-full text-lg transition-all duration-300">
+            <Button 
+              size="lg" 
+              className="font-semibold px-10 py-5 rounded-2xl text-lg bg-white/20 backdrop-blur border border-white/30 text-gray-800 hover:bg-white/30 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+            >
               Explorer les prestataires
+              <ArrowRight className="ml-3 h-5 w-5" />
             </Button>
           </Link>
         </div>

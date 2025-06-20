@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
@@ -9,67 +8,160 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, MapPin, Calendar, User } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import type { Database } from '@/lib/supabaseClient';
+import { useToast } from '@/components/ui/use-toast';
+
+type Project = Database['public']['Tables']['Project']['Row'];
 
 const Projects = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { toast } = useToast();
   const [projectData, setProjectData] = useState({
     title: '',
     description: '',
     category: '',
     location: ''
   });
+  const [users, setUsers] = useState<Record<string, string>>({}); // authorId -> name
 
-  const handleCreateProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Création de projet:', projectData);
-    alert('Projet créé avec succès !');
-    setIsCreateDialogOpen(false);
-    setProjectData({ title: '', description: '', category: '', location: '' });
+  useEffect(() => {
+    const user = localStorage.getItem('musiclinks_user');
+    if (user) {
+      setCurrentUser(JSON.parse(user));
+    }
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('Project')
+        .select('id, title, description, category, location, status, authorId, createdAt, applicantCount, verified')
+        .eq('verified', 1)
+        .order('createdAt', { ascending: false });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Impossible de charger les projets: " + error.message,
+        });
+        return;
+      }
+      
+      console.log('[DEBUG] Supabase query: .eq(\'verified\', 1)');
+      console.log('[DEBUG] Raw data returned from Supabase:', data);
+      if (Array.isArray(data)) {
+        data.forEach((proj, idx) => {
+          console.log(`[DEBUG] Project #${idx} - id: ${proj.id}, verified:`, proj.verified);
+        });
+      }
+      setProjects(data || []);
+      // Fetch user names for all authorIds
+      const authorIds = Array.from(new Set((data || []).map((p: Project) => p.authorId)));
+      if (authorIds.length > 0) {
+        const { data: userData, error: userError } = await supabase
+          .from('User')
+          .select('id, name')
+          .in('id', authorIds);
+        if (!userError && userData) {
+          const userMap: Record<string, string> = {};
+          userData.forEach((u: { id: string; name: string }) => {
+            userMap[u.id] = u.name;
+          });
+          setUsers(userMap);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors du chargement des projets",
+      });
+    }
   };
 
-  const mockProjects = [
-    {
-      id: 1,
-      title: "Recherche beatmaker pour EP",
-      description: "Je cherche un beatmaker pour produire 5 instrumentales dans le style trap/hip-hop. Projet prévu pour mars 2025.",
-      author: "MC Flow",
-      category: "Production",
-      location: "Paris, France",
-      status: "Ouvert",
-      postedAt: "Il y a 2 jours",
-      applicants: 12
-    },
-    {
-      id: 2,
-      title: "Clip vidéo pour single",
-      description: "Artiste pop recherche réalisateur créatif pour clip vidéo. Concept artistique déjà défini, besoin d'une équipe pro.",
-      author: "Luna Music",
-      category: "Vidéo",
-      location: "Lyon, France",
-      status: "Ouvert",
-      postedAt: "Il y a 1 semaine",
-      applicants: 8
-    },
-    {
-      id: 3,
-      title: "Mixage album complet",
-      description: "Groupe rock indé cherche ingénieur son pour mixer 10 titres. Enregistrement déjà terminé, besoin expertise technique.",
-      author: "The Rebels",
-      category: "Audio",
-      location: "Marseille, France",
-      status: "En cours",
-      postedAt: "Il y a 3 jours",
-      applicants: 15
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Vous devez être connecté pour créer un projet",
+      });
+      return;
     }
-  ];
+
+    setIsLoading(true);
+    try {
+      const newProject = {
+        title: projectData.title,
+        description: projectData.description,
+        category: projectData.category,
+        location: projectData.location,
+        status: 'Ouvert',
+        authorId: currentUser.id,
+        applicantCount: 0,
+        verified: 0
+      };
+
+      const { data, error } = await supabase
+        .from('Project')
+        .insert([newProject])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Succès",
+        description: "Votre projet a été publié avec succès",
+      });
+
+      setIsCreateDialogOpen(false);
+      setProjectData({ title: '', description: '', category: '', location: '' });
+      fetchProjects();
+    } catch (error) {
+      console.error('Error creating project:', error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la création du projet",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Aujourd'hui";
+    if (diffDays === 1) return "Hier";
+    if (diffDays < 7) return `Il y a ${diffDays} jours`;
+    if (diffDays < 30) return `Il y a ${Math.floor(diffDays / 7)} semaine${Math.floor(diffDays / 7) > 1 ? 's' : ''}`;
+    return `Il y a ${Math.floor(diffDays / 30)} mois`;
+  };
 
   return (
-    <div className="min-h-screen bg-ml-white">
+    <div className="min-h-screen bg-white">
       <Header />
       
       <main className="pt-8">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-ml-teal/10 to-ml-navy/10 py-12 md:py-16">
+        <section className="bg-gradient-ml-primary/5 py-12 md:py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-8 md:mb-12">
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-ml-charcoal mb-4">
@@ -107,16 +199,16 @@ const Projects = () => {
 
                     <div className="space-y-2">
                       <Label htmlFor="category">Catégorie</Label>
-                      <Select value={projectData.category} onValueChange={(value) => setProjectData({...projectData, category: value})}>
+                      <Select value={projectData.category} onValueChange={(value) => setProjectData({...projectData, category: value})} required>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner une catégorie" />
                         </SelectTrigger>
                         <SelectContent className="bg-white">
-                          <SelectItem value="audio">Audio & Son</SelectItem>
-                          <SelectItem value="video">Vidéo & Clips</SelectItem>
-                          <SelectItem value="marketing">Marketing Musical</SelectItem>
-                          <SelectItem value="training">Formation & Coaching</SelectItem>
-                          <SelectItem value="legal">Juridique & Business</SelectItem>
+                          <SelectItem value="Audio">Audio & Son</SelectItem>
+                          <SelectItem value="Vidéo">Vidéo & Clips</SelectItem>
+                          <SelectItem value="Marketing">Marketing Musical</SelectItem>
+                          <SelectItem value="Formation">Formation & Coaching</SelectItem>
+                          <SelectItem value="Juridique">Juridique & Business</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -143,8 +235,12 @@ const Projects = () => {
                       />
                     </div>
 
-                    <Button type="submit" className="w-full bg-ml-teal hover:bg-ml-navy">
-                      Publier le projet
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-ml-teal hover:bg-ml-navy"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Publication...' : 'Publier le projet'}
                     </Button>
                   </form>
                 </DialogContent>
@@ -158,13 +254,13 @@ const Projects = () => {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 md:mb-8 gap-4">
               <h2 className="text-xl md:text-2xl font-bold text-ml-charcoal">
-                {mockProjects.length} projets disponibles
+                {projects.length} projets disponibles
               </h2>
             </div>
 
             <div className="space-y-4 md:space-y-6">
-              {mockProjects.map((project) => (
-                <div key={project.id} className="bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 md:p-6 border border-ml-light-gray/20">
+              {projects.map((project) => (
+                <div key={project.id} className="bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 md:p-6 border border-ml-blue/20">
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                       <div className="flex-1">
@@ -172,8 +268,8 @@ const Projects = () => {
                           <h3 className="text-lg md:text-xl font-bold text-ml-charcoal">{project.title}</h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-medium w-fit ${
                             project.status === 'Ouvert' 
-                              ? 'bg-green-100 text-green-700' 
-                              : 'bg-orange-100 text-orange-700'
+                              ? 'bg-ml-teal/10 text-ml-teal' 
+                              : 'bg-ml-navy/10 text-ml-navy'
                           }`}>
                             {project.status}
                           </span>
@@ -182,11 +278,11 @@ const Projects = () => {
                         <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-ml-charcoal/60 mb-3">
                           <div className="flex items-center">
                             <User className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                            {project.author}
+                            {users[project.authorId] || project.authorId}
                           </div>
                           <div className="flex items-center">
                             <Calendar className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                            {project.postedAt}
+                            {formatDate(project.createdAt)}
                           </div>
                           {project.location && (
                             <div className="flex items-center">
@@ -202,23 +298,21 @@ const Projects = () => {
                       </span>
                     </div>
 
-                    <p className="text-sm md:text-base text-ml-charcoal/70 leading-relaxed">
+                    <p className="text-sm md:text-base text-ml-charcoal/80 leading-relaxed">
                       {project.description}
                     </p>
 
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                    <div className="flex justify-between items-center pt-4 border-t border-ml-blue/20">
                       <span className="text-xs md:text-sm text-ml-charcoal/60">
-                        {project.applicants} candidatures reçues
+                        {project.applicantCount} candidature{project.applicantCount !== 1 ? 's' : ''}
                       </span>
-                      
-                      <div className="flex gap-2 md:gap-3">
-                        <Button variant="outline" size="sm" className="rounded-full text-xs md:text-sm border-ml-light-gray/50 hover:bg-ml-light-gray/20">
-                          Voir détails
-                        </Button>
-                        <Button size="sm" className="bg-ml-teal hover:bg-ml-navy rounded-full text-xs md:text-sm">
-                          Postuler
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="default" 
+                        size="sm"
+                        className="rounded-full"
+                      >
+                        Voir le projet
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -227,10 +321,10 @@ const Projects = () => {
           </div>
         </section>
       </main>
-      
+
       <Footer />
     </div>
   );
 };
 
-export default Projects;
+export default Projects; 

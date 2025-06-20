@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -8,7 +7,7 @@ import HowItWorks from '@/components/HowItWorks';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-ml-white">
+    <div className="min-h-screen font-sans">
       <Header />
       <main>
         <HeroSection />

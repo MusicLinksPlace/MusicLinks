@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -31,7 +30,7 @@ const HowItWorks = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-ml-white">
+    <div className="min-h-screen bg-ml-white font-sans">
       <Header />
       
       <main className="pt-8">
@@ -39,7 +38,7 @@ const HowItWorks = () => {
         <section className="bg-gradient-to-r from-ml-teal/10 to-ml-navy/10 py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <Music className="h-16 w-16 text-ml-teal mx-auto mb-6" />
-            <h1 className="text-4xl md:text-5xl font-bold text-ml-charcoal mb-6">
+            <h1 className="text-3xl md:text-5xl font-bold text-ml-charcoal mb-6">
               Comment ça marche ?
             </h1>
             <p className="text-xl text-ml-charcoal/70 max-w-2xl mx-auto">
@@ -51,22 +50,30 @@ const HowItWorks = () => {
         {/* Étapes */}
         <section className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
-              {steps.map((step, index) => (
-                <div key={index} className="flex items-start space-x-6 group">
-                  <div className="flex-shrink-0 w-16 h-16 bg-ml-teal/10 rounded-2xl flex items-center justify-center text-ml-teal group-hover:bg-ml-teal group-hover:text-white transition-all duration-300">
-                    {step.icon}
+            <h2 className="text-4xl font-bold text-ml-blue-dark text-center mb-6">Comment ça marche ?</h2>
+            <p className="text-xl text-ml-gray-medium text-center mb-16">Trois étapes simples pour concrétiser vos projets musicaux</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+              {/* Étape 1 */}
+              <div className="bg-ml-blue/10 backdrop-blur border border-ml-blue/30 rounded-2xl shadow-xl p-8 mx-auto max-w-sm flex flex-col items-center hover:shadow-2xl transition-all duration-300">
+                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-ml-blue/80 text-white text-2xl font-bold mb-4 shadow border border-white/30">1</div>
+                <Search className="w-10 h-10 mb-3 text-ml-blue-dark" />
+                <h3 className="text-xl font-semibold text-ml-blue-dark mb-2 text-center">Trouvez votre prestataire</h3>
+                <p className="text-ml-gray-medium text-center text-base">Parcourez nos profils vérifiés et trouvez le prestataire qui correspond à votre projet et votre budget.</p>
                   </div>
-                  <div>
-                    <h3 className="text-2xl font-bold text-ml-charcoal mb-3">
-                      {step.title}
-                    </h3>
-                    <p className="text-ml-charcoal/70 leading-relaxed text-lg">
-                      {step.description}
-                    </p>
+              {/* Étape 2 */}
+              <div className="bg-ml-blue/10 backdrop-blur border border-ml-blue/30 rounded-2xl shadow-xl p-8 mx-auto max-w-sm flex flex-col items-center hover:shadow-2xl transition-all duration-300">
+                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-ml-blue/80 text-white text-2xl font-bold mb-4 shadow border border-white/30">2</div>
+                <Users className="w-10 h-10 mb-3 text-ml-blue-dark" />
+                <h3 className="text-xl font-semibold text-ml-blue-dark mb-2 text-center">Échangez et collaborez</h3>
+                <p className="text-ml-gray-medium text-center text-base">Contactez directement votre prestataire, discutez de votre projet et définissez ensemble les modalités.</p>
                   </div>
+              {/* Étape 3 */}
+              <div className="bg-ml-blue/10 backdrop-blur border border-ml-blue/30 rounded-2xl shadow-xl p-8 mx-auto max-w-sm flex flex-col items-center hover:shadow-2xl transition-all duration-300">
+                <div className="w-14 h-14 flex items-center justify-center rounded-full bg-ml-blue/80 text-white text-2xl font-bold mb-4 shadow border border-white/30">3</div>
+                <Music className="w-10 h-10 mb-3 text-ml-blue-dark" />
+                <h3 className="text-xl font-semibold text-ml-blue-dark mb-2 text-center">Créez ensemble</h3>
+                <p className="text-ml-gray-medium text-center text-base">Donnez vie à votre projet musical avec l'expertise de professionnels passionnés et talentueux.</p>
                 </div>
-              ))}
             </div>
           </div>
         </section>
@@ -101,7 +108,7 @@ const HowItWorks = () => {
                 </div>
                 <div className="mt-8">
                   <Link to="/signup">
-                    <Button size="lg" className="bg-ml-teal hover:bg-ml-navy rounded-full px-8">
+                    <Button size="lg" variant="gradient" className="rounded-full px-8">
                       Commencer maintenant
                     </Button>
                   </Link>
@@ -159,9 +166,7 @@ const HowItWorks = () => {
                 </div>
                 <div className="mt-8">
                   <Link to="/signup">
-                    <Button size="lg" className="bg-ml-teal hover:bg-ml-navy rounded-full px-8">
-                      Devenir prestataire
-                    </Button>
+                    <Button size="lg" variant="gradient" className="px-8 py-3 rounded-full font-semibold">Créer mon profil</Button>
                   </Link>
                 </div>
               </div>
@@ -180,12 +185,12 @@ const HowItWorks = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/providers">
-                <Button size="lg" variant="secondary" className="bg-white text-ml-teal hover:bg-white/90 rounded-full px-8">
+                <Button size="lg" variant="gradient" className="rounded-full px-8">
                   Explorer les prestataires
                 </Button>
               </Link>
               <Link to="/signup">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-ml-teal rounded-full px-8">
+                <Button size="lg" variant="gradient" className="rounded-full px-8">
                   Créer mon profil
                 </Button>
               </Link>
