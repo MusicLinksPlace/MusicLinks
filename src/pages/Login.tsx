@@ -79,7 +79,7 @@ const Login = () => {
             <img
               alt="MusicLinks Logo"
               className="h-12 w-auto"
-              src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png"
+              src="/lovable-uploads/logo-white.png"
             />
           </Link>
           

@@ -122,7 +122,7 @@ const Header = () => {
                     variant="ghost"
                     className="text-base font-semibold px-5 py-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition-all shadow-sm border border-blue-100"
                   >
-                    Découvrir
+                    Professionnels
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-[420px] p-4">
@@ -171,16 +171,16 @@ const Header = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium flex items-center gap-2">
-                      {currentUser.profilePicture ? (
+                      {currentUser.profilepicture ? (
                         <img
-                          src={currentUser.profilePicture}
+                          src={currentUser.profilepicture}
                           alt="Profile"
-                          className="w-6 h-6 rounded-full object-cover"
+                          className="w-7 h-7 rounded-full object-cover"
                         />
                       ) : (
                         <User className="h-4 w-4" />
                       )}
-                      Mon compte
+                      {currentUser.name || 'Mon compte'}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -279,28 +279,37 @@ const Header = () => {
                 </li>
               </ul>
             </nav>
-            <div className="px-6 py-6 mt-auto border-t border-gray-200 flex flex-col gap-4">
+            <div className="p-6 mt-auto border-t border-gray-200">
               {currentUser ? (
-                <>
-                  {currentUser.role === 'artist' && (
-                    <Link to="/profile/artist" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full rounded-xl h-12 text-base font-semibold shadow-sm">
-                        Mon profil artiste
-                      </Button>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    {currentUser.profilepicture ? (
+                      <img src={currentUser.profilepicture} alt="Profile" className="w-10 h-10 rounded-full object-cover"/>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="w-6 h-6 text-gray-500" />
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-bold text-gray-800">{currentUser.name || 'Utilisateur'}</div>
+                      <div className="text-sm text-gray-500">{currentUser.role === 'artist' ? 'Artiste' : 'Prestataire'}</div>
+                    </div>
+                  </div>
+                  
+                  <Button asChild variant="ghost" className="w-full justify-start text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                    <Link to={currentUser.role === 'artist' ? '/profile/artist' : '/profile/provider'} onClick={() => setIsMobileMenuOpen(false)}>
+                      <User className="w-4 h-4 mr-2" />
+                      <span>Mon profil</span>
                     </Link>
-                  )}
-                  <Button 
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full rounded-xl h-12 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg"
-                  >
+                  </Button>
+
+                  <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
                     Se déconnecter
                   </Button>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="grid grid-cols-2 gap-4">
                   <Link to="/login" state={{ from: location }} onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full rounded-xl h-12 text-base font-semibold shadow-sm">
                       Connexion
@@ -311,7 +320,7 @@ const Header = () => {
                       S'inscrire
                     </Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>

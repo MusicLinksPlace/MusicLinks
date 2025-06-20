@@ -56,7 +56,7 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users })
       </div>
       <div
         ref={scrollRef}
-        className="flex overflow-x-auto gap-6 pb-4 -mx-4 px-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        className="flex overflow-x-auto gap-6 pb-4 px-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
       >
         {users.map((user) => (
           <UserCard key={user.id} user={user} />

@@ -3,12 +3,10 @@ import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HorizontalCarousel from '@/components/HorizontalCarousel';
-import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from '@/components/ui/drawer';
-import { useIsMobile } from '@/hooks/use-mobile';
 
 interface User {
   id: string;
@@ -55,90 +53,72 @@ const providerGroupsConfig = [
   },
 ];
 
-const FilterBar = ({ locations, onFilterChange }: any) => {
-  const isMobile = useIsMobile();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('all');
-  const [selectedDomain, setSelectedDomain] = useState('all');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  useEffect(() => {
-    onFilterChange({ searchTerm, selectedLocation, selectedDomain });
-  }, [searchTerm, selectedLocation, selectedDomain]);
-
-  const filters = (
-    <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-zinc-400" />
-        <Input
-          type="text"
-          placeholder="Rechercher un nom..."
-          className="pl-10 h-12 text-base border-slate-200 bg-slate-50 text-zinc-900 placeholder:text-zinc-500 focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/50"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div>
-      <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-        <SelectTrigger className="h-12 text-base border-slate-200 bg-slate-50 text-zinc-900 focus:ring-2 focus:ring-blue-500 [&>span]:data-[placeholder]:text-zinc-500">
-          <MapPin className="h-5 w-5 text-zinc-400 mr-2" />
-          <SelectValue placeholder="Toutes les villes" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Toutes les villes</SelectItem>
-          {locations.map((loc: string) => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}
-        </SelectContent>
-      </Select>
-      <Select value={selectedDomain} onValueChange={setSelectedDomain}>
-        <SelectTrigger className="h-12 text-base border-slate-200 bg-slate-50 text-zinc-900 focus:ring-2 focus:ring-blue-500 [&>span]:data-[placeholder]:text-zinc-500">
-           <ChevronDown className="h-5 w-5 text-zinc-400 mr-2" />
-          <SelectValue placeholder="Tous les domaines" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">Tous les domaines</SelectItem>
-          {providerGroupsConfig.map(group => <SelectItem key={group.title} value={group.title}>{group.title}</SelectItem>)}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-
-  if (isMobile) {
-    return (
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerTrigger asChild>
-          <Button variant="outline" className="w-full h-12 text-base font-semibold shadow-sm border-slate-200">
-            <SlidersHorizontal className="mr-2 h-5 w-5" />
-            Filtres
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent className="bg-white rounded-t-2xl shadow-xl p-6 border-none focus:outline-none">
-          <div className="relative mb-6 text-center">
-            <img
-              src="/lovable-uploads/451a0a63-4154-4a97-91cf-b1db62593cb0.png"
-              alt="MusicLinks Logo"
-              className="h-8 w-auto inline-block mb-4"
-            />
-            <DrawerHeader className="text-center p-0">
-              <DrawerTitle className="font-semibold text-zinc-900 text-xl">Filtres</DrawerTitle>
-            </DrawerHeader>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-0 right-0 rounded-full h-9 w-9 text-zinc-500 hover:bg-slate-100 hover:text-zinc-900"
-              onClick={() => setIsDrawerOpen(false)}
-            >
-              <X className="h-5 w-5" />
-              <span className="sr-only">Fermer</span>
-            </Button>
-          </div>
-          {filters}
-        </DrawerContent>
-      </Drawer>
-    );
-  }
+const FilterBar = ({ locations, onFilterChange, onReset, filters }: any) => {
+  const isFilterActive = filters.searchTerm !== '' || filters.selectedLocation !== 'all' || filters.selectedDomain !== 'all';
 
   return (
-    <div className="sticky top-[65px] z-40 bg-gray-50/80 backdrop-blur-sm py-4">
-      {filters}
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="group p-6 bg-white/30 backdrop-blur-sm rounded-3xl shadow-md border border-neutral-200/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500/20">
+        <div className="flex flex-col md:flex-row items-center gap-4">
+          {/* Search Input */}
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
+            <Input
+              type="text"
+              placeholder="Rechercher un prestataire..."
+              className="w-full h-12 pl-11 text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 placeholder:text-neutral-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              value={filters.searchTerm}
+              onChange={(e) => onFilterChange({ ...filters, searchTerm: e.target.value })}
+            />
+          </div>
+          
+          {/* Select Location */}
+          <div className="relative w-full">
+            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
+            <Select 
+              value={filters.selectedLocation} 
+              onValueChange={(value) => onFilterChange({ ...filters, selectedLocation: value })}
+            >
+              <SelectTrigger className="w-full h-12 pl-11 text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 data-[placeholder]:text-neutral-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                <SelectValue placeholder="Toutes les villes" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl bg-white/80 backdrop-blur-md border-neutral-200 shadow-lg">
+                <SelectItem value="all">Toutes les villes</SelectItem>
+                {locations.map((loc: string) => <SelectItem key={loc} value={loc} className="text-sm">{loc}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Select Domain */}
+          <div className="relative w-full">
+            <ChevronDown className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
+             <Select 
+              value={filters.selectedDomain} 
+              onValueChange={(value) => onFilterChange({ ...filters, selectedDomain: value })}
+            >
+              <SelectTrigger className="w-full h-12 pl-11 text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 data-[placeholder]:text-neutral-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
+                <SelectValue placeholder="Tous les domaines" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl bg-white/80 backdrop-blur-md border-neutral-200 shadow-lg">
+                <SelectItem value="all">Tous les domaines</SelectItem>
+                {providerGroupsConfig.map(group => <SelectItem key={group.title} value={group.title} className="text-sm">{group.title}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        {isFilterActive && (
+          <div className="mt-4 flex justify-end">
+             <Button
+              variant="ghost"
+              className="h-auto px-3 py-1 text-xs text-neutral-500 hover:text-neutral-800 hover:bg-white/30"
+              onClick={onReset}
+            >
+              Réinitialiser
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -154,6 +134,10 @@ const ProvidersPage = () => {
     selectedDomain: 'all',
   });
 
+  const handleResetFilters = () => {
+    setFilters({ searchTerm: '', selectedLocation: 'all', selectedDomain: 'all' });
+  };
+  
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
@@ -228,8 +212,13 @@ const ProvidersPage = () => {
               </p>
             </div>
 
-          <div className="mb-8">
-            <FilterBar locations={locations} onFilterChange={setFilters} />
+          <div className="mb-12">
+            <FilterBar 
+              locations={locations} 
+              onFilterChange={setFilters} 
+              onReset={handleResetFilters}
+              filters={filters} 
+            />
           </div>
 
           {loading ? (
