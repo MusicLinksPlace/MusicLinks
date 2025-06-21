@@ -105,17 +105,17 @@ const Header = () => {
   return (
     <>
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
             <Link to="/" className="flex items-center gap-2">
-              <img 
-                src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
-                alt="MusicLinks" 
+            <img 
+              src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
+              alt="MusicLinks" 
                 className="h-8 w-auto"
-              />
-            </Link>
+            />
+          </Link>
 
-            <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -130,7 +130,7 @@ const Header = () => {
                     const IconComponent = item.icon;
                     return (
                       <DropdownMenuItem key={item.type} asChild>
-                        <Link
+            <Link 
                           to={item.link}
                           className="block p-4 rounded-lg hover:bg-blue-50 focus:bg-blue-50"
                         >
@@ -141,32 +141,32 @@ const Header = () => {
                               <div className="text-sm text-gray-500">{item.description}</div>
                             </div>
                           </div>
-                        </Link>
+            </Link>
                       </DropdownMenuItem>
                     );
                   })}
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              <Link 
+            <Link 
                 to="/Project" 
                 className={`text-sm font-semibold transition-colors hover:text-blue-600 ${
                   isActive('/Project') ? 'text-blue-600' : 'text-gray-700'
-                }`}
-              >
-                Projets
-              </Link>
-              <Link 
-                to="/how-it-works" 
+              }`}
+            >
+              Projets
+            </Link>
+            <Link 
+              to="/how-it-works" 
                 className={`text-sm font-semibold transition-colors hover:text-blue-600 ${
                   isActive('/how-it-works') ? 'text-blue-600' : 'text-gray-700'
-                }`}
-              >
-                Comment ça marche
-              </Link>
-            </nav>
+              }`}
+            >
+              Comment ça marche
+            </Link>
+          </nav>
 
-            <div className="hidden md:flex items-center space-x-3">
+          <div className="hidden md:flex items-center space-x-3">
               {currentUser ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -199,28 +199,28 @@ const Header = () => {
                 <>
                   <Link to="/login" state={{ from: location }}>
                     <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium">
-                      Connexion
-                    </Button>
-                  </Link>
+                Connexion
+              </Button>
+            </Link>
                   <Link to="/signup" state={{ from: location }}>
                     <Button size="sm" className="font-medium rounded-full px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300">
-                      S'inscrire
-                    </Button>
-                  </Link>
+                S'inscrire
+              </Button>
+            </Link>
                 </>
               )}
-            </div>
+          </div>
 
-            <button
+          <button
               className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
+          >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6 text-gray-700" />
-              ) : (
+            ) : (
                 <Menu className="h-6 w-6 text-gray-700" />
-              )}
-            </button>
+            )}
+          </button>
           </div>
         </div>
       </header>
@@ -266,7 +266,7 @@ const Header = () => {
                       <span className="block text-base font-semibold text-gray-900">Prestataires de services</span>
                       <span className="block text-sm text-gray-500">Studios, beatmakers…</span>
                     </span>
-                  </Link>
+            </Link>
                 </li>
                 <li>
                   <Link to="/partners" onClick={() => setIsMobileMenuOpen(false)} className="flex items-start gap-4 py-4 focus:outline-none">
@@ -275,7 +275,7 @@ const Header = () => {
                       <span className="block text-base font-semibold text-gray-900">Partenaires stratégiques</span>
                       <span className="block text-sm text-gray-500">Labels, managers…</span>
                     </span>
-                  </Link>
+            </Link>
                 </li>
               </ul>
             </nav>
@@ -300,7 +300,7 @@ const Header = () => {
                     <Link to={currentUser.role === 'artist' ? '/profile/artist' : '/profile/provider'} onClick={() => setIsMobileMenuOpen(false)}>
                       <User className="w-4 h-4 mr-2" />
                       <span>Mon profil</span>
-                    </Link>
+            </Link>
                   </Button>
 
                   <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleSignOut}>
@@ -312,14 +312,14 @@ const Header = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <Link to="/login" state={{ from: location }} onClick={() => setIsMobileMenuOpen(false)}>
                     <Button variant="outline" className="w-full rounded-xl h-12 text-base font-semibold shadow-sm">
-                      Connexion
-                    </Button>
-                  </Link>
+                  Connexion
+                </Button>
+              </Link>
                   <Link to="/signup" state={{ from: location }} onClick={() => setIsMobileMenuOpen(false)}>
                     <Button className="w-full rounded-xl h-12 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg">
-                      S'inscrire
-                    </Button>
-                  </Link>
+                  S'inscrire
+                </Button>
+              </Link>
                 </div>
               )}
             </div>

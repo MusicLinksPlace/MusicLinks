@@ -1,28 +1,31 @@
 import React, { useRef } from 'react';
+import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import UserCard from './UserCard';
+import UserCard from '@/components/UserCard';
+import { cn } from '@/lib/utils';
 
 interface User {
   id: string;
   name: string;
   subCategory?: string;
   location?: string;
-  rating?: number;
-  profilePicture?: string;
+  profilepicture?: string;
+  musicStyle?: string;
 }
 
 interface HorizontalCarouselProps {
   title: string;
   users: User[];
+  cardClassName?: string;
 }
 
-const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, cardClassName }) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = scrollRef.current.offsetWidth * 0.8;
-      scrollRef.current.scrollBy({
+    if (scrollContainerRef.current) {
+      const scrollAmount = scrollContainerRef.current.offsetWidth * 0.8;
+      scrollContainerRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
       });
@@ -34,35 +37,43 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users })
   }
 
   return (
-    <section className="mb-12">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">{title}</h2>
-        <div className="hidden md:flex gap-3">
-          <button
+    <div>
+      <div className="flex justify-between items-center mb-4 px-4">
+        <h3 className="text-xl font-bold text-gray-800">{title}</h3>
+        <div className="hidden md:flex gap-2">
+          <Button
+            variant="outline"
             onClick={() => scroll('left')}
             className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all"
             aria-label="Scroll left"
           >
             <ChevronLeft size={22} />
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
             onClick={() => scroll('right')}
             className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all"
             aria-label="Scroll right"
           >
             <ChevronRight size={22} />
-          </button>
+          </Button>
         </div>
       </div>
       <div
-        ref={scrollRef}
-        className="flex overflow-x-auto gap-6 pb-4 px-4 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+        ref={scrollContainerRef}
+        className="flex overflow-x-auto space-x-6 scroll-smooth scrollbar-hide py-4 -mb-4 px-4 md:px-0 md:-mx-24"
       >
-        {users.map((user) => (
-          <UserCard key={user.id} user={user} />
+        {users.map((user, index) => (
+          <div key={user.id} className={cn(
+            "border-l-4 pl-4 snap-start",
+            cardClassName,
+            index === 0 && "md:ml-28"
+          )}>
+            <UserCard user={user} />
+          </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 };
 

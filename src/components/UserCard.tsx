@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import { Star, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { MUSIC_STYLES } from '@/lib/constants';
 
 interface User {
   id: string;
   name: string;
   subCategory?: string;
+  musicStyle?: string;
   location?: string;
   rating?: number;
   profilepicture?: string | null;
@@ -19,6 +21,7 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const subCategoryLabel = user.subCategory?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  const musicStyleLabel = MUSIC_STYLES.find(style => style.value === user.musicStyle)?.label;
 
   const isPlaceholder = !(user.profilepicture && 
                         user.profilepicture.startsWith('http') && 
@@ -49,9 +52,18 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
               {subCategoryLabel}
             </Badge>
           )}
+          {musicStyleLabel && (
+            <Badge
+              variant="default"
+              className="absolute top-3 right-3 bg-black/30 backdrop-blur-sm text-white border-white/20"
+            >
+              {musicStyleLabel}
+            </Badge>
+          )}
         </div>
         <div className="p-4 bg-white">
           <h3 className="text-lg font-bold text-gray-900 truncate">{user.name}</h3>
+          
           <div className="flex items-center justify-between mt-2 text-sm">
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />

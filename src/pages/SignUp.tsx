@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MUSIC_STYLES } from '@/lib/constants';
+import GoogleLoginButton from '@/components/ui/GoogleLoginButton';
 
 // --- Data Configuration ---
 const ROLES = [
@@ -52,46 +53,70 @@ const PROVIDER_SUB_CATEGORIES = {
 };
 
 // --- Step Components ---
-const Step1UserInfoAndRole = ({ formData, onFormChange, onRoleChange }) => {
+const Step1Credentials = ({ formData, onFormChange, onGoogleSignUp }) => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         onFormChange(prev => ({ ...prev, [name]: value }));
     };
 
     return (
-        <form className="space-y-4 md:space-y-6" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-2">
-               <Label htmlFor="name" className="text-white font-medium text-sm md:text-base">Nom complet ou d'artiste</Label>
-               <Input id="name" name="name" value={formData.name} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="John Doe"/>
+        <div className="space-y-6">
+            <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white">Créer votre compte</h2>
+                <p className="text-white/70 text-sm">Commencez par créer votre compte</p>
             </div>
-            <div className="space-y-2">
-               <Label htmlFor="email" className="text-white font-medium text-sm md:text-base">Email</Label>
-               <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="votre@email.com"/>
+            
+            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <div className="space-y-2">
+                   <Label htmlFor="name" className="text-white font-medium text-sm md:text-base">Nom complet ou d'artiste</Label>
+                   <Input id="name" name="name" value={formData.name} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="John Doe"/>
+                </div>
+                <div className="space-y-2">
+                   <Label htmlFor="email" className="text-white font-medium text-sm md:text-base">Email</Label>
+                   <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="votre@email.com"/>
+                </div>
+                <div className="space-y-2">
+                   <Label htmlFor="password" className="text-white font-medium text-sm md:text-base">Mot de passe</Label>
+                   <Input id="password" name="password" type="password" value={formData.password} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="••••••••"/>
+                </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="confirmPassword" className="text-white font-medium text-sm md:text-base">Confirmer le mot de passe</Label>
+                   <Input id="confirmPassword" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="••••••••"/>
+                </div>
+            </form>
+
+            <div className="relative my-6 flex items-center gap-4">
+              <hr className="flex-grow border-t border-white/20" />
+              <span className="text-xs uppercase text-white/50">OU</span>
+              <hr className="flex-grow border-t border-white/20" />
             </div>
-            <div className="space-y-2">
-               <Label htmlFor="password" className="text-white font-medium text-sm md:text-base">Mot de passe</Label>
-               <Input id="password" name="password" type="password" value={formData.password} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="••••••••"/>
-            </div>
-             <div className="space-y-2">
-               <Label htmlFor="confirmPassword" className="text-white font-medium text-sm md:text-base">Confirmer le mot de passe</Label>
-               <Input id="confirmPassword" name="confirmPassword" type="password" value={formData.confirmPassword} onChange={handleChange} required className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl" placeholder="••••••••"/>
-            </div>
-            <div className="space-y-3 pt-2">
-                <Label className="text-white font-medium text-sm md:text-base">Type de profil</Label>
-                <RadioGroup value={formData.role} onValueChange={onRoleChange} className="space-y-3">
-                    {ROLES.map((role) => (
-                    <Label key={role.id} htmlFor={role.id} className="flex items-center gap-4 rounded-xl p-3 cursor-pointer bg-white/5 hover:bg-white/10 has-[input:checked]:bg-white/20 has-[input:checked]:ring-2 has-[input:checked]:ring-ml-teal transition-all">
-                        <RadioGroupItem value={role.id} id={role.id} className="sr-only" />
-                        <span className="font-semibold text-white">{role.label}</span>
-                    </Label>
-                    ))}
-                </RadioGroup>
-            </div>
-        </form>
+
+            <GoogleLoginButton />
+        </div>
     );
 };
 
-const Step2SubCategory = ({ role, onSelectSubCategory, selectedSubCategory }) => {
+const Step2RoleSelection = ({ formData, onRoleChange }) => {
+    return (
+        <div className="space-y-6">
+            <div className="text-center mb-6">
+                <h2 className="text-xl font-bold text-white">Type de profil</h2>
+                <p className="text-white/70 text-sm">Sélectionnez le type de profil qui vous correspond</p>
+            </div>
+            
+            <RadioGroup value={formData.role} onValueChange={onRoleChange} className="space-y-3">
+                {ROLES.map((role) => (
+                <Label key={role.id} htmlFor={role.id} className="flex items-center gap-4 rounded-xl p-3 cursor-pointer bg-white/5 hover:bg-white/10 has-[input:checked]:bg-white/20 has-[input:checked]:ring-2 has-[input:checked]:ring-ml-teal transition-all">
+                    <RadioGroupItem value={role.id} id={role.id} className="sr-only" />
+                    <span className="font-semibold text-white">{role.label}</span>
+                </Label>
+                ))}
+            </RadioGroup>
+        </div>
+    );
+};
+
+const Step3SubCategory = ({ role, onSelectSubCategory, selectedSubCategory }) => {
   const [selectedDomain, setSelectedDomain] = useState(null);
 
   const getSubCategoryContent = () => {
@@ -158,6 +183,14 @@ const Step2SubCategory = ({ role, onSelectSubCategory, selectedSubCategory }) =>
         </div>
       );
     }
+
+    // For artists, no sub-category needed
+    return (
+        <div className="text-center">
+            <h2 className="text-xl font-bold text-white">Parfait !</h2>
+            <p className="text-white/70 text-sm">Vous pouvez maintenant passer à l'étape suivante pour compléter votre profil.</p>
+        </div>
+    );
   }
 
   return getSubCategoryContent();
@@ -332,25 +365,41 @@ const SignUpPage = () => {
 
   const handleNextStep = () => {
     if (step === 1) {
+      // Validate credentials
+      if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+        toast.error("Veuillez remplir tous les champs obligatoires.");
+        return;
+      }
     if (formData.password !== formData.confirmPassword) {
         toast.error("Les mots de passe ne correspondent pas.");
         return;
       }
+    }
+    
+    if (step === 2) {
+      // Validate role selection
       if (!formData.role) {
         toast.error("Veuillez sélectionner un type de profil.");
+        return;
+      }
+    }
+    
+    if (step === 3) {
+      // Validate sub-category for partners and providers
+      if ((formData.role === 'partner' || formData.role === 'provider') && !formData.subCategory) {
+        toast.error("Veuillez sélectionner une spécialité.");
       return;
       }
     }
-    if (step < 3) {
-      const nextStep = (step === 1 && formData.role === 'artist') ? 3 : step + 1;
-      setStep(nextStep);
+    
+    if (step < 4) {
+      setStep(step + 1);
     }
   };
 
   const handlePrevStep = () => {
     if (step > 1) {
-      const prevStep = (step === 3 && formData.role === 'artist') ? 1 : step - 1;
-      setStep(prevStep);
+      setStep(step - 1);
     }
   };
 
@@ -429,12 +478,12 @@ const SignUpPage = () => {
                     Précédent
                 </Button>
             )}
-            {step < 3 && (
+            {step < 4 && (
                 <Button onClick={handleNextStep} className={mainButtonClass}>
                     Suivant
                 </Button>
             )}
-            {step === 3 && (
+            {step === 4 && (
                 <Button onClick={handleSubmit} className={mainButtonClass}>
                     Terminer l'inscription
                 </Button>
@@ -462,21 +511,30 @@ const SignUpPage = () => {
 
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10">
             {step === 1 && (
-                <Step1UserInfoAndRole 
+                <Step1Credentials 
                     formData={formData}
                     onFormChange={setFormData}
-                    onRoleChange={handleRoleChange} 
+                    onGoogleSignUp={() => {}}
                 />
             )}
             {step === 2 && (
-                <Step2SubCategory 
-                    role={formData.role} 
-                    selectedSubCategory={formData.subCategory}
-                    onSelectSubCategory={(subCategory) => setFormData(prev => ({ ...prev, subCategory }))}
+                <Step2RoleSelection 
+                    formData={formData}
+                    onRoleChange={handleRoleChange}
                 />
             )}
             {step === 3 && (
-                <Step3ProfileInfo formData={formData} onFormChange={setFormData} />
+                <Step3SubCategory 
+                    role={formData.role} 
+                    onSelectSubCategory={(value) => setFormData(prev => ({ ...prev, subCategory: value }))} 
+                    selectedSubCategory={formData.subCategory} 
+                />
+            )}
+            {step === 4 && (
+                <Step3ProfileInfo 
+                    formData={formData} 
+                    onFormChange={setFormData} 
+                />
             )}
           
             <ActionButtons />

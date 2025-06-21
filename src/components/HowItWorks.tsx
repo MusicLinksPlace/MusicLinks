@@ -71,21 +71,21 @@ const HowItWorks = () => {
                   
                   {/* Pulse animation */}
                   <div className="absolute inset-0 w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-blue-400 to-purple-400 opacity-20 animate-ping"></div>
-                </div>
+                  </div>
 
                 {/* Icon with background */}
                 <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl ${step.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
                   <IconComponent className="w-8 h-8 text-gray-700" />
-                </div>
+                  </div>
 
-                {/* Content */}
+                  {/* Content */}
                 <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-gray-800 transition-colors">
-                  {step.title}
-                </h3>
-                
+                    {step.title}
+                  </h3>
+                  
                 <p className="text-gray-600 leading-relaxed">
-                  {step.description}
-                </p>
+                    {step.description}
+                  </p>
               </div>
             );
           })}

@@ -134,32 +134,32 @@ const App = () => {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
           <ScrollToTop />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/login" element={<Login />} />
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login />} />
             <Route path="/providers" element={<ProvidersPage />} />
             <Route path="/artists" element={<ArtistsPage />} />
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/Project" element={<Project />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/profile/artist-setup" element={<ArtistSetup />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/legal" element={<Legal />} />
+          <Route path="/profile/artist-setup" element={<ArtistSetup />} />
             <Route path="/profile/artist" element={<ArtistAccount />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
             <Route path="/confirm" element={<ConfirmPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  );
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 };
 
 export default App;

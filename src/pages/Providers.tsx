@@ -20,14 +20,16 @@ const providerGroupsConfig = [
   {
     title: 'Promotion et marketing',
     icon: Megaphone,
+    color: 'blue',
     sections: [
       { title: 'Programmateurs de radio/playlist', subCategories: ['radio_curator'] },
       { title: 'Community manager', subCategories: ['community_manager'] },
     ],
   },
   {
-    title: 'VISUEL',
+    title: 'Visuel',
     icon: Camera,
+    color: 'purple',
     sections: [
       { title: 'CLIPMAKERS', subCategories: ['clipmaker'] },
       { title: 'Monteurs', subCategories: ['video_editor'] },
@@ -38,6 +40,7 @@ const providerGroupsConfig = [
   {
     title: 'Droits et distribution',
     icon: Gavel,
+    color: 'green',
     sections: [
       { title: 'Distributeurs de musique', subCategories: ['distributor'] },
       { title: 'Avocats spécialisés', subCategories: ['music_lawyer'] },
@@ -46,12 +49,20 @@ const providerGroupsConfig = [
   {
     title: 'Formation',
     icon: GraduationCap,
+    color: 'yellow',
     sections: [
       { title: 'Coach vocal', subCategories: ['vocal_coach'] },
       { title: 'Ateliers et cours de musique', subCategories: ['music_workshop'] },
     ],
   },
-];
+  ];
+
+const colorMap: { [key: string]: { text: string; bg: string; border: string } } = {
+  blue: { text: 'text-blue-500', bg: 'bg-blue-500', border: 'border-blue-500' },
+  purple: { text: 'text-purple-500', bg: 'bg-purple-500', border: 'border-purple-500' },
+  green: { text: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500' },
+  yellow: { text: 'text-yellow-500', bg: 'bg-yellow-500', border: 'border-yellow-500' },
+};
 
 const FilterBar = ({ locations, onFilterChange, onReset, filters }: any) => {
   const isFilterActive = filters.searchTerm !== '' || filters.selectedLocation !== 'all' || filters.selectedDomain !== 'all';
@@ -202,8 +213,8 @@ const ProvidersPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 w-full py-12 md:py-16">
-            <div className="text-center mb-12">
+        <div className="max-w-7xl mx-auto w-full py-12 md:py-16">
+            <div className="text-center mb-12 px-4">
             <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
               Trouvez les meilleurs <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Prestataires</span>
               </h1>
@@ -212,7 +223,7 @@ const ProvidersPage = () => {
               </p>
             </div>
 
-          <div className="mb-12">
+          <div className="mb-12 px-4">
             <FilterBar 
               locations={locations} 
               onFilterChange={setFilters} 
@@ -228,22 +239,26 @@ const ProvidersPage = () => {
               {filteredGroups.length > 0 ? (
                 filteredGroups.map(group => (
                   <div key={group.title}>
-                    <div className="flex items-center gap-x-4 mb-8">
-                      <group.icon className="h-8 w-8 text-blue-600 flex-shrink-0" />
-                      <h2 className="text-3xl font-bold text-gray-800 tracking-tight shrink-0">
+                    <div className="flex items-center gap-x-3 mb-6 border-b border-neutral-200 pb-4 px-4">
+                      <div className={`w-2.5 h-2.5 rounded-full ${colorMap[group.color].bg}`}></div>
+                      <h2 className="text-2xl md:text-3xl font-bold text-gray-800 tracking-tight">
                         {group.title}
-                </h2>
-                      <hr className="w-full border-t-2 border-gray-200" />
+                      </h2>
                     </div>
                     <div className="space-y-12">
                       {group.sections.map((section: any) => (
-                         <HorizontalCarousel key={section.title} title={section.title} users={section.users} />
+                         <HorizontalCarousel 
+                            key={section.title} 
+                            title={section.title} 
+                            users={section.users}
+                            cardClassName={colorMap[group.color].border}
+                         />
                       ))}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-16">
+                <div className="text-center py-16 px-4">
                   <p className="text-lg text-gray-500">Aucun prestataire ne correspond à votre recherche.</p>
                 </div>
               )}

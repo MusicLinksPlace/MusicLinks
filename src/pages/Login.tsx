@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import GoogleLoginButton from '@/components/ui/GoogleLoginButton';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -132,6 +133,14 @@ const Login = () => {
               {isLoading ? 'Connexion...' : 'Se connecter'}
             </Button>
           </form>
+
+          <div className="my-8 flex items-center gap-4">
+            <hr className="flex-grow border-t border-white/20" />
+            <span className="text-xs uppercase text-white/50">OU</span>
+            <hr className="flex-grow border-t border-white/20" />
+          </div>
+
+          <GoogleLoginButton />
 
           <div className="text-center mt-8">
             <p className="text-white/70 text-sm">
