@@ -14,6 +14,8 @@ interface User {
   subCategory?: string;
   location?: string;
   profilepicture?: string;
+  portfolio_url?: string;
+  social_links?: string[];
 }
 
 const providerGroupsConfig = [

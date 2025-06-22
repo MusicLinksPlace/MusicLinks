@@ -16,6 +16,8 @@ interface User {
   rating?: number;
   profilepicture?: string;
   musicStyle?: string;
+  portfolio_url?: string;
+  social_links?: string[];
 }
 
 // Fonction pour trier les villes par priorité
