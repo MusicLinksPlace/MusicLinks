@@ -7,14 +7,15 @@ import HorizontalCarousel from '@/components/HorizontalCarousel';
 interface User {
   id: string;
   name: string;
-  subCategory?: string;
+  subCategory: string;
   location?: string;
   profilepicture?: string;
+  portfolio_url?: string;
+  social_links?: string[];
 }
 
 const PartnersPage = () => {
-  const [labelUsers, setLabelUsers] = useState<User[]>([]);
-  const [managerUsers, setManagerUsers] = useState<User[]>([]);
+  const [partnerGroups, setPartnerGroups] = useState<{ labels: User[], managers: User[] }>({ labels: [], managers: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,8 +41,7 @@ const PartnersPage = () => {
           ['manager', 'directeur artistique'].includes(user.subCategory || '')
         );
 
-        setLabelUsers(labels);
-        setManagerUsers(managers);
+        setPartnerGroups({ labels, managers });
       }
 
       setLoading(false);
@@ -73,13 +73,13 @@ const PartnersPage = () => {
             <div className="text-center text-gray-500 text-lg">Chargement des partenaires...</div>
           ) : (
             <div className="space-y-16">
-              {labelUsers.length > 0 && (
-                <HorizontalCarousel title="Maisons de disque & labels" users={labelUsers} />
+              {partnerGroups.labels.length > 0 && (
+                <HorizontalCarousel title="Maisons de disque & labels" users={partnerGroups.labels} />
               )}
-              {managerUsers.length > 0 && (
-                <HorizontalCarousel title="Managers & directeurs artistiques" users={managerUsers} />
+              {partnerGroups.managers.length > 0 && (
+                <HorizontalCarousel title="Managers & directeurs artistiques" users={partnerGroups.managers} />
               )}
-              {labelUsers.length === 0 && managerUsers.length === 0 && (
+              {partnerGroups.labels.length === 0 && partnerGroups.managers.length === 0 && (
                  <div className="text-center py-16">
                    <p className="text-lg text-gray-500">
                      Aucun partenaire n'est disponible pour le moment.

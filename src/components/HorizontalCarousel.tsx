@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import UserCard from '@/components/UserCard';
+import CatalogueCard from '@/components/CatalogueCard';
 import { cn } from '@/lib/utils';
 
 interface User {
@@ -11,6 +11,8 @@ interface User {
   location?: string;
   profilepicture?: string;
   musicStyle?: string;
+  portfolio_url?: string;
+  social_links?: string[];
 }
 
 interface HorizontalCarouselProps {
@@ -69,7 +71,7 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, c
             cardClassName,
             index === 0 && "md:ml-28"
           )}>
-            <UserCard user={user} />
+            <CatalogueCard user={user} />
           </div>
         ))}
       </div>
