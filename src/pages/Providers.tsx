@@ -213,17 +213,18 @@ const ProvidersPage = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto w-full py-12 md:py-16">
-            <div className="text-center mb-12 px-4">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900">
-              Trouvez les meilleurs <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Prestataires</span>
+        <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque3.png')" }}>
+          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
+            <div className="text-center mb-12">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+              Trouvez les meilleurs <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Prestataires</span>
               </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-600">
+            <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-200">
               Des professionnels qualifiés pour donner vie à vos projets musicaux.
               </p>
             </div>
 
-          <div className="mb-12 px-4">
             <FilterBar 
               locations={locations} 
               onFilterChange={setFilters} 
@@ -231,7 +232,9 @@ const ProvidersPage = () => {
               filters={filters} 
             />
           </div>
+        </div>
 
+        <div className="max-w-7xl mx-auto w-full py-12 md:py-16">
           {loading ? (
             <div className="text-center text-gray-500 text-lg">Chargement des prestataires...</div>
           ) : (
@@ -264,7 +267,7 @@ const ProvidersPage = () => {
               )}
             </div>
           )}
-          </div>
+        </div>
       </main>
       <Footer />
     </div>
