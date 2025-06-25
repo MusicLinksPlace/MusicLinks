@@ -49,10 +49,10 @@ export const providerGroupsConfig = [
     icon: Camera,
     color: 'purple',
     sections: [
-      { title: 'CLIPMAKERS', subCategories: ['clipmaker'] },
-      { title: 'Monteurs', subCategories: ['video_editor'] },
-      { title: 'Photographes', subCategories: ['photographer'] },
-      { title: 'Graphistes', subCategories: ['graphic_designer'] },
+      { title: 'Clipmakers', subCategories: ['clipmaker'] },
+      { title: 'Monteurs', subCategories: ['monteur'] },
+      { title: 'Photographes', subCategories: ['photographe'] },
+      { title: 'Graphistes', subCategories: ['graphiste'] },
     ],
   },
   {
@@ -382,28 +382,38 @@ const ProvidersPage = () => {
             )}
           </div>
           <div className="mb-6">
-            <div className="text-sm font-semibold mb-2">Sous-catégories</div>
             <div className="space-y-6">
-              {providerGroupsConfig.map((group, idx) => (
-                <div key={group.title}>
-                  <div className="text-lg font-extrabold text-neutral-800 mb-3 tracking-tight pl-1">{group.title}</div>
-                  <ul className="space-y-3 bg-white rounded-xl p-3 border border-neutral-100 shadow-sm">
-                    {group.sections.map(section => (
-                      <li key={section.title} className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          id={`subcat-${section.subCategories[0]}`}
-                          checked={filters.selectedSubCategories.includes(section.subCategories[0])}
-                          onChange={() => handleCheckboxChange(section.subCategories[0])}
-                          className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
-                        />
-                        <label htmlFor={`subcat-${section.subCategories[0]}`} className="text-neutral-800 cursor-pointer text-base font-medium">{section.title}</label>
-                      </li>
-                    ))}
-                  </ul>
-                  {idx < providerGroupsConfig.length - 1 && <hr className="my-5 border-neutral-200" />}
-                </div>
-              ))}
+              {providerGroupsConfig.map((group, idx) => {
+                let icon = null;
+                if (group.title === "Professionnels de l'enregistrement") icon = '/bnbicons/recorder.png';
+                if (group.title === "Promotion et marketing") icon = '/bnbicons/marketing.png';
+                if (group.title === "Visuel") icon = '/bnbicons/visuel.png';
+                if (group.title === "Distribution") icon = '/bnbicons/distributor.png';
+                if (group.title === "Formation") icon = '/bnbicons/formation.png';
+                if (group.title === "Droits") icon = '/bnbicons/law.png';
+                return (
+                  <div key={group.title} className="mb-6">
+                    <div className="pt-8 text-base font-bold text-neutral-900 mb-2 flex items-center gap-1 pl-0 whitespace-nowrap">
+                      {icon && <img src={icon} alt={group.title} className="w-10 h-10 object-contain mr-1" />}
+                      {group.title}
+                    </div>
+                    <ul className="space-y-4 pl-2">
+                      {group.sections.map(section => (
+                        <li key={section.title} className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id={`subcat-${section.subCategories[0]}`}
+                            checked={filters.selectedSubCategories.includes(section.subCategories[0])}
+                            onChange={() => handleCheckboxChange(section.subCategories[0])}
+                            className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
+                          />
+                          <label htmlFor={`subcat-${section.subCategories[0]}`} className="text-neutral-800 cursor-pointer text-base font-medium">{section.title}</label>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </aside>

@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { LocationFilter } from '@/components/ui/LocationFilter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { useLocation } from 'react-router-dom';
 
 interface User {
   id: string;
@@ -133,6 +134,17 @@ const ArtistsPage = () => {
     searchTerm: '',
     selectedLocation: 'all',
   });
+  const location = useLocation();
+
+  // Lecture de la query string pour initialiser le filtre localisation
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const loc = params.get('location');
+    if (loc && ['Paris', 'Lyon', 'Marseille', 'all'].includes(loc)) {
+      setFilters(f => ({ ...f, selectedLocation: loc }));
+    }
+    // eslint-disable-next-line
+  }, [location.search]);
 
   const handleResetFilters = () => {
     setFilters({ searchTerm: '', selectedLocation: 'all' });
