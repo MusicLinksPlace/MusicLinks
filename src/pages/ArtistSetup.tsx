@@ -5,10 +5,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, User } from 'lucide-react';
+import { Upload, User, MapPin } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { LocationFilter } from '@/components/ui/LocationFilter';
 
 const ArtistSetup = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [profileData, setProfileData] = useState({
     profileImage: '',
     bio: '',
@@ -18,6 +24,11 @@ const ArtistSetup = () => {
     instagram: '',
     youtube: ''
   });
+
+  const handleLocationSelect = (location: string) => {
+    setProfileData(prev => ({ ...prev, location }));
+    setIsLocationOpen(false);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +40,23 @@ const ArtistSetup = () => {
   const musicalStyles = [
     'Rap', 'Hip-Hop', 'Afro', 'Pop', 'R&B', 'Rock', 'Jazz', 'Électro', 'Reggae', 'Soul', 'Funk', 'Autre'
   ];
+
+  const locationTrigger = (
+    <Button 
+        type="button"
+        variant="outline" 
+        className="w-full justify-start text-left font-normal bg-ml-blue/10 border-ml-blue text-white placeholder:text-white/50 hover:bg-ml-blue/20 hover:text-white focus:border-ml-teal focus:ring-ml-teal rounded-xl"
+    >
+        {profileData.location || "Sélectionnez votre localisation"}
+    </Button>
+  );
+
+  const locationContent = (
+    <LocationFilter 
+        selectedLocation={profileData.location}
+        onLocationChange={handleLocationSelect}
+    />
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-ml-charcoal via-ml-navy to-ml-charcoal flex items-center justify-center p-4">
@@ -91,14 +119,26 @@ const ArtistSetup = () => {
 
             <div className="space-y-2">
               <Label htmlFor="location" className="text-white font-medium">Localisation</Label>
-              <Input
-                id="location"
-                value={profileData.location}
-                onChange={(e) => setProfileData({...profileData, location: e.target.value})}
-                placeholder="Paris, France"
-                className="bg-ml-blue/10 border-ml-blue text-white placeholder:text-white/50 focus:border-ml-teal focus:ring-ml-teal rounded-xl"
-                required
-              />
+              {isMobile ? (
+                  <Drawer open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                      <DrawerTrigger asChild>{locationTrigger}</DrawerTrigger>
+                      <DrawerContent className="h-[95vh] top-0 mt-0">
+                          <DrawerHeader className="text-left">
+                              <DrawerTitle className="text-2xl font-bold">Où êtes-vous basé ?</DrawerTitle>
+                          </DrawerHeader>
+                          <div className="px-2 overflow-y-auto">
+                              {locationContent}
+                          </div>
+                      </DrawerContent>
+                  </Drawer>
+              ) : (
+                  <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                      <PopoverTrigger asChild>{locationTrigger}</PopoverTrigger>
+                      <PopoverContent className="w-[340px] p-0">
+                          {locationContent}
+                      </PopoverContent>
+                  </Popover>
+              )}
             </div>
 
             <div className="space-y-4">

@@ -11,11 +11,17 @@ import { Plus, MapPin, Calendar, User } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import type { Database } from '@/lib/supabaseClient';
 import { useToast } from '@/components/ui/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger as DrawerTriggerMobile } from '@/components/ui/drawer';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { LocationFilter } from '@/components/ui/LocationFilter';
 
 type Project = Database['public']['Tables']['Project']['Row'];
 
 const Projects = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isLocationOpen, setIsLocationOpen] = useState(false);
+  const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -26,7 +32,7 @@ const Projects = () => {
     category: '',
     location: ''
   });
-  const [users, setUsers] = useState<Record<string, string>>({}); // authorId -> name
+  const [users, setUsers] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const user = localStorage.getItem('musiclinks_user');
@@ -36,6 +42,11 @@ const Projects = () => {
     fetchProjects();
   }, []);
 
+  const handleLocationSelect = (location: string) => {
+    setProjectData(prev => ({ ...prev, location }));
+    setIsLocationOpen(false);
+  };
+
   const fetchProjects = async () => {
     try {
       const { data, error } = await supabase
@@ -44,26 +55,10 @@ const Projects = () => {
         .eq('verified', 1)
         .order('createdAt', { ascending: false });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "Impossible de charger les projets: " + error.message,
-        });
-        return;
-      }
+      if (error) throw error;
       
-      console.log('[DEBUG] Supabase query: .eq(\'verified\', 1)');
-      console.log('[DEBUG] Raw data returned from Supabase:', data);
-      if (Array.isArray(data)) {
-        data.forEach((proj, idx) => {
-          console.log(`[DEBUG] Project #${idx} - id: ${proj.id}, verified:`, proj.verified);
-        });
-      }
       setProjects(data || []);
-      // Fetch user names for all authorIds
-      const authorIds = Array.from(new Set((data || []).map((p: Project) => p.authorId)));
+      const authorIds = Array.from(new Set((data || []).map((p: Project) => p.authorId).filter(Boolean)));
       if (authorIds.length > 0) {
         const { data: userData, error: userError } = await supabase
           .from('User')
@@ -77,15 +72,32 @@ const Projects = () => {
           setUsers(userMap);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching projects:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors du chargement des projets",
+        description: "Une erreur est survenue: " + error.message,
       });
     }
   };
+
+  const locationTrigger = (
+    <Button 
+        type="button"
+        variant="outline" 
+        className="w-full justify-start text-left font-normal"
+    >
+        {projectData.location || "Sélectionnez une localisation"}
+    </Button>
+  );
+
+  const locationContent = (
+    <LocationFilter 
+        selectedLocation={projectData.location}
+        onLocationChange={handleLocationSelect}
+    />
+  );
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,7 +120,7 @@ const Projects = () => {
         status: 'Ouvert',
         authorId: currentUser.id,
         applicantCount: 0,
-        verified: 0
+        verified: 0 
       };
 
       const { data, error } = await supabase
@@ -117,25 +129,22 @@ const Projects = () => {
         .select()
         .single();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Succès",
-        description: "Votre projet a été publié avec succès",
+        description: "Votre projet a été publié avec succès et est en attente de validation.",
       });
 
       setIsCreateDialogOpen(false);
       setProjectData({ title: '', description: '', category: '', location: '' });
       fetchProjects();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating project:', error);
       toast({
         variant: "destructive",
         title: "Erreur",
-        description: "Une erreur est survenue lors de la création du projet",
+        description: "Une erreur est survenue: " + error.message,
       });
     } finally {
       setIsLoading(false);
@@ -156,167 +165,151 @@ const Projects = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
       
-      <main className="pt-8">
-        {/* Hero Section */}
-        <section className="bg-gradient-ml-primary/5 py-12 md:py-16">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-8 md:mb-12">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-ml-charcoal mb-4">
-                Projets musicaux
-              </h1>
-              <p className="text-lg md:text-xl text-ml-charcoal/70 max-w-2xl mx-auto px-4">
-                Découvrez des projets passionnants ou publiez le vôtre pour trouver les collaborateurs parfaits
-              </p>
-            </div>
+      <main className="flex-1">
+        <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque5.png')" }}>
+            <div className="absolute inset-0 bg-black/50"></div>
+            <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+                        PROJETS
+                    </h1>
+                    <p className="mt-4 max-w-3xl mx-auto text-lg sm:text-xl text-gray-200">
+                        Bienvenue dans ce noyau d'opportunités d'affaires. Participez à des projets passionnants ou publiez le vôtre pour trouver les collaborateurs idéaux !
+                    </p>
+                </div>
 
-            {/* CTA Button */}
-            <div className="text-center">
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="lg" className="bg-ml-teal hover:bg-ml-navy text-white font-semibold px-6 md:px-8 py-3 md:py-4 rounded-full text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-300">
-                    <Plus className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                    Publier un projet
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md mx-4">
-                  <DialogHeader>
-                    <DialogTitle>Créer un nouveau projet</DialogTitle>
-                  </DialogHeader>
-                  <form onSubmit={handleCreateProject} className="space-y-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="title">Titre du projet</Label>
-                      <Input
-                        id="title"
-                        value={projectData.title}
-                        onChange={(e) => setProjectData({...projectData, title: e.target.value})}
-                        placeholder="Ex: Recherche beatmaker pour EP"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="category">Catégorie</Label>
-                      <Select value={projectData.category} onValueChange={(value) => setProjectData({...projectData, category: value})} required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner une catégorie" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white">
-                          <SelectItem value="Audio">Audio & Son</SelectItem>
-                          <SelectItem value="Vidéo">Vidéo & Clips</SelectItem>
-                          <SelectItem value="Marketing">Marketing Musical</SelectItem>
-                          <SelectItem value="Formation">Formation & Coaching</SelectItem>
-                          <SelectItem value="Juridique">Juridique & Business</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea
-                        id="description"
-                        value={projectData.description}
-                        onChange={(e) => setProjectData({...projectData, description: e.target.value})}
-                        placeholder="Décrivez votre projet en détail..."
-                        rows={4}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="location">Localisation (optionnel)</Label>
-                      <Input
-                        id="location"
-                        value={projectData.location}
-                        onChange={(e) => setProjectData({...projectData, location: e.target.value})}
-                        placeholder="Ex: Paris, France"
-                      />
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-ml-teal hover:bg-ml-navy"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? 'Publication...' : 'Publier le projet'}
+                <div className="text-center">
+                <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                    <DialogTrigger asChild>
+                    <Button size="lg" className="font-semibold rounded-full px-8 py-3 text-base md:text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                        <Plus className="mr-2 h-5 w-5" />
+                        Publier un projet
                     </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
-            </div>
-          </div>
-        </section>
-
-        {/* Projects List */}
-        <section className="py-8 md:py-12">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 md:mb-8 gap-4">
-              <h2 className="text-xl md:text-2xl font-bold text-ml-charcoal">
-                {projects.length} projets disponibles
-              </h2>
-            </div>
-
-            <div className="space-y-4 md:space-y-6">
-              {projects.map((project) => (
-                <div key={project.id} className="bg-white rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 md:p-6 border border-ml-blue/20">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                      <div className="flex-1">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
-                          <h3 className="text-lg md:text-xl font-bold text-ml-charcoal">{project.title}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium w-fit ${
-                            project.status === 'Ouvert' 
-                              ? 'bg-ml-teal/10 text-ml-teal' 
-                              : 'bg-ml-navy/10 text-ml-navy'
-                          }`}>
-                            {project.status}
-                          </span>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md mx-4">
+                    <DialogHeader>
+                        <DialogTitle>Créer un nouveau projet</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateProject} className="space-y-6">
+                        <div className="space-y-2">
+                          <Label htmlFor="title">Titre du projet</Label>
+                          <Input
+                            id="title"
+                            value={projectData.title}
+                            onChange={(e) => setProjectData({...projectData, title: e.target.value})}
+                            placeholder="Ex: Recherche beatmaker pour EP"
+                            required
+                          />
                         </div>
-                        
-                        <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-ml-charcoal/60 mb-3">
-                          <div className="flex items-center">
-                            <User className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                            {users[project.authorId] || project.authorId}
-                          </div>
-                          <div className="flex items-center">
-                            <Calendar className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                            {formatDate(project.createdAt)}
-                          </div>
-                          {project.location && (
-                            <div className="flex items-center">
-                              <MapPin className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                              {project.location}
-                            </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="category">Catégorie</Label>
+                          <Select value={projectData.category} onValueChange={(value) => setProjectData({...projectData, category: value})} required>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Sélectionner une catégorie" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white">
+                              <SelectItem value="Audio">Audio & Son</SelectItem>
+                              <SelectItem value="Vidéo">Vidéo & Clips</SelectItem>
+                              <SelectItem value="Marketing">Marketing Musical</SelectItem>
+                              <SelectItem value="Formation">Formation & Coaching</SelectItem>
+                              <SelectItem value="Juridique">Juridique & Business</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Description</Label>
+                          <Textarea
+                            id="description"
+                            value={projectData.description}
+                            onChange={(e) => setProjectData({...projectData, description: e.target.value})}
+                            placeholder="Décrivez votre projet en détail..."
+                            rows={4}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="location">Localisation (optionnel)</Label>
+                          {isMobile ? (
+                              <Drawer open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                                  <DrawerTriggerMobile asChild>{locationTrigger}</DrawerTriggerMobile>
+                                  <DrawerContent className="h-[95vh] top-0 mt-0">
+                                      <DrawerHeader className="text-left"><DrawerTitle className="text-2xl font-bold">Où se situe le projet ?</DrawerTitle></DrawerHeader>
+                                      <div className="px-2 overflow-y-auto">{locationContent}</div>
+                                  </DrawerContent>
+                              </Drawer>
+                          ) : (
+                              <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                                  <PopoverTrigger asChild>{locationTrigger}</PopoverTrigger>
+                                  <PopoverContent className="w-[340px] p-0">
+                                      {locationContent}
+                                  </PopoverContent>
+                              </Popover>
                           )}
                         </div>
-                      </div>
-                      
-                      <span className="bg-ml-teal/10 text-ml-teal px-3 py-1 rounded-full text-xs md:text-sm font-medium w-fit">
-                        {project.category}
+
+                        <Button 
+                          type="submit" 
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+                          disabled={isLoading}
+                        >
+                          {isLoading ? 'Publication...' : 'Publier le projet'}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                </Dialog>
+                </div>
+            </div>
+        </div>
+
+        <section className="py-12 md:py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-8">
+              Projets récents
+            </h2>
+            <div className="space-y-6">
+              {projects.length > 0 ? (
+                projects.map((project) => (
+                  <div key={project.id} className="bg-white border border-gray-200/80 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-shadow duration-300">
+                    <div className="flex flex-col sm:flex-row justify-between items-start mb-4">
+                      <h3 className="text-xl font-bold text-gray-900 mb-2 sm:mb-0">
+                        {project.title}
+                      </h3>
+                      <span className="text-sm font-medium text-white bg-green-500 px-3 py-1 rounded-full">
+                        {project.status}
                       </span>
                     </div>
-
-                    <p className="text-sm md:text-base text-ml-charcoal/80 leading-relaxed">
-                      {project.description}
-                    </p>
-
-                    <div className="flex justify-between items-center pt-4 border-t border-ml-blue/20">
-                      <span className="text-xs md:text-sm text-ml-charcoal/60">
-                        {project.applicantCount} candidature{project.applicantCount !== 1 ? 's' : ''}
-                      </span>
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        className="rounded-full"
-                      >
-                        Voir le projet
-                      </Button>
+                    <div className="space-y-4">
+                      <p className="text-gray-600 leading-relaxed">
+                        {project.description}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          <span>{users[project.authorId] || 'Auteur inconnu'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          <span>{project.location || 'À distance'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          <span>{formatDate(project.createdAt)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-10">
+                  <p className="text-gray-500">Aucun projet disponible pour le moment.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </section>
@@ -327,4 +320,4 @@ const Projects = () => {
   );
 };
 
-export default Projects; 
+export default Projects;

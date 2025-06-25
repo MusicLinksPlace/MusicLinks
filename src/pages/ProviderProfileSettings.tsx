@@ -4,55 +4,72 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
-import { Loader2, Upload, Trash2, PlusCircle } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { MUSIC_STYLES } from '@/lib/constants';
-import UserProfileHeader from '@/components/profile/UserProfileHeader';
-import UserAboutSection from '@/components/profile/UserAboutSection';
-import UserTags from '@/components/profile/UserTags';
-import SocialLinks from '@/components/profile/SocialLinks';
-import UserPortfolio from '@/components/profile/UserPortfolio';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LocationFilter } from '@/components/ui/LocationFilter';
 
-interface UserProfileData {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  subCategory?: string | null;
-  location?: string | null;
-  bio?: string | null;
-  profilepicture?: string | null;
-  galleryimages?: string[] | null;
-  portfolio_url?: string | null;
-  social_links?: (string | null)[] | null;
-  createdat: string;
-  musicStyle?: string | null;
-  verified: number;
-  disabled: number;
-}
+const PROVIDER_DOMAINS = [
+  {
+    domain: "Professionnels de l'enregistrement",
+    specialties: [
+      { id: 'studio', label: 'Studios' },
+      { id: 'beatmaker', label: 'Beatmakers' },
+      { id: 'engineer', label: 'Ingénieurs du son' },
+    ],
+  },
+  {
+    domain: 'Audiovisuel',
+    specialties: [
+      { id: 'clipmaker', label: 'Clipmaker' },
+      { id: 'video_editor', label: 'Monteurs' },
+      { id: 'photographer', label: 'Photographes' },
+      { id: 'graphic_designer', label: 'Graphistes' },
+    ],
+  },
+  {
+    domain: 'Promotion et marketing',
+    specialties: [
+      { id: 'radio_curator', label: 'Programmateurs de radio/playlist' },
+      { id: 'community_manager', label: 'Community manager' },
+    ],
+  },
+  {
+    domain: 'Distribution',
+    specialties: [
+      { id: 'distributor', label: 'Distributeurs de musique' },
+    ],
+  },
+  {
+    domain: 'Droits',
+    specialties: [
+      { id: 'music_lawyer', label: 'Avocats spécialisés' },
+    ],
+  },
+  {
+    domain: 'Formation',
+    specialties: [
+      { id: 'vocal_coach', label: 'Coach vocal' },
+      { id: 'music_workshop', label: 'Ateliers et cours de musique' },
+    ],
+  },
+];
 
-const ArtistAccount = () => {
+const ProviderProfileSettings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
-  const [formData, setFormData] = useState<Partial<UserProfileData>>({});
+  const [formData, setFormData] = useState<any>({});
   const [filesToUpload, setFilesToUpload] = useState<{ [key: string]: File }>({});
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -61,22 +78,24 @@ const ArtistAccount = () => {
         navigate('/login');
         return;
       }
-
       const { id, role } = JSON.parse(storedUser);
-      if (role !== 'artist') {
+      if (role !== 'provider') {
         navigate('/');
         return;
       }
-
       try {
         const { data: userData, error } = await supabase
           .from('User')
           .select('*')
           .eq('id', id)
           .single();
-
         if (error) throw error;
         setFormData(userData);
+        // Préselectionner le domaine si subCategory déjà choisi
+        if (userData.subcategory) {
+          const found = PROVIDER_DOMAINS.find(d => d.specialties.some(s => s.id === userData.subcategory));
+          if (found) setSelectedDomain(found.domain);
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
         toast({ title: "Erreur", description: "Impossible de charger les données du profil.", variant: "destructive" });
@@ -85,55 +104,80 @@ const ArtistAccount = () => {
         setIsLoading(false);
       }
     };
-
     fetchUser();
   }, [navigate, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleLocationSelect = (location: string) => {
-    setFormData(prev => ({ ...prev, location }));
+    setFormData((prev: any) => ({ ...prev, location }));
     setIsLocationOpen(false);
   };
-  
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const key = galleryIndex !== undefined ? `gallery_${galleryIndex}` : 'profile';
+    setFilesToUpload(prev => ({ ...prev, [key]: file }));
+    // Preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string;
+      if (galleryIndex !== undefined) {
+        const newGallery = [...(formData.galleryimages || [])];
+        newGallery[galleryIndex] = imageUrl;
+        setFormData((prev: any) => ({ ...prev, galleryimages: newGallery }));
+      } else {
+        setFormData((prev: any) => ({ ...prev, profilepicture: imageUrl }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSocialLinkChange = (index: number, value: string) => {
+    const newLinks = [...(formData.social_links || [])];
+    newLinks[index] = value;
+    setFormData((prev: any) => ({ ...prev, social_links: newLinks }));
+  };
+
+  const addSocialLink = () => {
+    const newLinks = [...(formData.social_links || []), ''];
+    setFormData((prev: any) => ({ ...prev, social_links: newLinks }));
+  };
+
+  const removeSocialLink = (index: number) => {
+    const newLinks = formData.social_links?.filter((_: any, i: number) => i !== index);
+    setFormData((prev: any) => ({ ...prev, social_links: newLinks }));
+  };
+
+  const handleSpecialtySelect = (domain: string, subId: string) => {
+    setSelectedDomain(domain);
+    setFormData((prev: any) => ({ ...prev, subcategory: subId }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.id) return;
     setIsSaving(true);
-
     try {
       const formUpdates = { ...formData };
-      
-      // 1. Handle File Uploads
+      // Upload files
       for (const key in filesToUpload) {
         const file = filesToUpload[key];
         const isGalleryUpload = key.startsWith('gallery');
-        
         const bucket = isGalleryUpload ? 'gallery' : 'avatars';
-        
-        // Construct the file path based on RLS policies
         const filePath = isGalleryUpload 
-          ? `gallery_0/${formData.id}/${file.name}` // Path for gallery: gallery_0/user_id/file_name
-          : `${formData.id}/${Date.now()}_${file.name}`; // Path for avatars: user_id/timestamp_file_name
-
-        console.log(`[Upload] Attempting to upload to bucket: "${bucket}", path: "${filePath}"`);
-
+          ? `gallery_0/${formData.id}/${file.name}`
+          : `${formData.id}/${Date.now()}_${file.name}`;
         const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
             cacheControl: '3600',
-            upsert: true, // Allows overwriting if file name is the same
+            upsert: true,
         });
-
         if (uploadError) throw new Error(`Erreur d'upload (${key}): ${uploadError.message}`);
-
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
-
         if (isGalleryUpload) {
           const index = parseInt(key.split('_')[1]);
           if (!formUpdates.galleryimages) formUpdates.galleryimages = [];
@@ -142,74 +186,27 @@ const ArtistAccount = () => {
           formUpdates.profilepicture = publicUrl;
         }
       }
-
-      // 2. Clean up data for submission
+      // Clean up data for submission
       const { id, createdat, email, role, verified, disabled, ...updateData } = formUpdates;
-
-      // 3. Update the user profile in the DB
+      // Update the user profile in the DB
       const { data: updatedUser, error: updateError } = await supabase
         .from('User')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
-
       if (updateError) throw updateError;
-
-      // 4. Update local state and notify
       setFormData(updatedUser);
       localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
       window.dispatchEvent(new Event('auth-change'));
-      setFilesToUpload({}); // Clear upload queue
+      setFilesToUpload({});
       toast({ title: "Profil mis à jour !", description: "Vos modifications ont été enregistrées." });
-
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
     } finally {
       setIsSaving(false);
     }
-  };
-
-  const handleSocialLinkChange = (index: number, value: string) => {
-    const newLinks = [...(formData.social_links || [])];
-    newLinks[index] = value;
-    setFormData(prev => ({ ...prev, social_links: newLinks }));
-  };
-
-  const addSocialLink = () => {
-    const newLinks = [...(formData.social_links || []), ''];
-    setFormData(prev => ({ ...prev, social_links: newLinks }));
-  };
-
-  const removeSocialLink = (index: number) => {
-    const newLinks = formData.social_links?.filter((_, i) => i !== index);
-    setFormData(prev => ({ ...prev, social_links: newLinks }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const { name } = e.target;
-    // For gallery images, we create a unique key like 'gallery_0', 'gallery_1', etc.
-    const key = galleryIndex !== undefined ? `gallery_${galleryIndex}` : 'profile';
-    
-    setFilesToUpload(prev => ({ ...prev, [key]: file }));
-
-    // Optional: Preview the image locally before upload
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imageUrl = event.target?.result as string;
-      if (galleryIndex !== undefined) {
-        const newGallery = [...(formData.galleryimages || [])];
-        newGallery[galleryIndex] = imageUrl;
-        setFormData(prev => ({ ...prev, galleryimages: newGallery }));
-      } else {
-        setFormData(prev => ({ ...prev, profilepicture: imageUrl }));
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const locationTrigger = (
@@ -245,14 +242,13 @@ const ArtistAccount = () => {
       <div className="bg-gray-100 min-h-screen py-8 sm:py-12">
         <form onSubmit={handleSubmit} className="container mx-auto px-4 max-w-2xl">
           <div className="bg-white rounded-2xl shadow-xl flex flex-col p-6 gap-8">
-            <h1 className="text-2xl font-bold text-gray-800">Mon Compte</h1>
-            
+            <h1 className="text-2xl font-bold text-gray-800">Mon Compte Prestataire</h1>
             {/* --- General Information --- */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold border-b pb-2">Informations Générales</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                    <Label htmlFor="name">Nom / Nom de scène</Label>
+                    <Label htmlFor="name">Nom</Label>
                     <Input id="name" name="name" value={formData.name || ''} onChange={handleInputChange} />
                 </div>
                 <div>
@@ -281,22 +277,37 @@ const ArtistAccount = () => {
               </div>
                <div>
                   <Label htmlFor="bio">Biographie</Label>
-                  <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre musique..." rows={5}/>
+                  <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre activité..." rows={5}/>
               </div>
-               <div>
-                  <Label htmlFor="musicStyle">Style musical principal</Label>
-                  <Select name="musicStyle" onValueChange={(value) => handleSelectChange('musicStyle', value)} value={formData.musicStyle || ''}>
-                    <SelectTrigger><SelectValue placeholder="Sélectionnez votre style..." /></SelectTrigger>
-                    <SelectContent>
-                      {MUSIC_STYLES.map((style) => (
-                        <SelectItem key={style.value} value={style.value}>{style.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* --- Specialty Dropdown --- */}
+              <div>
+                <Label>Spécialité</Label>
+                <Accordion type="single" collapsible>
+                  {PROVIDER_DOMAINS.map((domain) => (
+                    <AccordionItem value={domain.domain} key={domain.domain}>
+                      <AccordionTrigger className="text-gray-800 text-base font-semibold">{domain.domain}</AccordionTrigger>
+                      <AccordionContent>
+                        <div className="flex flex-col gap-3 mt-2">
+                          {domain.specialties.map((sub) => (
+                            <Button
+                              key={sub.id}
+                              variant={formData.subcategory === sub.id ? 'default' : 'outline'}
+                              className="w-full justify-start text-left"
+                              type="button"
+                              onClick={() => handleSpecialtySelect(domain.domain, sub.id)}
+                            >
+                              {sub.label}
+                              {formData.subcategory === sub.id && <span className="ml-2">✓</span>}
+                            </Button>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
               </div>
             </div>
-
-            {/* --- Skills & Links --- */}
+            {/* --- Links --- */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold border-b pb-2">Liens</h2>
               <div>
@@ -304,7 +315,6 @@ const ArtistAccount = () => {
                 <Input id="portfolio_url" name="portfolio_url" value={formData.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com"/>
               </div>
             </div>
-
             {/* --- Images --- */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold border-b pb-2">Images du Profil</h2>
@@ -329,16 +339,15 @@ const ArtistAccount = () => {
                 </div>
               </div>
             </div>
-
             {/* --- Social Links --- */}
             <div className="space-y-4">
               <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
-              {formData.social_links?.map((link, index) => (
+              {formData.social_links?.map((link: string, index: number) => (
                 <div key={index} className="flex items-center gap-2">
                   <Input 
                     value={link || ''} 
                     onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                    placeholder="https://soundcloud.com/artiste"
+                    placeholder="https://soundcloud.com/prestataire"
                   />
                   <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
                     <Trash2 className="h-4 w-4 text-red-500"/>
@@ -352,7 +361,6 @@ const ArtistAccount = () => {
                 </Button>
               )}
             </div>
-
             <div className="mt-4 flex justify-end">
                 <Button type="submit" disabled={isSaving}>
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
@@ -366,4 +374,4 @@ const ArtistAccount = () => {
   );
 };
 
-export default ArtistAccount; 
+export default ProviderProfileSettings; 

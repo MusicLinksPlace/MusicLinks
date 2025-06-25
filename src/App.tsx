@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import UpdatePassword from "./pages/UpdatePassword";
 import ProvidersPage from "./pages/Providers";
 import Project from "./pages/Projects";
 import HowItWorks from "./pages/HowItWorks";
@@ -21,6 +23,11 @@ import { supabase } from './lib/supabaseClient';
 import ConfirmPage from './pages/Confirm';
 import type { Session } from '@supabase/supabase-js';
 import ScrollToTop from './components/ScrollToTop';
+import SignUpContinue from './pages/SignUpContinue';
+import ProviderProfileSettings from './pages/ProviderProfileSettings';
+import AccountSettingsRouter from './pages/AccountSettingsRouter';
+import ProviderAccountSettings from './pages/ProviderAccount';
+import PartnerAccountSettings from './pages/PartnerAccount';
 
 const queryClient = new QueryClient();
 
@@ -143,7 +150,10 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/signup/continue/*" element={<SignUpContinue />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/update-password" element={<UpdatePassword />} />
             <Route path="/providers" element={<ProvidersPage />} />
             <Route path="/artists" element={<ArtistsPage />} />
             <Route path="/partners" element={<PartnersPage />} />
@@ -153,7 +163,11 @@ const App = () => {
           <Route path="/profile/artist-setup" element={<ArtistSetup />} />
             <Route path="/profile/artist" element={<ArtistAccount />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
+            <Route path="/provider-settings" element={<ProviderProfileSettings />} />
             <Route path="/confirm" element={<ConfirmPage />} />
+            <Route path="/mon-compte" element={<AccountSettingsRouter />} />
+            <Route path="/provider-account" element={<ProviderAccountSettings />} />
+            <Route path="/partner-account" element={<PartnerAccountSettings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
