@@ -14,4 +14,103 @@ export const MUSIC_STYLES = [
   { value: "dancehall_zouk", label: "Dancehall / Zouk" },
   { value: "kpop", label: "K-Pop" },
   { value: "other", label: "Autre" },
+];
+
+export const REGIONS_DEPARTMENTS = [
+  {
+    name: 'Alsace',
+    departments: ['Bas-Rhin', 'Haut-Rhin', 'Toute la région'],
+  },
+  {
+    name: 'Aquitaine',
+    departments: ['Dordogne', 'Gironde', 'Landes', 'Lot-et-Garonne', 'Pyrénées-Atlantiques', 'Toute la région'],
+  },
+  {
+    name: 'Auvergne',
+    departments: ['Allier', 'Cantal', 'Haute-Loire', 'Puy-de-Dôme', 'Toute la région'],
+  },
+  {
+    name: 'Basse-Normandie',
+    departments: ['Calvados', 'Manche', 'Orne', 'Toute la région'],
+  },
+  {
+    name: 'Bourgogne',
+    departments: ['Côte-d\'Or', 'Nièvre', 'Saône-et-Loire', 'Yonne', 'Toute la région'],
+  },
+  {
+    name: 'Bretagne',
+    departments: ['Côtes-d\'Armor', 'Finistère', 'Ille-et-Vilaine', 'Morbihan', 'Toute la région'],
+  },
+  {
+    name: 'Centre',
+    departments: ['Cher', 'Eure-et-Loir', 'Indre', 'Indre-et-Loire', 'Loir-et-Cher', 'Loiret', 'Toute la région'],
+  },
+  {
+    name: 'Champagne-Ardenne',
+    departments: ['Ardennes', 'Aube', 'Haute-Marne', 'Marne', 'Toute la région'],
+  },
+  {
+    name: 'Corse',
+    departments: ['Corse-du-Sud', 'Haute-Corse', 'Toute la région'],
+  },
+  {
+    name: 'Franche-Comté',
+    departments: ['Doubs', 'Jura', 'Haute-Saône', 'Territoire de Belfort', 'Toute la région'],
+  },
+  {
+    name: 'Haute-Normandie',
+    departments: ['Eure', 'Seine-Maritime', 'Toute la région'],
+  },
+  {
+    name: 'Île-de-France',
+    departments: ['Paris', 'Seine-et-Marne', 'Yvelines', 'Essonne', 'Hauts-de-Seine', 'Seine-Saint-Denis', 'Val-de-Marne', 'Val-d\'Oise', 'Toute la région'],
+  },
+  {
+    name: 'Languedoc-Roussillon',
+    departments: ['Aude', 'Gard', 'Hérault', 'Lozère', 'Pyrénées-Orientales', 'Toute la région'],
+  },
+  {
+    name: 'Limousin',
+    departments: ['Corrèze', 'Creuse', 'Haute-Vienne', 'Toute la région'],
+  },
+  {
+    name: 'Lorraine',
+    departments: ['Meurthe-et-Moselle', 'Meuse', 'Moselle', 'Vosges', 'Toute la région'],
+  },
+  {
+    name: 'Midi-Pyrénées',
+    departments: ['Ariège', 'Aveyron', 'Haute-Garonne', 'Gers', 'Lot', 'Hautes-Pyrénées', 'Tarn', 'Tarn-et-Garonne', 'Toute la région'],
+  },
+  {
+    name: 'Nord-Pas-de-Calais',
+    departments: ['Nord', 'Pas-de-Calais', 'Toute la région'],
+  },
+  {
+    name: 'Pays de la Loire',
+    departments: ['Loire-Atlantique', 'Maine-et-Loire', 'Mayenne', 'Sarthe', 'Vendée', 'Toute la région'],
+  },
+  {
+    name: 'Picardie',
+    departments: ['Aisne', 'Oise', 'Somme', 'Toute la région'],
+  },
+  {
+    name: 'Poitou-Charentes',
+    departments: ['Charente', 'Charente-Maritime', 'Deux-Sèvres', 'Vienne', 'Toute la région'],
+  },
+  {
+    name: 'Provence-Alpes-Côte d\'Azur (PACA)',
+    departments: ['Alpes-de-Haute-Provence', 'Hautes-Alpes', 'Alpes-Maritimes', 'Bouches-du-Rhône', 'Var', 'Vaucluse', 'Toute la région'],
+  },
+  {
+    name: 'Rhône-Alpes',
+    departments: ['Ain', 'Ardèche', 'Drôme', 'Isère', 'Loire', 'Rhône', 'Savoie', 'Haute-Savoie', 'Toute la région'],
+  },
+];
+
+export const DEPARTMENTS_OUTRE_MER = [
+  { name: 'Guadeloupe' },
+  { name: 'Martinique' },
+  { name: 'Guyane' },
+  { name: 'La Réunion' },
+  { name: 'Mayotte' },
 ]; 

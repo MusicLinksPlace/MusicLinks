@@ -5,8 +5,11 @@ import Footer from '@/components/Footer';
 import HorizontalCarousel from '@/components/HorizontalCarousel';
 import { Search, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
+import { LocationFilter } from '@/components/ui/LocationFilter';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 
 interface User {
   id: string;
@@ -40,12 +43,35 @@ const sortCitiesByPriority = (cities: string[]) => {
   });
 };
 
-const FilterBar = ({ locations, onFilterChange, onReset, filters }: any) => {
+const FilterBar = ({ onFilterChange, onReset, filters }: any) => {
+  const isMobile = useIsMobile();
   const isFilterActive = filters.searchTerm !== '' || filters.selectedLocation !== 'all';
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const handleLocationChange = (location: string) => {
+    onFilterChange({ ...filters, selectedLocation: location });
+    setIsPopoverOpen(false); // Works for both Popover and Drawer
+  };
+
+  const locationButton = (
+    <button className="w-full h-12 pl-11 pr-4 text-left text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between">
+      <span className={filters.selectedLocation === 'all' ? 'text-neutral-500' : ''}>
+        {filters.selectedLocation === 'all' ? 'Toute la France' : filters.selectedLocation}
+      </span>
+      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+    </button>
+  );
+
+  const locationFilterContent = (
+    <LocationFilter
+      selectedLocation={filters.selectedLocation}
+      onLocationChange={handleLocationChange}
+    />
+  );
 
   return (
     <div className="w-full max-w-xl mx-auto">
-      <div className="group p-6 bg-white/30 backdrop-blur-sm rounded-3xl shadow-md border border-neutral-200/50 transition-all duration-300 focus-within:ring-2 focus-within:ring-blue-500/20">
+      <div className="group p-6 bg-white/30 backdrop-blur-sm rounded-3xl shadow-md border border-neutral-200/50 transition-all duration-300">
         <div className="flex flex-col md:flex-row items-center gap-4">
           {/* Search Input */}
           <div className="relative w-full">
@@ -58,21 +84,28 @@ const FilterBar = ({ locations, onFilterChange, onReset, filters }: any) => {
               onChange={(e) => onFilterChange({ ...filters, searchTerm: e.target.value })}
             />
           </div>
-          {/* Select Location */}
+          {/* Location Filter */}
           <div className="relative w-full">
-            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
-            <Select 
-              value={filters.selectedLocation} 
-              onValueChange={(value) => onFilterChange({ ...filters, selectedLocation: value })}
-            >
-              <SelectTrigger className="w-full h-12 pl-11 text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 data-[placeholder]:text-neutral-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                <SelectValue placeholder="Toutes les villes" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl bg-white/80 backdrop-blur-md border-neutral-200 shadow-lg">
-                <SelectItem value="all">Toutes les villes</SelectItem>
-                {locations.map((loc: string) => <SelectItem key={loc} value={loc} className="text-sm">{loc}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            {isMobile ? (
+              <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <DrawerTrigger asChild>{locationButton}</DrawerTrigger>
+                <DrawerContent className="h-[95vh] top-0 mt-0">
+                  <DrawerHeader className="text-left">
+                    <DrawerTitle className="text-2xl font-bold">Où cherchez-vous ?</DrawerTitle>
+                  </DrawerHeader>
+                  <div className="px-2 overflow-y-auto">
+                    {locationFilterContent}
+                  </div>
+                </DrawerContent>
+              </Drawer>
+            ) : (
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>{locationButton}</PopoverTrigger>
+                <PopoverContent className="w-[340px] p-0" align="start">
+                  {locationFilterContent}
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
         
@@ -96,7 +129,6 @@ const ArtistsPage = () => {
   const [allArtists, setAllArtists] = useState<User[]>([]);
   const [filteredArtists, setFilteredArtists] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [locations, setLocations] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     searchTerm: '',
     selectedLocation: 'all',
@@ -135,7 +167,6 @@ const ArtistsPage = () => {
         
         setAllArtists(sortedArtists);
         const distinctLocations = [...new Set(data.map(u => u.location).filter(Boolean) as string[])];
-        setLocations(sortCitiesByPriority(distinctLocations));
       }
       setLoading(false);
     };
@@ -176,7 +207,6 @@ const ArtistsPage = () => {
               </p>
             </div>
             <FilterBar 
-              locations={locations} 
               onFilterChange={setFilters} 
               onReset={handleResetFilters}
               filters={filters}

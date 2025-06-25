@@ -7,6 +7,10 @@ import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown } 
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { LocationFilter } from '@/components/ui/LocationFilter';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 
 interface User {
   id: string;
@@ -19,6 +23,16 @@ interface User {
 }
 
 const providerGroupsConfig = [
+  {
+    title: "Professionnels de l'enregistrement",
+    icon: Camera,
+    color: 'red',
+    sections: [
+      { title: 'Studios', subCategories: ['studio'] },
+      { title: 'Beatmakers', subCategories: ['beatmaker'] },
+      { title: 'Ingénieurs du son', subCategories: ['engineer'] },
+    ],
+  },
   {
     title: 'Promotion et marketing',
     icon: Megaphone,
@@ -40,11 +54,18 @@ const providerGroupsConfig = [
     ],
   },
   {
-    title: 'Droits et distribution',
-    icon: Gavel,
-    color: 'green',
+    title: "Distribution",
+    icon: Camera,
+    color: 'orange',
     sections: [
       { title: 'Distributeurs de musique', subCategories: ['distributor'] },
+    ],
+  },
+  {
+    title: "Droits",
+    icon: Gavel,
+    color: 'teal',
+    sections: [
       { title: 'Avocats spécialisés', subCategories: ['music_lawyer'] },
     ],
   },
@@ -57,17 +78,43 @@ const providerGroupsConfig = [
       { title: 'Ateliers et cours de musique', subCategories: ['music_workshop'] },
     ],
   },
-  ];
+];
 
 const colorMap: { [key: string]: { text: string; bg: string; border: string } } = {
+  orange: { text: 'text-orange-500', bg: 'bg-orange-500', border: 'border-orange-500' },
+  teal: { text: 'text-teal-500', bg: 'bg-teal-500', border: 'border-teal-500' },
+  red: { text: 'text-red-500', bg: 'bg-red-500', border: 'border-red-500' },
   blue: { text: 'text-blue-500', bg: 'bg-blue-500', border: 'border-blue-500' },
   purple: { text: 'text-purple-500', bg: 'bg-purple-500', border: 'border-purple-500' },
   green: { text: 'text-green-500', bg: 'bg-green-500', border: 'border-green-500' },
   yellow: { text: 'text-yellow-500', bg: 'bg-yellow-500', border: 'border-yellow-500' },
 };
 
-const FilterBar = ({ locations, onFilterChange, onReset, filters }: any) => {
+const FilterBar = ({ onFilterChange, onReset, filters }: any) => {
+  const isMobile = useIsMobile();
   const isFilterActive = filters.searchTerm !== '' || filters.selectedLocation !== 'all' || filters.selectedDomain !== 'all';
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const handleLocationChange = (location: string) => {
+    onFilterChange({ ...filters, selectedLocation: location });
+    setIsPopoverOpen(false); // Works for both
+  };
+
+  const locationButton = (
+    <button className="w-full h-12 pl-11 pr-4 text-left text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 flex items-center justify-between">
+      <span className={filters.selectedLocation === 'all' ? 'text-neutral-500' : ''}>
+        {filters.selectedLocation === 'all' ? 'Toute la France' : filters.selectedLocation}
+      </span>
+       <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500" />
+    </button>
+  );
+
+  const locationFilterContent = (
+     <LocationFilter
+      selectedLocation={filters.selectedLocation}
+      onLocationChange={handleLocationChange}
+    />
+  );
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -87,19 +134,22 @@ const FilterBar = ({ locations, onFilterChange, onReset, filters }: any) => {
           
           {/* Select Location */}
           <div className="relative w-full">
-            <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-500 pointer-events-none" />
-            <Select 
-              value={filters.selectedLocation} 
-              onValueChange={(value) => onFilterChange({ ...filters, selectedLocation: value })}
-            >
-              <SelectTrigger className="w-full h-12 pl-11 text-sm bg-white/50 border border-neutral-200/60 rounded-xl text-neutral-800 data-[placeholder]:text-neutral-500 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
-                <SelectValue placeholder="Toutes les villes" />
-              </SelectTrigger>
-              <SelectContent className="rounded-xl bg-white/80 backdrop-blur-md border-neutral-200 shadow-lg">
-                <SelectItem value="all">Toutes les villes</SelectItem>
-                {locations.map((loc: string) => <SelectItem key={loc} value={loc} className="text-sm">{loc}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            {isMobile ? (
+               <Drawer open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <DrawerTrigger asChild>{locationButton}</DrawerTrigger>
+                <DrawerContent className="h-[95vh] top-0 mt-0">
+                  <DrawerHeader className="text-left"><DrawerTitle className="text-2xl font-bold">Où cherchez-vous ?</DrawerTitle></DrawerHeader>
+                  <div className="px-2 overflow-y-auto">{locationFilterContent}</div>
+                </DrawerContent>
+              </Drawer>
+            ) : (
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+                <PopoverTrigger asChild>{locationButton}</PopoverTrigger>
+                <PopoverContent className="w-[340px] p-0" align="start">
+                  {locationFilterContent}
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
           
           {/* Select Domain */}
@@ -140,7 +190,6 @@ const ProvidersPage = () => {
   const [allProviders, setAllProviders] = useState<User[]>([]);
   const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [locations, setLocations] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     searchTerm: '',
     selectedLocation: 'all',
@@ -165,8 +214,6 @@ const ProvidersPage = () => {
         console.error('Error fetching providers:', error);
       } else if (users) {
         setAllProviders(users);
-        const distinctLocations = [...new Set(users.map(u => u.location).filter(Boolean) as string[])];
-        setLocations(distinctLocations.sort());
       }
       setLoading(false);
     };
@@ -228,7 +275,6 @@ const ProvidersPage = () => {
             </div>
 
             <FilterBar 
-              locations={locations} 
               onFilterChange={setFilters} 
               onReset={handleResetFilters}
               filters={filters} 

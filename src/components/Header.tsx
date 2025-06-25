@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, LogOut, Mic, Headphones, Users } from 'lucide-react';
+import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 const megaMenu = [
   {
-    label: 'Artistes & Créateurs',
+    label: 'Artistes',
     type: 'artists',
     link: '/artists',
     description: "Musiciens, chanteurs, compositeurs...",
@@ -35,12 +35,40 @@ const megaMenu = [
   },
 ];
 
+const providerMegaMenu = [
+  {
+    title: "Professionnels de l'enregistrement",
+    sub: ["Studios", "Beatmakers", "Ingénieurs du son"],
+  },
+  {
+    title: "Promotion et marketing",
+    sub: ["Programmateurs de radio/playlist", "Community manager"],
+  },
+  {
+    title: "Visuel",
+    sub: ["CLIPMAKERS", "Monteurs", "Photographes", "Graphistes"],
+  },
+  {
+    title: "Distribution",
+    sub: ["Distributeurs de musique"],
+  },
+  {
+    title: "Droits",
+    sub: ["Avocats spécialisés"],
+  },
+  {
+    title: "Formation",
+    sub: ["Coach vocal", "Ateliers et cours de musique"],
+  },
+];
+
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showProviderMenu, setShowProviderMenu] = useState(false);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -189,6 +217,11 @@ const Header = () => {
                         Mon profil artiste
                       </DropdownMenuItem>
                     )}
+                    {currentUser.role === 'provider' && (
+                      <DropdownMenuItem onClick={() => navigate('/provider-settings')}>
+                        Mon profil prestataire
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem onClick={handleSignOut}>
                       <LogOut className="h-4 w-4 mr-2" />
                       Se déconnecter
@@ -226,103 +259,95 @@ const Header = () => {
       </header>
 
       {/* Mobile Menu Drawer */}
-      <div className={`fixed inset-0 z-40 md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+      <div 
+        className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      >
         <div 
           className="absolute inset-0 bg-black/20 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         />
-        <div className={`absolute right-0 top-0 h-full w-80 bg-[#f9fafb] shadow-2xl transform transition-transform duration-300 ease-in-out mobile-menu flex flex-col ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}>
-          <div className="flex flex-col h-full overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <img 
-                src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
-                alt="MusicLinks" 
-                className="h-8 w-auto"
-              />
-              <button
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                <X className="h-5 w-5 text-gray-700" />
-              </button>
-            </div>
-            <nav className="flex-1 px-6 pt-6 pb-0">
-              <ul className="divide-y divide-gray-200">
-                <li>
-                  <Link to="/artists" onClick={() => setIsMobileMenuOpen(false)} className="flex items-start gap-4 py-4 focus:outline-none">
-                    <span className="mt-1 text-xl">🎤</span>
-                    <span>
-                      <span className="block text-base font-semibold text-gray-900">Artistes & Créateurs</span>
-                      <span className="block text-sm text-gray-500">Musiciens, compositeurs…</span>
-                    </span>
+        <div 
+          className={`absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out mobile-menu flex flex-col ${
+            isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          <div className="p-6">
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="h-6 w-6 text-gray-700" />
+            </button>
+          </div>
+          
+          <nav className="flex-grow pt-8 px-4">
+            <ul>
+              {megaMenu.map((item) => (
+                <li key={item.type}>
+                  <Link
+                    to={item.link}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100"
+                  >
+                    <span>{item.label}</span>
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
                   </Link>
                 </li>
-                <li>
-                  <Link to="/providers" onClick={() => setIsMobileMenuOpen(false)} className="flex items-start gap-4 py-4 focus:outline-none">
-                    <span className="mt-1 text-xl">🎧</span>
-                    <span>
-                      <span className="block text-base font-semibold text-gray-900">Prestataires de services</span>
-                      <span className="block text-sm text-gray-500">Studios, beatmakers…</span>
-                    </span>
-            </Link>
-                </li>
-                <li>
-                  <Link to="/partners" onClick={() => setIsMobileMenuOpen(false)} className="flex items-start gap-4 py-4 focus:outline-none">
-                    <span className="mt-1 text-xl">🧑‍💼</span>
-                    <span>
-                      <span className="block text-base font-semibold text-gray-900">Partenaires stratégiques</span>
-                      <span className="block text-sm text-gray-500">Labels, managers…</span>
-                    </span>
-            </Link>
-                </li>
-              </ul>
-            </nav>
-            <div className="p-6 mt-auto border-t border-gray-200">
-              {currentUser ? (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    {currentUser.profilepicture ? (
-                      <img src={currentUser.profilepicture} alt="Profile" className="w-10 h-10 rounded-full object-cover"/>
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="w-6 h-6 text-gray-500" />
-                      </div>
-                    )}
-                    <div>
-                      <div className="font-bold text-gray-800">{currentUser.name || 'Utilisateur'}</div>
-                      <div className="text-sm text-gray-500">{currentUser.role === 'artist' ? 'Artiste' : 'Prestataire'}</div>
-                    </div>
-                  </div>
-                  
-                  <Button asChild variant="ghost" className="w-full justify-start text-left font-medium text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                    <Link to={currentUser.role === 'artist' ? '/profile/artist' : '/profile/provider'} onClick={() => setIsMobileMenuOpen(false)}>
-                      <User className="w-4 h-4 mr-2" />
-                      <span>Mon profil</span>
-            </Link>
-                  </Button>
+              ))}
+            </ul>
+            
+            <hr className="my-4 mx-4 border-gray-200" />
 
-                  <Button variant="ghost" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50" onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Se déconnecter
+            <ul>
+              <li>
+                <Link
+                  to="/Project"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100"
+                >
+                  <span>Projets</span>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/how-it-works"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100"
+                >
+                  <span>Comment ça marche</span>
+                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                </Link>
+              </li>
+            </ul>
+          </nav>
+
+          <div className="p-6 border-t border-gray-200">
+            {currentUser ? (
+              <div className="space-y-4">
+                 <Link to={currentUser.role === 'artist' ? '/profile/artist' : currentUser.role === 'provider' ? '/provider-settings' : `/profile/${currentUser.id}`} onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
+                      <User className="h-5 w-5" /> Mon compte
+                    </Button>
+                  </Link>
+                <Button onClick={handleSignOut} variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
+                  <LogOut className="h-5 w-5" /> Se déconnecter
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Link to="/login" state={{ from: location }} className="block" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button variant="outline" className="w-full font-semibold text-base py-3">
+                    Connexion
                   </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  <Link to="/login" state={{ from: location }} onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full rounded-xl h-12 text-base font-semibold shadow-sm">
-                  Connexion
-                </Button>
-              </Link>
-                  <Link to="/signup" state={{ from: location }} onClick={() => setIsMobileMenuOpen(false)}>
-                    <Button className="w-full rounded-xl h-12 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg">
-                  S'inscrire
-                </Button>
-              </Link>
-                </div>
-              )}
-            </div>
+                </Link>
+                <Link to="/signup" state={{ from: location }} className="block" onClick={() => setIsMobileMenuOpen(false)}>
+                  <Button className="w-full font-semibold text-base py-3 bg-blue-600 hover:bg-blue-700 text-white">
+                    S'inscrire
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

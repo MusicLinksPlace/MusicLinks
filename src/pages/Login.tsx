@@ -60,7 +60,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
-  
+
   // If user is already logged in, show a redirecting message.
   if (isLoggedIn) {
     return (
@@ -125,14 +125,24 @@ const Login = () => {
             </div>
 
             <Button 
-              type="submit" 
-              className="w-full bg-ml-teal hover:bg-ml-teal/90 text-white font-semibold py-3 rounded-xl text-lg transition-all duration-300 hover:shadow-lg"
+              type="submit"
+              variant="teal"
+              className="w-full text-lg font-semibold py-3 rounded-xl"
               disabled={isLoading}
             >
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {isLoading ? 'Connexion...' : 'Se connecter'}
             </Button>
           </form>
+
+          <div className="text-center mt-6">
+            <Link 
+              to="/forgot-password" 
+              className="text-white/80 hover:text-white font-medium transition-colors text-sm"
+            >
+              Mot de passe oublié ?
+            </Link>
+          </div>
 
           <div className="my-8 flex items-center gap-4">
             <hr className="flex-grow border-t border-white/20" />

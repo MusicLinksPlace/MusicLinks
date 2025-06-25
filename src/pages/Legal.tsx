@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -15,23 +14,6 @@ const Legal = () => {
           </h1>
           
           <div className="prose prose-lg max-w-none">
-            <div className="bg-ml-light-gray/20 rounded-2xl p-8 mb-8">
-              <h2 className="text-2xl font-bold text-ml-charcoal mb-4">
-                Informations générales
-              </h2>
-              <div className="space-y-4 text-ml-charcoal/80">
-                <p>
-                  <strong>MusicLinks</strong> - Projet porté par Nicolas Bohbot
-                </p>
-                <p>
-                  <strong>Email :</strong> musiclinksplatform@gmail.com
-                </p>
-                <p>
-                  <strong>Hébergement :</strong> Vercel
-                </p>
-              </div>
-            </div>
-
             <div className="space-y-8">
               <section>
                 <h2 className="text-2xl font-bold text-ml-charcoal mb-4">
