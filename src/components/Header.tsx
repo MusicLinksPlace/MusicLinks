@@ -47,7 +47,7 @@ const providerMegaMenu = [
   },
   {
     title: "Visuel",
-    sub: ["CLIPMAKERS", "Monteurs", "Photographes", "Graphistes"],
+    sub: ["Clipmakers", "Monteurs", "Photographes", "Graphistes"],
   },
   {
     title: "Distribution",
@@ -81,7 +81,7 @@ const subCategoryIcons: Record<string, React.ReactNode> = {
   'Ingénieurs du son': <Headphones className="w-5 h-5 text-blue-500" />,
   'Programmateurs de radio/playlist': <Megaphone className="w-5 h-5 text-blue-500" />,
   'Community manager': <Users className="w-5 h-5 text-blue-500" />,
-  'CLIPMAKERS': <Camera className="w-5 h-5 text-blue-500" />,
+  'Clipmakers': <Camera className="w-5 h-5 text-blue-500" />,
   'Monteurs': <Camera className="w-5 h-5 text-blue-500" />,
   'Photographes': <Camera className="w-5 h-5 text-blue-500" />,
   'Graphistes': <Camera className="w-5 h-5 text-blue-500" />,
@@ -177,21 +177,23 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-2">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div className="w-full px-8 flex items-center h-20 justify-between">
+          {/* Logo à gauche */}
+          <Link to="/" className="flex items-center gap-3 min-w-[180px]">
             <img 
               src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
               alt="MusicLinks" 
-                className="h-8 w-auto"
+              className="h-8 w-auto"
             />
           </Link>
 
-          <nav className="hidden md:flex items-center space-x-6 font-sans font-medium whitespace-nowrap">
+          {/* Navigation centrée */}
+          <nav className="flex-1 flex justify-center items-center gap-10 font-sans font-medium text-[16px]">
             {megaMenu.map((item) => {
-              // Emoji mapping
-              const emoji = item.type === 'artists' ? '🎤' : item.type === 'providers' ? '🛠' : item.type === 'partners' ? '🎯' : '';
+              const iconSrc = item.type === 'artists' ? '/bnbicons/microphone.png' : 
+                             item.type === 'providers' ? '/bnbicons/provider.png' : 
+                             item.type === 'partners' ? '/bnbicons/partner.png' : '';
               return (
                 <div
                   key={item.type}
@@ -200,11 +202,11 @@ const Header = () => {
                   onMouseLeave={handleMenuLeave}
                 >
                   <button
-                    className={`flex items-center gap-1.5 text-[15px] font-medium transition-colors relative pb-2 ${hoveredMenu === item.type ? 'text-ml-blue' : 'hover:text-ml-blue'}`}
+                    className={`flex items-center gap-1 text-[16px] font-medium transition-colors relative pb-2 ${hoveredMenu === item.type ? 'text-ml-blue' : 'hover:text-ml-blue'}`}
                     style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
                     onClick={() => navigate(item.link)}
                   >
-                    <span className="text-lg">{emoji}</span>
+                    <img src={iconSrc} alt={item.label} className="w-12 h-12 object-contain" />
                     <span className="truncate">{item.label}</span>
                     {hoveredMenu === item.type && (
                       <span className="absolute left-0 right-0" style={{ bottom: -14 }}>
@@ -212,10 +214,45 @@ const Header = () => {
                       </span>
                     )}
                   </button>
-                  {/* Mega-menu déroulant */}
-                  {hoveredMenu === item.type && item.type === 'providers' && (
+                  {/* Mega-menu déroulant ARTISTES */}
+                  {hoveredMenu === item.type && item.type === 'artists' && (
                     <div
-                      className="fixed left-0 right-0 top-[64px] z-40 w-full"
+                      className="fixed left-0 right-0 top-[80px] z-40 w-full"
+                      onMouseEnter={() => handleMenuEnter(item.type)}
+                      onMouseLeave={handleMenuLeave}
+                      style={{ pointerEvents: 'auto' }}
+                    >
+                      <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                        <div className="max-w-7xl mx-auto px-8">
+                          <div className="grid grid-cols-4 gap-8">
+                            {[
+                              { label: 'Nos artistes à Paris', value: 'Paris', icon: '/bnbicons/paris.png' },
+                              { label: 'Nos artistes à Lyon', value: 'Lyon', icon: '/bnbicons/lyon.png' },
+                              { label: 'Nos artistes à Marseille', value: 'Marseille', icon: '/bnbicons/marseille.png' },
+                              { label: 'Partout en France', value: 'all', icon: '/bnbicons/france.png' },
+                            ].map(option => (
+                              <button
+                                key={option.value}
+                                onClick={() => {
+                                  navigate(`/artists?location=${option.value}`);
+                                  setHoveredMenu(null);
+                                }}
+                                className="flex flex-col items-center justify-center gap-2 text-neutral-800 hover:text-ml-blue text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-ml-blue bg-white shadow-sm hover:shadow-lg"
+                                style={{ minHeight: 120 }}
+                              >
+                                <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
+                                <span>{option.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* Mega-menu déroulant PARTENAIRES */}
+                  {hoveredMenu === item.type && item.type === 'partners' && (
+                    <div
+                      className="fixed left-0 right-0 top-[80px] z-40 w-full"
                       onMouseEnter={() => handleMenuEnter(item.type)}
                       onMouseLeave={handleMenuLeave}
                       style={{ pointerEvents: 'auto' }}
@@ -223,28 +260,74 @@ const Header = () => {
                       <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
                         <div className="max-w-7xl mx-auto px-8">
                           <div className="grid grid-cols-3 gap-8">
-                            {providerMegaMenu.map(cat => (
-                              <div key={cat.title}>
-                                <div className="font-semibold text-blue-900 mb-3 text-base">{cat.title}</div>
-                                <ul className="space-y-2">
-                                  {cat.sub.map(sub => {
-                                    const group = providerGroupsConfig.find(g => g.title === cat.title);
-                                    const section = group?.sections.find(s => s.title === sub);
-                                    const subCat = section?.subCategories[0] || sub.toLowerCase();
-                                    return (
-                                      <li key={sub}>
-                                        <a
-                                          href={`/providers?subCategory=${encodeURIComponent(subCat)}`}
-                                          className="flex items-center gap-3 text-neutral-800 hover:text-ml-blue text-base py-2 px-2 rounded-lg transition-colors"
-                                        >
-                                          {subCategoryIcons[sub] || <Camera className="w-5 h-5 text-blue-400" />}<span>{sub}</span>
-                                        </a>
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              </div>
+                            {[
+                              { label: 'Maisons de disque & labels', value: 'label', icon: '/bnbicons/recordCompany.png' },
+                              { label: 'Managers & directeurs artistiques', value: 'manager', icon: '/bnbicons/manager.png' },
+                              { label: 'Tous nos partenaires', value: 'all', icon: '/bnbicons/allPartner.png' },
+                            ].map(option => (
+                              <button
+                                key={option.value}
+                                onClick={() => {
+                                  navigate(`/partners?subCategory=${option.value}`);
+                                  setHoveredMenu(null);
+                                }}
+                                className="flex flex-col items-center justify-center gap-2 text-neutral-800 hover:text-ml-blue text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-ml-blue bg-white shadow-sm hover:shadow-lg"
+                                style={{ minHeight: 120 }}
+                              >
+                                <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
+                                <span>{option.label}</span>
+                              </button>
                             ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {/* Mega-menu déroulant PRESTATAIRES */}
+                  {hoveredMenu === item.type && item.type === 'providers' && (
+                    <div
+                      className="fixed left-0 right-0 top-[80px] z-40 w-full"
+                      onMouseEnter={() => handleMenuEnter(item.type)}
+                      onMouseLeave={handleMenuLeave}
+                      style={{ pointerEvents: 'auto' }}
+                    >
+                      <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                        <div className="max-w-7xl mx-auto px-8">
+                          <div className="grid grid-cols-3 gap-12">
+                            {providerMegaMenu.map(cat => {
+                              let icon = null;
+                              if (cat.title === "Professionnels de l'enregistrement") icon = '/bnbicons/recorder.png';
+                              if (cat.title === "Promotion et marketing") icon = '/bnbicons/marketing.png';
+                              if (cat.title === "Visuel") icon = '/bnbicons/visuel.png';
+                              if (cat.title === "Distribution") icon = '/bnbicons/distributor.png';
+                              if (cat.title === "Formation") icon = '/bnbicons/formation.png';
+                              if (cat.title === "Droits") icon = '/bnbicons/law.png';
+                              return (
+                                <div key={cat.title} className="space-y-4">
+                                  <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-2">
+                                    {icon && <img src={icon} alt={cat.title} className="w-20 h-20 object-contain mr-2" />}
+                                    {cat.title}
+                                  </h3>
+                                  <ul className="space-y-1">
+                                    {cat.sub.map(sub => {
+                                      const group = providerGroupsConfig.find(g => g.title === cat.title);
+                                      const section = group?.sections.find(s => s.title === sub);
+                                      const subCat = section?.subCategories[0] || sub.toLowerCase();
+                                      return (
+                                        <li key={sub}>
+                                          <a
+                                            href={`/providers?subCategory=${encodeURIComponent(subCat)}`}
+                                            className="flex items-center text-sm text-gray-700 hover:text-gray-900 py-1.5 px-1 rounded transition-colors"
+                                          >
+                                            <span className="font-normal">{sub}</span>
+                                          </a>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       </div>
@@ -255,80 +338,62 @@ const Header = () => {
             })}
             <Link 
               to="/Project" 
-              className={`text-[15px] font-medium transition-colors hover:text-blue-600 ${isActive('/Project') ? 'text-blue-600' : 'text-gray-700'} whitespace-nowrap`}
+              className={`text-[16px] font-medium transition-colors hover:text-blue-600 ${isActive('/Project') ? 'text-blue-600' : 'text-gray-700'} whitespace-nowrap`}
               style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
             >
               Projets
             </Link>
-            <Link 
-              to="/how-it-works" 
-              className={`text-[15px] font-medium transition-colors hover:text-blue-600 ${isActive('/how-it-works') ? 'text-blue-600' : 'text-gray-700'} whitespace-nowrap`}
-              style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
-            >
-              Comment ça marche
-            </Link>
           </nav>
 
-          <div className="hidden md:flex items-center space-x-3">
-              {currentUser ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium flex items-center gap-2">
-                      {currentUser.profilepicture ? (
-                        <img
-                          src={currentUser.profilepicture}
-                          alt="Profile"
-                          className="w-7 h-7 rounded-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-4 w-4" />
-                      )}
-                      {currentUser.name || 'Mon compte'}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    {currentUser.role === 'artist' && (
-                      <DropdownMenuItem onClick={() => navigate('/profile/artist')}>
-                        Mon profil artiste
-                      </DropdownMenuItem>
+          {/* Actions à droite */}
+          <div className="flex items-center gap-2 min-w-[220px] justify-end">
+            {currentUser ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200">
+                    {currentUser.profilepicture ? (
+                      <img
+                        src={currentUser.profilepicture}
+                        alt="Profile"
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-5 w-5" />
                     )}
-                    {currentUser.role === 'provider' && (
-                      <DropdownMenuItem onClick={() => navigate('/provider-settings')}>
-                        Mon profil prestataire
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem onClick={handleSignOut}>
-                      <LogOut className="h-4 w-4 mr-2" />
-                      Se déconnecter
+                    <span className="font-medium text-[16px]">{currentUser.name || 'Mon compte'}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {currentUser.role === 'artist' && (
+                    <DropdownMenuItem onClick={() => navigate('/profile/artist')}>
+                      Mon profil artiste
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <>
-                  <Link to="/login" state={{ from: location }}>
-                    <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium">
-                Connexion
-              </Button>
-            </Link>
-                  <Link to="/signup" state={{ from: location }}>
-                    <Button size="sm" className="font-bold rounded-xl px-6 py-2 bg-ml-blue hover:bg-ml-blue/90 text-white text-base shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors">
-                S'inscrire
-              </Button>
-            </Link>
-                </>
-              )}
-          </div>
-
-          <button
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-              {isMobileMenuOpen ? (
-                <X className="h-6 w-6 text-gray-700" />
+                  )}
+                  {currentUser.role === 'provider' && (
+                    <DropdownMenuItem onClick={() => navigate('/provider-settings')}>
+                      Mon profil prestataire
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Se déconnecter
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-                <Menu className="h-6 w-6 text-gray-700" />
+              <>
+                <Link to="/login" state={{ from: location }}>
+                  <Button variant="outline" size="sm" className="rounded-full px-6 py-2 text-[16px] font-medium border-gray-300 hover:border-ml-blue hover:text-ml-blue bg-white shadow-none">
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/signup" state={{ from: location }}>
+                  <Button size="sm" className="rounded-full px-6 py-2 text-[16px] font-semibold bg-ml-blue hover:bg-ml-blue/90 text-white shadow-md">
+                    S'inscrire
+                  </Button>
+                </Link>
+              </>
             )}
-          </button>
           </div>
         </div>
       </header>

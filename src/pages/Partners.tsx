@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { LocationFilter } from '@/components/ui/LocationFilter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { useLocation } from 'react-router-dom';
 
 interface User {
   id: string;
@@ -99,7 +100,18 @@ const PartnersPage = () => {
   const [filters, setFilters] = useState({
     searchTerm: '',
     selectedLocation: 'all',
+    selectedSubCategory: 'all',
   });
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const subCat = params.get('subCategory');
+    if (subCat && ['label', 'manager', 'all'].includes(subCat)) {
+      setFilters(f => ({ ...f, selectedSubCategory: subCat }));
+    }
+    // eslint-disable-next-line
+  }, [location.search]);
 
   useEffect(() => {
     const fetchPartners = async () => {
@@ -134,11 +146,19 @@ const PartnersPage = () => {
       tempPartners = tempPartners.filter(p => p.location === filters.selectedLocation);
     }
 
+    if (filters.selectedSubCategory !== 'all') {
+      if (filters.selectedSubCategory === 'label') {
+        tempPartners = tempPartners.filter(p => p.subCategory === 'label');
+      } else if (filters.selectedSubCategory === 'manager') {
+        tempPartners = tempPartners.filter(p => ['manager', 'directeur artistique'].includes(p.subCategory || ''));
+      }
+    }
+
     setFilteredPartners(tempPartners);
   }, [filters, allPartners]);
 
   const handleResetFilters = () => {
-    setFilters({ searchTerm: '', selectedLocation: 'all' });
+    setFilters({ searchTerm: '', selectedLocation: 'all', selectedSubCategory: 'all' });
   };
   
   const labels = filteredPartners.filter(p => p.subCategory === 'label');
@@ -172,13 +192,26 @@ const PartnersPage = () => {
             <div className="text-center text-gray-500 text-lg">Chargement des partenaires...</div>
           ) : (
             <div className="space-y-16">
-              {labels.length > 0 && (
-                <HorizontalCarousel title="Maisons de disque & labels" users={labels} />
-              )}
-              {managers.length > 0 && (
-                <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} />
-              )}
-              {labels.length === 0 && managers.length === 0 && (
+              {filters.selectedSubCategory === 'all' ? (
+                <>
+                  {labels.length > 0 && (
+                    <HorizontalCarousel title="Maisons de disque & labels" users={labels} />
+                  )}
+                  {managers.length > 0 && (
+                    <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} />
+                  )}
+                </>
+              ) : filters.selectedSubCategory === 'label' ? (
+                labels.length > 0 && (
+                  <HorizontalCarousel title="Maisons de disque & labels" users={labels} />
+                )
+              ) : filters.selectedSubCategory === 'manager' ? (
+                managers.length > 0 && (
+                  <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} />
+                )
+              ) : null}
+              
+              {filteredPartners.length === 0 && (
                  <div className="text-center py-16">
                    <p className="text-lg text-gray-500">
                      Aucun partenaire ne correspond à vos critères de recherche.
