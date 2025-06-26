@@ -177,7 +177,8 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+      {/* Header Desktop */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm hidden md:block">
         <div className="w-full px-8 flex items-center h-20 justify-between">
           {/* Logo à gauche */}
           <Link to="/" className="flex items-center gap-3 min-w-[180px]">
@@ -395,6 +396,28 @@ const Header = () => {
               </>
             )}
           </div>
+        </div>
+      </header>
+
+      {/* Header Mobile */}
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm md:hidden">
+        <div className="w-full px-4 flex items-center h-16 justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center">
+            <img 
+              src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
+              alt="MusicLinks" 
+              className="h-6 w-auto"
+            />
+          </Link>
+
+          {/* Menu burger */}
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          >
+            <Menu className="h-6 w-6 text-gray-700" />
+          </button>
         </div>
       </header>
 
