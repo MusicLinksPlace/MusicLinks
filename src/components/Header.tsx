@@ -178,10 +178,10 @@ const Header = () => {
   return (
     <>
       {/* Header Desktop */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm hidden md:block">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm hidden md:block">
         <div className="w-full px-8 flex items-center h-20 justify-between">
           {/* Logo à gauche */}
-          <Link to="/" className="flex items-center gap-3 min-w-[180px]">
+          <Link to="/" className="flex items-center gap-3 min-w-[160px]">
             <img 
               src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
               alt="MusicLinks" 
@@ -190,29 +190,36 @@ const Header = () => {
           </Link>
 
           {/* Navigation centrée */}
-          <nav className="flex-1 flex justify-center items-center gap-10 font-sans font-medium text-[16px]">
+          <nav className="flex-1 flex justify-center items-center gap-6 font-sans">
             {megaMenu.map((item) => {
               const iconSrc = item.type === 'artists' ? '/bnbicons/microphone.png' : 
                              item.type === 'providers' ? '/bnbicons/provider.png' : 
                              item.type === 'partners' ? '/bnbicons/partner.png' : '';
+              
+              // Titres raccourcis pour l'affichage
+              const displayLabel = item.type === 'providers' ? 'Prestataires' : 
+                                 item.type === 'partners' ? 'Partenaires' : 
+                                 item.label;
+              
               return (
                 <div
                   key={item.type}
-                  className="relative"
+                  className="relative px-6"
                   onMouseEnter={() => handleMenuEnter(item.type)}
                   onMouseLeave={handleMenuLeave}
                 >
                   <button
-                    className={`flex items-center gap-1 text-[16px] font-medium transition-colors relative pb-2 ${hoveredMenu === item.type ? 'text-ml-blue' : 'hover:text-ml-blue'}`}
-                    style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
+                    className={`flex flex-col items-center bg-transparent border-none p-0 m-0`}
+                    style={{ minWidth: 0 }}
                     onClick={() => navigate(item.link)}
                   >
-                    <img src={iconSrc} alt={item.label} className="w-12 h-12 object-contain" />
-                    <span className="truncate">{item.label}</span>
+                    <span className={`flex items-center gap-4 text-[16px] font-medium transition-colors py-3 ${hoveredMenu === item.type ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}
+                      style={{ position: 'relative' }}>
+                      <img src={iconSrc} alt={item.label} className="w-8 h-8 object-contain" />
+                      <span className="truncate">{displayLabel}</span>
+                    </span>
                     {hoveredMenu === item.type && (
-                      <span className="absolute left-0 right-0" style={{ bottom: -14 }}>
-                        <span className="block w-full h-[3px] rounded-full bg-ml-blue"></span>
-                      </span>
+                      <span className="block mt-1" style={{ height: 3, width: 'calc(100% - 8px)', background: '#2563eb', borderRadius: 2, margin: '0 auto' }} />
                     )}
                   </button>
                   {/* Mega-menu déroulant ARTISTES */}
@@ -238,11 +245,11 @@ const Header = () => {
                                   navigate(`/artists?location=${option.value}`);
                                   setHoveredMenu(null);
                                 }}
-                                className="flex flex-col items-center justify-center gap-2 text-neutral-800 hover:text-ml-blue text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-ml-blue bg-white shadow-sm hover:shadow-lg"
+                                className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
                                 style={{ minHeight: 120 }}
                               >
                                 <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
-                                <span>{option.label}</span>
+                                <span className="text-center">{option.label}</span>
                               </button>
                             ))}
                           </div>
@@ -272,11 +279,11 @@ const Header = () => {
                                   navigate(`/partners?subCategory=${option.value}`);
                                   setHoveredMenu(null);
                                 }}
-                                className="flex flex-col items-center justify-center gap-2 text-neutral-800 hover:text-ml-blue text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-ml-blue bg-white shadow-sm hover:shadow-lg"
+                                className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
                                 style={{ minHeight: 120 }}
                               >
                                 <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
-                                <span>{option.label}</span>
+                                <span className="text-center">{option.label}</span>
                               </button>
                             ))}
                           </div>
@@ -305,8 +312,8 @@ const Header = () => {
                               if (cat.title === "Droits") icon = '/bnbicons/law.png';
                               return (
                                 <div key={cat.title} className="space-y-4">
-                                  <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-2">
-                                    {icon && <img src={icon} alt={cat.title} className="w-20 h-20 object-contain mr-2" />}
+                                  <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-3">
+                                    {icon && <img src={icon} alt={cat.title} className="w-12 h-12 object-contain" />}
                                     {cat.title}
                                   </h3>
                                   <ul className="space-y-1">
@@ -337,17 +344,19 @@ const Header = () => {
                 </div>
               );
             })}
-            <Link 
-              to="/Project" 
-              className={`text-[16px] font-medium transition-colors hover:text-blue-600 ${isActive('/Project') ? 'text-blue-600' : 'text-gray-700'} whitespace-nowrap`}
-              style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
-            >
-              Projets
-            </Link>
+            <div className="px-6">
+              <Link 
+                to="/Project" 
+                className={`text-[16px] font-medium transition-colors hover:text-blue-600 ${isActive('/Project') ? 'text-blue-600' : 'text-gray-700'} whitespace-nowrap py-3`}
+                style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
+              >
+                Projets
+              </Link>
+            </div>
           </nav>
 
           {/* Actions à droite */}
-          <div className="flex items-center gap-2 min-w-[220px] justify-end">
+          <div className="flex items-center gap-3 min-w-[220px] justify-end">
             {currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -384,12 +393,12 @@ const Header = () => {
             ) : (
               <>
                 <Link to="/login" state={{ from: location }}>
-                  <Button variant="outline" size="sm" className="rounded-full px-6 py-2 text-[16px] font-medium border-gray-300 hover:border-ml-blue hover:text-ml-blue bg-white shadow-none">
+                  <Button variant="outline" size="sm" className="rounded-full px-6 py-2 text-[16px] font-medium border-gray-300 hover:border-blue-600 hover:text-blue-600 bg-white shadow-none">
                     Connexion
                   </Button>
                 </Link>
                 <Link to="/signup" state={{ from: location }}>
-                  <Button size="sm" className="rounded-full px-6 py-2 text-[16px] font-semibold bg-ml-blue hover:bg-ml-blue/90 text-white shadow-md">
+                  <Button size="sm" className="rounded-full px-6 py-2 text-[16px] font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md">
                     S'inscrire
                   </Button>
                 </Link>
