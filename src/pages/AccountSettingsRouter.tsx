@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArtistAccountSettings from "./ArtistAccount";
-import ProviderAccountSettings from "./ProviderAccount";
+import ProviderProfileSettings from "./ProviderProfileSettings";
 import PartnerAccountSettings from "./PartnerAccount";
 
 export default function AccountSettingsRouter() {
@@ -27,7 +27,7 @@ export default function AccountSettingsRouter() {
     case "artist":
       return <ArtistAccountSettings />;
     case "provider":
-      return <ProviderAccountSettings />;
+      return <ProviderProfileSettings />;
     case "partner":
       return <PartnerAccountSettings />;
     default:

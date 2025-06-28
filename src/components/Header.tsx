@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/components/ui/use-toast';
 import { providerGroupsConfig } from '../pages/Providers';
+import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 
 const megaMenu = [
   {
@@ -91,6 +92,12 @@ const subCategoryIcons: Record<string, React.ReactNode> = {
   'Ateliers et cours de musique': <GraduationCap className="w-5 h-5 text-blue-500" />,
 };
 
+const navIcons = {
+  artists: '🎤',
+  providers: '🎧',
+  partners: '🤝',
+};
+
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -100,6 +107,7 @@ const Header = () => {
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
   const closeMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const [drawerStep, setDrawerStep] = useState<'main' | 'providers'>('main');
+  const [showSocialDialog, setShowSocialDialog] = useState(false);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -190,168 +198,178 @@ const Header = () => {
           </Link>
 
           {/* Navigation centrée */}
-          <nav className="flex-1 flex justify-center items-center gap-6 font-sans">
-            {megaMenu.map((item) => {
-              const iconSrc = item.type === 'artists' ? '/bnbicons/microphone.png' : 
-                             item.type === 'providers' ? '/bnbicons/provider.png' : 
-                             item.type === 'partners' ? '/bnbicons/partner.png' : '';
-              
-              // Titres raccourcis pour l'affichage
-              const displayLabel = item.type === 'providers' ? 'Prestataires' : 
-                                 item.type === 'partners' ? 'Partenaires' : 
-                                 item.label;
-              
-              return (
-                <div
-                  key={item.type}
-                  className="relative px-6"
-                  onMouseEnter={() => handleMenuEnter(item.type)}
-                  onMouseLeave={handleMenuLeave}
-                >
-                  <button
-                    className={`flex flex-col items-center bg-transparent border-none p-0 m-0`}
-                    style={{ minWidth: 0 }}
-                    onClick={() => navigate(item.link)}
+          <nav className="flex-1 flex justify-center items-center gap-2 font-sans">
+            <div className="flex gap-2 md:gap-8 items-center justify-center w-full">
+              {megaMenu.map((item) => {
+                const isSelected = isActive(item.link);
+                return (
+                  <div
+                    key={item.type}
+                    className="relative"
+                    onMouseEnter={() => handleMenuEnter(item.type)}
+                    onMouseLeave={handleMenuLeave}
                   >
-                    <span className={`flex items-center gap-4 text-[16px] font-medium transition-colors py-3 ${hoveredMenu === item.type ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}
-                      style={{ position: 'relative' }}>
-                      <img src={iconSrc} alt={item.label} className="w-8 h-8 object-contain" />
-                      <span className="truncate">{displayLabel}</span>
-                    </span>
-                    {hoveredMenu === item.type && (
-                      <span className="block mt-1" style={{ height: 3, width: 'calc(100% - 8px)', background: '#2563eb', borderRadius: 2, margin: '0 auto' }} />
+                    <button
+                      className={`flex items-center gap-2 md:gap-3 px-3 py-2 md:px-5 md:py-3 rounded-full transition-all duration-150 ${isSelected ? 'font-bold text-blue-700' : 'font-medium text-gray-700 hover:text-blue-700'} bg-transparent border-none focus:outline-none`}
+                      style={{ fontSize: '1.1rem', position: 'relative' }}
+                      onClick={() => navigate(item.link)}
+                    >
+                      <span className="text-xl md:text-2xl flex items-center justify-center" style={{ lineHeight: 1 }}>{navIcons[item.type]}</span>
+                      <span className="truncate text-base md:text-lg" style={{ lineHeight: 1 }}>{item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}</span>
+                    </button>
+                    {(isSelected || hoveredMenu === item.type) && (
+                      <span className="block absolute left-0 right-0 -bottom-1 h-1 rounded-full bg-blue-600" style={{ width: '80%', margin: '0 auto' }} />
                     )}
-                  </button>
-                  {/* Mega-menu déroulant ARTISTES */}
-                  {hoveredMenu === item.type && item.type === 'artists' && (
-                    <div
-                      className="fixed left-0 right-0 top-[80px] z-40 w-full"
-                      onMouseEnter={() => handleMenuEnter(item.type)}
-                      onMouseLeave={handleMenuLeave}
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
-                        <div className="max-w-7xl mx-auto px-8">
-                          <div className="grid grid-cols-4 gap-8">
-                            {[
-                              { label: 'Nos artistes à Paris', value: 'Paris', icon: '/bnbicons/paris.png' },
-                              { label: 'Nos artistes à Lyon', value: 'Lyon', icon: '/bnbicons/lyon.png' },
-                              { label: 'Nos artistes à Marseille', value: 'Marseille', icon: '/bnbicons/marseille.png' },
-                              { label: 'Partout en France', value: 'all', icon: '/bnbicons/france.png' },
-                            ].map(option => (
-                              <button
-                                key={option.value}
-                                onClick={() => {
-                                  navigate(`/artists?location=${option.value}`);
-                                  setHoveredMenu(null);
-                                }}
-                                className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
-                                style={{ minHeight: 120 }}
-                              >
-                                <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
-                                <span className="text-center">{option.label}</span>
-                              </button>
-                            ))}
+                    {/* Mega-menu déroulant ARTISTES */}
+                    {hoveredMenu === item.type && item.type === 'artists' && (
+                      <div
+                        className="fixed left-0 right-0 top-[80px] z-40 w-full"
+                        onMouseEnter={() => handleMenuEnter(item.type)}
+                        onMouseLeave={handleMenuLeave}
+                        style={{ pointerEvents: 'auto' }}
+                      >
+                        <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                          <div className="max-w-7xl mx-auto px-8">
+                            <div className="grid grid-cols-4 gap-8">
+                              {[
+                                { label: 'Nos artistes à Paris', value: 'Paris', icon: '/bnbicons/paris.png' },
+                                { label: 'Nos artistes à Lyon', value: 'Lyon', icon: '/bnbicons/lyon.png' },
+                                { label: 'Nos artistes à Marseille', value: 'Marseille', icon: '/bnbicons/marseille.png' },
+                                { label: 'Partout en France', value: 'all', icon: '/bnbicons/france.png' },
+                              ].map(option => (
+                                <button
+                                  key={option.value}
+                                  onClick={() => {
+                                    navigate(`/artists?location=${option.value}`);
+                                    setHoveredMenu(null);
+                                  }}
+                                  className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
+                                  style={{ minHeight: 120 }}
+                                >
+                                  <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
+                                  <span className="text-center">{option.label}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  {/* Mega-menu déroulant PARTENAIRES */}
-                  {hoveredMenu === item.type && item.type === 'partners' && (
-                    <div
-                      className="fixed left-0 right-0 top-[80px] z-40 w-full"
-                      onMouseEnter={() => handleMenuEnter(item.type)}
-                      onMouseLeave={handleMenuLeave}
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
-                        <div className="max-w-7xl mx-auto px-8">
-                          <div className="grid grid-cols-3 gap-8">
-                            {[
-                              { label: 'Maisons de disque & labels', value: 'label', icon: '/bnbicons/recordCompany.png' },
-                              { label: 'Managers & directeurs artistiques', value: 'manager', icon: '/bnbicons/manager.png' },
-                              { label: 'Tous nos partenaires', value: 'all', icon: '/bnbicons/allPartner.png' },
-                            ].map(option => (
-                              <button
-                                key={option.value}
-                                onClick={() => {
-                                  navigate(`/partners?subCategory=${option.value}`);
-                                  setHoveredMenu(null);
-                                }}
-                                className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
-                                style={{ minHeight: 120 }}
-                              >
-                                <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
-                                <span className="text-center">{option.label}</span>
-                              </button>
-                            ))}
+                    )}
+                    {/* Mega-menu déroulant PARTENAIRES */}
+                    {hoveredMenu === item.type && item.type === 'partners' && (
+                      <div
+                        className="fixed left-0 right-0 top-[80px] z-40 w-full"
+                        onMouseEnter={() => handleMenuEnter(item.type)}
+                        onMouseLeave={handleMenuLeave}
+                        style={{ pointerEvents: 'auto' }}
+                      >
+                        <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                          <div className="max-w-7xl mx-auto px-8">
+                            <div className="grid grid-cols-3 gap-8">
+                              {[
+                                { label: 'Maisons de disque & labels', value: 'label', icon: '/bnbicons/recordCompany.png' },
+                                { label: 'Managers & directeurs artistiques', value: 'manager', icon: '/bnbicons/manager.png' },
+                                { label: 'Tous nos partenaires', value: 'all', icon: '/bnbicons/allPartner.png' },
+                              ].map(option => (
+                                <button
+                                  key={option.value}
+                                  onClick={() => {
+                                    navigate(`/partners?subCategory=${option.value}`);
+                                    setHoveredMenu(null);
+                                  }}
+                                  className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
+                                  style={{ minHeight: 120 }}
+                                >
+                                  <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
+                                  <span className="text-center">{option.label}</span>
+                                </button>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                  {/* Mega-menu déroulant PRESTATAIRES */}
-                  {hoveredMenu === item.type && item.type === 'providers' && (
-                    <div
-                      className="fixed left-0 right-0 top-[80px] z-40 w-full"
-                      onMouseEnter={() => handleMenuEnter(item.type)}
-                      onMouseLeave={handleMenuLeave}
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
-                        <div className="max-w-7xl mx-auto px-8">
-                          <div className="grid grid-cols-3 gap-12">
-                            {providerMegaMenu.map(cat => {
-                              let icon = null;
-                              if (cat.title === "Professionnels de l'enregistrement") icon = '/bnbicons/recorder.png';
-                              if (cat.title === "Promotion et marketing") icon = '/bnbicons/marketing.png';
-                              if (cat.title === "Visuel") icon = '/bnbicons/visuel.png';
-                              if (cat.title === "Distribution") icon = '/bnbicons/distributor.png';
-                              if (cat.title === "Formation") icon = '/bnbicons/formation.png';
-                              if (cat.title === "Droits") icon = '/bnbicons/law.png';
-                              return (
-                                <div key={cat.title} className="space-y-4">
-                                  <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-3">
-                                    {icon && <img src={icon} alt={cat.title} className="w-12 h-12 object-contain" />}
-                                    {cat.title}
-                                  </h3>
-                                  <ul className="space-y-1">
-                                    {cat.sub.map(sub => {
-                                      const group = providerGroupsConfig.find(g => g.title === cat.title);
-                                      const section = group?.sections.find(s => s.title === sub);
-                                      const subCat = section?.subCategories[0] || sub.toLowerCase();
-                                      return (
-                                        <li key={sub}>
-                                          <a
-                                            href={`/providers?subCategory=${encodeURIComponent(subCat)}`}
-                                            className="flex items-center text-sm text-gray-700 hover:text-gray-900 py-1.5 px-1 rounded transition-colors"
-                                          >
-                                            <span className="font-normal">{sub}</span>
-                                          </a>
-                                        </li>
-                                      );
-                                    })}
-                                  </ul>
-                                </div>
-                              );
-                            })}
+                    )}
+                    {/* Mega-menu déroulant PRESTATAIRES */}
+                    {hoveredMenu === item.type && item.type === 'providers' && (
+                      <div
+                        className="fixed left-0 right-0 top-[80px] z-40 w-full"
+                        onMouseEnter={() => handleMenuEnter(item.type)}
+                        onMouseLeave={handleMenuLeave}
+                        style={{ pointerEvents: 'auto' }}
+                      >
+                        <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                          <div className="max-w-7xl mx-auto px-8">
+                            <div className="grid grid-cols-3 gap-12">
+                              {providerMegaMenu.map(cat => {
+                                let icon = null;
+                                if (cat.title === "Professionnels de l'enregistrement") icon = '/bnbicons/recorder.png';
+                                if (cat.title === "Promotion et marketing") icon = '/bnbicons/marketing.png';
+                                if (cat.title === "Visuel") icon = '/bnbicons/visuel.png';
+                                if (cat.title === "Distribution") icon = '/bnbicons/distributor.png';
+                                if (cat.title === "Formation") icon = '/bnbicons/formation.png';
+                                if (cat.title === "Droits") icon = '/bnbicons/law.png';
+                                return (
+                                  <div key={cat.title} className="space-y-4">
+                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-3">
+                                      {icon && <img src={icon} alt={cat.title} className="w-12 h-12 object-contain" />}
+                                      {cat.title}
+                                    </h3>
+                                    <ul className="space-y-1">
+                                      {cat.sub.map(sub => {
+                                        const group = providerGroupsConfig.find(g => g.title === cat.title);
+                                        const section = group?.sections.find(s => s.title === sub);
+                                        const subCat = section?.subCategories[0] || sub.toLowerCase();
+                                        return (
+                                          <li key={sub}>
+                                            <a
+                                              href={`/providers?subCategory=${encodeURIComponent(subCat)}`}
+                                              className="flex items-center text-sm text-gray-700 hover:text-gray-900 py-1.5 px-1 rounded transition-colors"
+                                            >
+                                              <span className="font-normal">{sub}</span>
+                                            </a>
+                                          </li>
+                                        );
+                                      })}
+                                    </ul>
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-            <div className="px-6">
-              <Link 
-                to="/Project" 
-                className={`text-[16px] font-medium transition-colors hover:text-blue-600 ${isActive('/Project') ? 'text-blue-600' : 'text-gray-700'} whitespace-nowrap py-3`}
-                style={{ minWidth: 0, padding: 0, lineHeight: 1.2 }}
-              >
-                Projets
-              </Link>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {/* Right-aligned secondary menu */}
+            <div className="ml-auto flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 flex items-center justify-center">
+                    <span className="text-2xl md:text-3xl leading-none">☰</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem asChild>
+                    <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
+                      <span>Projets</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/about" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
+                      <span>Qui sommes-nous ?</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowSocialDialog(true)}
+                    className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600 cursor-pointer"
+                  >
+                    <span>Suivez-nous</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </nav>
 
@@ -384,6 +402,11 @@ const Header = () => {
                       Mon profil prestataire
                     </DropdownMenuItem>
                   )}
+                  {currentUser.role === 'partner' && (
+                    <DropdownMenuItem onClick={() => navigate('/partner-settings')}>
+                      Mon profil partenaire
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut}>
                     <LogOut className="h-4 w-4 mr-2" />
                     Se déconnecter
@@ -394,14 +417,14 @@ const Header = () => {
               <>
                 <Link to="/login" state={{ from: location }}>
                   <Button variant="outline" size="sm" className="rounded-full px-6 py-2 text-[16px] font-medium border-gray-300 hover:border-blue-600 hover:text-blue-600 bg-white shadow-none">
-                    Connexion
-                  </Button>
-                </Link>
+                Connexion
+              </Button>
+            </Link>
                 <Link to="/signup" state={{ from: location }}>
                   <Button size="sm" className="rounded-full px-6 py-2 text-[16px] font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md">
-                    S'inscrire
-                  </Button>
-                </Link>
+                S'inscrire
+              </Button>
+            </Link>
               </>
             )}
           </div>
@@ -430,7 +453,7 @@ const Header = () => {
         </div>
       </header>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer - double step */}
       <div 
         className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       >
@@ -478,14 +501,14 @@ const Header = () => {
                   <Link to="/partners" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
                     Partenaires stratégiques
                     <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
+            </Link>
                 </li>
               </ul>
               <hr className="my-4 mx-4 border-gray-200" />
               <ul>
                 <li>
                   <Link to="/Project" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-                    Projets
+              Projets
                     <ChevronRight className="h-5 w-5 text-gray-400" />
                   </Link>
                 </li>
@@ -493,7 +516,7 @@ const Header = () => {
                   <Link to="/how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
                     Comment ça marche
                     <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
+            </Link>
                 </li>
               </ul>
             </nav>
@@ -530,11 +553,11 @@ const Header = () => {
           <div className="p-6 border-t border-gray-200 mt-auto">
             {currentUser ? (
               <div className="space-y-4">
-                 <Link to={currentUser.role === 'artist' ? '/profile/artist' : currentUser.role === 'provider' ? '/provider-settings' : `/profile/${currentUser.id}`} onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
+                 <Link to="/mon-compte" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                     <Button variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
                       <User className="h-5 w-5" /> Mon compte
                     </Button>
-                  </Link>
+            </Link>
                 <Button onClick={handleSignOut} variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
                   <LogOut className="h-5 w-5" /> Se déconnecter
                 </Button>
@@ -544,18 +567,32 @@ const Header = () => {
                 <Link to="/login" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                   <Button variant="outline" className="w-full font-semibold text-base py-3">
                     Connexion
-                  </Button>
-                </Link>
+                </Button>
+              </Link>
                 <Link to="/signup" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                   <Button className="w-full font-bold text-base py-3 bg-ml-blue hover:bg-ml-blue/90 text-white rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors">
-                    S'inscrire
-                  </Button>
-                </Link>
-              </div>
+                  S'inscrire
+                </Button>
+              </Link>
+            </div>
             )}
           </div>
         </div>
       </div>
+
+      <Dialog open={showSocialDialog} onOpenChange={setShowSocialDialog}>
+        <DialogContent className="max-w-xs flex flex-col items-center gap-6 py-8">
+          <div className="text-lg font-bold text-blue-700 mb-2">Suivez-nous</div>
+          <div className="flex gap-8 items-center justify-center">
+            <button onClick={() => window.open('https://instagram.com/', '_blank')} className="hover:scale-110 transition-transform">
+              <img src="/social-media/instagram.png" alt="Instagram" className="w-14 h-14" />
+            </button>
+            <button onClick={() => window.open('https://tiktok.com/', '_blank')} className="hover:scale-110 transition-transform">
+              <img src="/social-media/tiktok.png" alt="TikTok" className="w-14 h-14" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
