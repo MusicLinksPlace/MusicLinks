@@ -108,6 +108,15 @@ const Footer = () => {
           </div>
         </div>
 
+        <div className="flex items-center gap-4 mt-4 justify-center md:justify-end">
+          <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-pink-100 transition-colors p-2">
+            <img src="/social-media/instagram.png" alt="Instagram" className="w-7 h-7" />
+          </a>
+          <a href="https://tiktok.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors p-2">
+            <img src="/social-media/tiktok.png" alt="TikTok" className="w-7 h-7" />
+          </a>
+        </div>
+
         <div className="border-t border-gray-700 mt-12 pt-8">
           <p className="text-gray-400 text-sm text-center">
             © 2025 MusicLinks. RGPD : les utilisateurs peuvent demander la suppression de leurs données à tout moment. 

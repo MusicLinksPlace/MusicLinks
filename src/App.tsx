@@ -26,8 +26,8 @@ import ScrollToTop from './components/ScrollToTop';
 import SignUpContinue from './pages/SignUpContinue';
 import ProviderProfileSettings from './pages/ProviderProfileSettings';
 import AccountSettingsRouter from './pages/AccountSettingsRouter';
-import ProviderAccountSettings from './pages/ProviderAccount';
 import PartnerAccountSettings from './pages/PartnerAccount';
+import About from './pages/About';
 
 const queryClient = new QueryClient();
 
@@ -140,6 +140,24 @@ const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const syncProfile = async () => {
+      const session = (await supabase.auth.getSession()).data.session;
+      if (session && session.user) {
+        let { data: profile, error } = await supabase
+          .from('User')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        if (!error && profile) {
+          localStorage.setItem('musiclinks_user', JSON.stringify(profile));
+          window.dispatchEvent(new Event('auth-change'));
+        }
+      }
+    };
+    syncProfile();
+  }, []);
+
   return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -158,15 +176,15 @@ const App = () => {
             <Route path="/artists" element={<ArtistsPage />} />
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/Project" element={<Project />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/legal" element={<Legal />} />
-          <Route path="/profile/artist-setup" element={<ArtistSetup />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/how-it-works" element={<HowItWorks />} />
+            <Route path="/legal" element={<Legal />} />
+            <Route path="/profile/artist-setup" element={<ArtistSetup />} />
             <Route path="/profile/artist" element={<ArtistAccount />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
             <Route path="/provider-settings" element={<ProviderProfileSettings />} />
             <Route path="/confirm" element={<ConfirmPage />} />
             <Route path="/mon-compte" element={<AccountSettingsRouter />} />
-            <Route path="/provider-account" element={<ProviderAccountSettings />} />
             <Route path="/partner-account" element={<PartnerAccountSettings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

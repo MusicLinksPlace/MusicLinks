@@ -24,11 +24,27 @@ export default function SignUpContinue() {
         return;
       }
       setUser(data.user);
+      // Vérifie le champ 'role' dans la table User
+      const { data: userProfile, error: userError } = await supabase
+        .from('User')
+        .select('role')
+        .eq('id', data.user.id)
+        .single();
+      if (userError) {
+        setError("Impossible de récupérer le profil utilisateur.");
+        setLoading(false);
+        return;
+      }
+      if (userProfile && userProfile.role) {
+        // Si le rôle existe déjà, redirige directement
+        navigate('/mon-compte', { replace: true });
+        return;
+      }
       setSelecting(true);
       setLoading(false);
     };
     fetchUser();
-  }, []);
+  }, [navigate]);
 
   const handleRoleSelect = async (role) => {
     if (!user) return;
