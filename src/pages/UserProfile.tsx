@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MessageCircle } from 'lucide-react';
 import UserProfileHeader from '@/components/profile/UserProfileHeader';
 import UserAboutSection from '@/components/profile/UserAboutSection';
 import FAQSection from '@/components/profile/FAQSection';
@@ -32,6 +32,7 @@ interface UserProfileData {
 
 const UserProfile = () => {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,12 @@ const UserProfile = () => {
     fetchUser();
   }, [userId]);
 
+  const handleContact = () => {
+    if (userId) {
+      navigate(`/chat?userId=${userId}`);
+    }
+  };
+
   if (loading) return <div className="flex justify-center items-center h-screen">Chargement du profil...</div>;
   if (error) return <div className="text-center py-10 text-red-500">Erreur: {error}</div>;
   if (!user) return <div className="text-center py-10">Utilisateur non trouvé.</div>;
@@ -90,7 +97,13 @@ const UserProfile = () => {
             <SocialLinks user={user} />
 
             <div className="mt-2 flex flex-col gap-4">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6">Contacter</Button>
+              <Button 
+                onClick={handleContact}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6 flex items-center justify-center gap-2"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Contacter {user.name}
+              </Button>
             </div>
           </div>
           <FAQSection items={faqItems} />

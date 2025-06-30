@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HorizontalCarousel from '@/components/HorizontalCarousel';
-import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown } from 'lucide-react';
+import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown, MessageCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { LocationFilter } from '@/components/ui/LocationFilter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 
 interface User {
   id: string;
@@ -217,13 +217,15 @@ const SUBCATEGORY_LABELS: Record<string, string> = {
 
 const ProvidersPage = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [allProviders, setAllProviders] = useState<User[]>([]);
   const [filteredProviders, setFilteredProviders] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     searchTerm: '',
     selectedLocation: 'all',
-    selectedSubCategories: [] as string[],
+    selectedSubCategories: getAllSubCategories(),
   });
   const [allLocations, setAllLocations] = useState<string[]>([]);
   const isMobile = useIsMobile();
@@ -239,7 +241,7 @@ const ProvidersPage = () => {
   }, [location.search]);
 
   const handleResetFilters = () => {
-    setFilters({ searchTerm: '', selectedLocation: 'all', selectedSubCategories: [] });
+    setFilters({ searchTerm: '', selectedLocation: 'all', selectedSubCategories: getAllSubCategories() });
   };
 
   useEffect(() => {
@@ -294,6 +296,10 @@ const ProvidersPage = () => {
   const handleLocationChange = (location: string) => {
     setFilters(f => ({ ...f, selectedLocation: location }));
     setIsLocationOpen(false);
+  };
+
+  const handleContact = (userId: string, userName: string) => {
+    navigate(`/chat?userId=${userId}`);
   };
 
   const locationButton = (
@@ -510,7 +516,13 @@ const ProvidersPage = () => {
                       {user.location && <div className="text-sm text-neutral-500 mb-0.5">{user.location}</div>}
                       {user.subCategory && <div className="text-sm text-neutral-700 font-semibold mb-1">{SUBCATEGORY_LABELS[user.subCategory] || user.subCategory}</div>}
                       {user.bio && <div className="text-sm text-neutral-700 mb-2 line-clamp-3">{user.bio}</div>}
-                      <button className="mt-2 w-full bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">Contacter</button>
+                      <button 
+                        onClick={() => handleContact(user.id, user.name)}
+                        className="mt-2 w-full bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Contacter
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -533,9 +545,11 @@ const ProvidersPage = () => {
                     {/* CTA */}
                     <div className="flex flex-col items-center md:items-end justify-center pr-2 md:pr-4 min-w-[120px]">
                       <button
-                        className="inline-block bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-2 text-base md:text-lg transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                        onClick={() => handleContact(user.id, user.name)}
+                        className="inline-block bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-2 text-base md:text-lg transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center gap-2"
                         style={{ minWidth: 120 }}
                       >
+                        <MessageCircle className="h-4 w-4" />
                         Contacter
                       </button>
                     </div>

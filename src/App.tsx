@@ -28,6 +28,9 @@ import ProviderProfileSettings from './pages/ProviderProfileSettings';
 import AccountSettingsRouter from './pages/AccountSettingsRouter';
 import PartnerAccountSettings from './pages/PartnerAccount';
 import About from './pages/About';
+import ArtistProfileSettings from './pages/ArtistProfileSettings';
+import PartnerProfileSettings from './pages/PartnerProfileSettings';
+import Chat from './pages/Chat';
 
 const queryClient = new QueryClient();
 
@@ -180,12 +183,14 @@ const App = () => {
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/legal" element={<Legal />} />
           <Route path="/profile/artist-setup" element={<ArtistSetup />} />
-            <Route path="/profile/artist" element={<ArtistAccount />} />
+            <Route path="/profile/artist" element={<ArtistProfileSettings />} />
+            <Route path="/profile/partner" element={<PartnerProfileSettings />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
             <Route path="/provider-settings" element={<ProviderProfileSettings />} />
             <Route path="/confirm" element={<ConfirmPage />} />
             <Route path="/mon-compte" element={<AccountSettingsRouter />} />
             <Route path="/partner-account" element={<PartnerAccountSettings />} />
+            <Route path="/chat" element={<Chat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
