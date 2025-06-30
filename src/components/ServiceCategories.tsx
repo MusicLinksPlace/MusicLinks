@@ -107,20 +107,20 @@ const ServiceCategories = () => {
               <Link
                 key={role.id}
                 to={role.link}
-                className="group relative overflow-hidden rounded-3xl bg-white backdrop-blur border border-gray-200/80 shadow-lg hover:shadow-2xl p-8 transition-all duration-500 hover:-translate-y-3 hover:scale-105"
+                className="group relative overflow-hidden rounded-3xl bg-white border border-gray-200/80 shadow-lg hover:shadow-xl p-8 transition-all duration-300 ease-out hover:-translate-y-1"
               >
-                <div className={`absolute inset-0 ${role.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
+                <div className={`absolute inset-0 ${role.bgColor} opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out`}></div>
                 
                 <div className="relative z-10">
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${role.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${role.color} flex items-center justify-center mb-6 group-hover:scale-105 transition-transform duration-300 ease-out shadow-lg`}>
                     <IconComponent className="h-8 w-8 text-white" />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-gray-800 transition-colors">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-gray-800 transition-colors duration-300">
                     {role.title}
                   </h3>
                   
-                  <p className="text-sm font-medium text-blue-600 mb-4 group-hover:text-blue-700 transition-colors">
+                  <p className="text-sm font-medium text-blue-600 mb-4 group-hover:text-blue-700 transition-colors duration-300">
                     {role.slogan}
                   </p>
                   
@@ -136,9 +136,9 @@ const ServiceCategories = () => {
                         <span>{count} {countText}</span>
                       )}
                     </div>
-                    <div className="flex items-center text-blue-600 group-hover:text-blue-700 transition-colors">
+                    <div className="flex items-center text-blue-600 group-hover:text-blue-700 transition-colors duration-300">
                       <span className="text-sm font-medium mr-2">Voir le catalogue</span>
-                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                      <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300 ease-out" />
                     </div>
                   </div>
                 </div>
