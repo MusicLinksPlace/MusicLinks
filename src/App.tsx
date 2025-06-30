@@ -177,9 +177,9 @@ const App = () => {
             <Route path="/partners" element={<PartnersPage />} />
             <Route path="/Project" element={<Project />} />
             <Route path="/about" element={<About />} />
-            <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/legal" element={<Legal />} />
-            <Route path="/profile/artist-setup" element={<ArtistSetup />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/legal" element={<Legal />} />
+          <Route path="/profile/artist-setup" element={<ArtistSetup />} />
             <Route path="/profile/artist" element={<ArtistAccount />} />
             <Route path="/profile/:userId" element={<UserProfile />} />
             <Route path="/provider-settings" element={<ProviderProfileSettings />} />
