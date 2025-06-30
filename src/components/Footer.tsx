@@ -29,9 +29,9 @@ const Footer = () => {
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-          {/* Logo & Description */}
-          <div className="col-span-1 md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 md:gap-x-16">
+          {/* Colonne gauche : Logo, texte, contact */}
+          <div>
             <img 
               src="/lovable-uploads/d0150788-e222-4864-8f33-659fe58eafee.png" 
               alt="MusicLinks" 
@@ -41,7 +41,6 @@ const Footer = () => {
               MusicLinks connecte les artistes avec les meilleurs prestataires musicaux. 
               Trouvez votre ingénieur son, clipmaker ou coach musical de confiance.
             </p>
-            
             {/* Contact button */}
             <a 
               href="mailto:musiclinksplatform@gmail.com" 
@@ -52,69 +51,81 @@ const Footer = () => {
             </a>
           </div>
 
-          {/* Liens Rapides */}
+          {/* Colonne droite : Plateforme, Support, Réseaux */}
           <div>
-            <h3 className="font-semibold mb-6 text-white flex items-center">
-              <span className="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
-              Plateforme
-            </h3>
-            <div className="space-y-4">
-              <Link 
-                to="/providers" 
-                className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
-              >
-                <ExternalLink className="h-3 w-3 mr-2" />
-                Prestataires
-              </Link>
-              <Link 
-                to="/Project" 
-                className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
-              >
-                <ExternalLink className="h-3 w-3 mr-2" />
-                Projets
-              </Link>
-              <Link 
-                to="/how-it-works" 
-                className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
-              >
-                <ExternalLink className="h-3 w-3 mr-2" />
-                Comment ça marche
-              </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 h-full">
+              {/* Plateforme */}
+              <div>
+                <h3 className="font-semibold mb-6 text-white flex items-center">
+                  <span className="w-2 h-2 bg-blue-400 rounded-full mr-3"></span>
+                  Plateforme
+                </h3>
+                <div className="space-y-4">
+                  <Link 
+                    to="/providers" 
+                    className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Prestataires
+                  </Link>
+                  <Link 
+                    to="/Project" 
+                    className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Projets
+                  </Link>
+                  <Link 
+                    to="/how-it-works" 
+                    className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Comment ça marche
+                  </Link>
+                </div>
+              </div>
+
+              {/* Support */}
+              <div>
+                <h3 className="font-semibold mb-6 text-white flex items-center">
+                  <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
+                  Support
+                </h3>
+                <div className="space-y-4">
+                  <Link 
+                    to="/legal" 
+                    className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
+                  >
+                    <ExternalLink className="h-3 w-3 mr-2" />
+                    Mentions légales
+                  </Link>
+                  <a 
+                    href="mailto:musiclinksplatform@gmail.com" 
+                    className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
+                  >
+                    <Mail className="h-3 w-3 mr-2" />
+                    Contact
+                  </a>
+                </div>
+              </div>
+
+              {/* Réseaux sociaux */}
+              <div>
+                <h3 className="font-semibold mb-6 text-white flex items-center">
+                  <span className="w-2 h-2 bg-pink-400 rounded-full mr-3"></span>
+                  Réseaux
+                </h3>
+                <div className="flex flex-row items-center gap-3">
+                  <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-pink-100 transition-colors p-2">
+                    <img src="/social-media/instagram.png" alt="Instagram" className="w-7 h-7" />
+                  </a>
+                  <a href="https://tiktok.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors p-2">
+                    <img src="/social-media/tiktok.png" alt="TikTok" className="w-7 h-7" />
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Support */}
-          <div>
-            <h3 className="font-semibold mb-6 text-white flex items-center">
-              <span className="w-2 h-2 bg-green-400 rounded-full mr-3"></span>
-              Support
-            </h3>
-            <div className="space-y-4">
-              <Link 
-                to="/legal" 
-                className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
-              >
-                <ExternalLink className="h-3 w-3 mr-2" />
-                Mentions légales
-              </Link>
-              <a 
-                href="mailto:musiclinksplatform@gmail.com" 
-                className="block text-gray-300 hover:text-white text-sm transition-colors hover:translate-x-1 transform duration-300 flex items-center"
-              >
-                <Mail className="h-3 w-3 mr-2" />
-                Contact
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 mt-4 justify-center md:justify-end">
-          <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-pink-100 transition-colors p-2">
-            <img src="/social-media/instagram.png" alt="Instagram" className="w-7 h-7" />
-          </a>
-          <a href="https://tiktok.com/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors p-2">
-            <img src="/social-media/tiktok.png" alt="TikTok" className="w-7 h-7" />
-          </a>
         </div>
 
         <div className="border-t border-gray-700 mt-12 pt-8">
