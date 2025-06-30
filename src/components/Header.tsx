@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight, Camera, Megaphone, GraduationCap, Gavel } from 'lucide-react';
+import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight, Camera, Megaphone, GraduationCap, Gavel, MessageCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,9 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { providerGroupsConfig } from '../pages/Providers';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 const megaMenu = [
   {
@@ -345,6 +348,22 @@ const Header = () => {
             </div>
             {/* Right-aligned secondary menu */}
             <div className="ml-auto flex items-center gap-4">
+              {/* Bouton Messages */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/chat">
+                      <Button variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative flex items-center justify-center" style={{ height: '48px', width: '48px' }}>
+                        <img src="/bnbicons/message.png" alt="Messages" className="w-12 h-12 object-contain" style={{ display: 'block' }} />
+                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center" className="text-xs font-medium">
+                    Nouveaux messages
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 flex items-center justify-center">
@@ -408,7 +427,7 @@ const Header = () => {
                     </DropdownMenuItem>
                   )}
                   {currentUser.role === 'partner' && (
-                    <DropdownMenuItem onClick={() => navigate('/partner-settings')}>
+                    <DropdownMenuItem onClick={() => navigate('/profile/partner')}>
                       Mon profil partenaire
                     </DropdownMenuItem>
                   )}
@@ -508,9 +527,7 @@ const Header = () => {
                     <ChevronRight className="h-5 w-5 text-gray-400" />
             </Link>
                 </li>
-              </ul>
-              <hr className="my-4 mx-4 border-gray-200" />
-              <ul>
+                <hr className="my-4 mx-4 border-gray-200" />
                 <li>
                   <Link to="/Project" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
               Projets
@@ -522,6 +539,15 @@ const Header = () => {
                     Comment ça marche
                     <ChevronRight className="h-5 w-5 text-gray-400" />
             </Link>
+                </li>
+                <li>
+                  <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100 relative">
+                    <span className="relative">
+                      <img src="/bnbicons/message.png" alt="Messages" className="w-10 h-10 object-contain" style={{ display: 'block' }} />
+                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+                    </span>
+                    Messages
+                  </Link>
                 </li>
               </ul>
             </nav>
@@ -558,7 +584,7 @@ const Header = () => {
           <div className="p-6 border-t border-gray-200 mt-auto">
             {currentUser ? (
               <div className="space-y-4">
-                 <Link to="/mon-compte" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
+                <Link to="/mon-compte" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                     <Button variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
                       <User className="h-5 w-5" /> Mon compte
                     </Button>
