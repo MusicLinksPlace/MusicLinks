@@ -8,9 +8,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 const roles = [
   {
     id: 'artists',
-    title: 'Artistes & Créateurs',
-    description: 'Trouvez des musiciens, chanteurs, compositeurs et plus encore pour donner vie à vos projets musicaux.',
-    slogan: 'Collaborez avec des talents',
+    title: 'Artistes',
+    description: 'Trouvez des chanteurs, rappeurs, musiciens ou encore compositeurs pour mener une belle collaboration comme un featuring magistral !',
+    slogan: 'Collaborez avec des talents de la musique',
     icon: User,
     color: 'from-purple-500 to-indigo-600',
     bgColor: 'bg-gradient-to-br from-purple-50 to-indigo-50',
@@ -19,8 +19,8 @@ const roles = [
   {
     id: 'providers',
     title: 'Prestataires de services',
-    description: 'Engagez des ingénieurs du son, des réalisateurs de clips, des graphistes et autres experts du secteur.',
-    slogan: 'Professionnalisez votre son',
+    description: "Trouvez le studio d'enregistrement de vos rêves, des clipmakers top niveau, des graphistes talentueux et bien d'autres experts du secteur musical.",
+    slogan: 'Entourez vous des meilleurs',
     icon: Briefcase,
     color: 'from-blue-500 to-cyan-600',
     bgColor: 'bg-gradient-to-br from-blue-50 to-cyan-50',

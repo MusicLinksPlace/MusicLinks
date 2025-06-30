@@ -26,15 +26,15 @@ const HeroSection = () => {
       
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 md:-translate-y-8">
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-8 leading-tight text-white">
-          <span className="block">Connectez votre</span>
+          <span className="block">L'univers musical</span>
           <span className="block bg-gradient-to-r from-blue-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-            univers musical
+            enfin connecté !
           </span>
         </h1>
         
         <p className="text-lg md:text-xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-          La plateforme qui réunit artistes et prestataires de confiance. 
-          Trouvez votre ingénieur son, clipmaker ou coach musical.
+        La plateforme qui réunit artistes, prestataires et partenaires de confiance 
+        pour booster votre activité au sein du secteur musical.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
@@ -69,7 +69,7 @@ const HeroSection = () => {
               <span className="text-2xl md:text-3xl font-bold text-white">500+</span>
             </div>
             <p className="text-xs md:text-sm text-gray-200 font-medium leading-tight">
-              Presta.<br className="md:hidden" />
+              profils <br className="md:hidden" />
               vérifiés
             </p>
           </div>
@@ -82,8 +82,7 @@ const HeroSection = () => {
               <span className="text-2xl md:text-3xl font-bold text-white">1200+</span>
             </div>
             <p className="text-xs md:text-sm text-gray-200 font-medium leading-tight">
-              Projets<br className="md:hidden" />
-              réalisés
+              Collaborations<br className="md:hidden" />
             </p>
           </div>
           
@@ -95,7 +94,7 @@ const HeroSection = () => {
               <span className="text-2xl md:text-3xl font-bold text-white">98%</span>
             </div>
             <p className="text-xs md:text-sm text-gray-200 font-medium leading-tight">
-              Satisf.<br className="md:hidden" />
+              Satisfaction <br className="md:hidden" />
               client
             </p>
           </div>

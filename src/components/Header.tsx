@@ -344,7 +344,7 @@ const Header = () => {
               })}
             </div>
             {/* Right-aligned secondary menu */}
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 flex items-center justify-center">
@@ -355,12 +355,12 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
                       <span>Projets</span>
-                    </Link>
+            </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/about" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
                       <span>Qui sommes-nous ?</span>
-                    </Link>
+            </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setShowSocialDialog(true)}
@@ -566,7 +566,7 @@ const Header = () => {
               <div className="space-y-3">
                 <Link to="/login" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                   <Button variant="outline" className="w-full font-semibold text-base py-3">
-                    Connexion
+                  Connexion
                 </Button>
               </Link>
                 <Link to="/signup" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
