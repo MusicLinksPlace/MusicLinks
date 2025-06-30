@@ -355,12 +355,17 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
                       <span>Projets</span>
-            </Link>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/how-it-works" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
+                      <span>Comment ça marche</span>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/about" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
                       <span>Qui sommes-nous ?</span>
-            </Link>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => setShowSocialDialog(true)}

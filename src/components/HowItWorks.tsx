@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Users, Music, ArrowRight, Play } from 'lucide-react';
+import { Search, MessageCircle, Music, ArrowRight, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const steps = [
   {
     step: '01',
-    title: 'Trouvez votre prestataire',
-    description: 'Parcourez nos profils vérifiés et trouvez le prestataire qui correspond à votre projet et votre budget.',
+    title: 'Trouvez votre profil idéal',
+    description: 'Publiez votre recherche ou choisissez le talent fait pour booster votre projet musical.',
     icon: Search,
     color: 'from-blue-500 to-indigo-600',
     bgColor: 'bg-gradient-to-br from-blue-50 to-indigo-50'
@@ -15,14 +15,14 @@ const steps = [
   {
     step: '02',
     title: 'Échangez et collaborez',
-    description: 'Contactez directement votre prestataire, discutez de votre projet et définissez ensemble les modalités.',
-    icon: Users,
+    description: 'Discutez directement de votre projet avec vos coups de cœur et définissez ensemble les modalités.',
+    icon: MessageCircle,
     color: 'from-green-500 to-emerald-600',
     bgColor: 'bg-gradient-to-br from-green-50 to-emerald-50'
   },
   {
     step: '03',
-    title: 'Créez ensemble',
+    title: 'Place à la création',
     description: 'Donnez vie à votre projet musical avec l\'expertise de professionnels passionnés et talentueux.',
     icon: Music,
     color: 'from-purple-500 to-pink-600',
@@ -48,8 +48,8 @@ const HowItWorks = () => {
           <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
             Comment ça marche ?
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Trois étapes simples pour concrétiser vos projets musicaux
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Découvrez comment MusicLinks facilite les connexions ainsi que les opportunités d'affaires entre artistes, prestataires et partenaires du secteur musical.
           </p>
         </div>
 
@@ -102,12 +102,12 @@ const HowItWorks = () => {
               <ArrowRight className="ml-3 h-5 w-5" />
             </Button>
           </Link>
-          <Link to="/providers">
+          <Link to="/how-it-works">
             <Button 
               size="lg" 
               className="font-semibold px-10 py-5 rounded-2xl text-lg bg-white/20 backdrop-blur border border-white/30 text-gray-800 hover:bg-white/30 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
             >
-              Explorer les prestataires
+              En savoir plus
               <ArrowRight className="ml-3 h-5 w-5" />
             </Button>
           </Link>
@@ -117,4 +117,4 @@ const HowItWorks = () => {
   );
 };
 
-export default HowItWorks;
+export default HowItWorks; 

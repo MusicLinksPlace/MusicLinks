@@ -113,4 +113,62 @@ export const DEPARTMENTS_OUTRE_MER = [
   { name: 'Guyane' },
   { name: 'La Réunion' },
   { name: 'Mayotte' },
-]; 
+];
+
+// Traduction des catégories de la base de données vers le français
+export const CATEGORY_TRANSLATIONS: Record<string, string> = {
+  // Artistes
+  'singer': 'Chanteur',
+  'rapper': 'Rappeur',
+  'musician': 'Musicien',
+  'composer': 'Compositeur',
+  'producer': 'Producteur',
+  'dj': 'DJ',
+  
+  // Prestataires - Professionnels de l'enregistrement
+  'studio': 'Studio d\'enregistrement',
+  'beatmaker': 'Beatmaker',
+  'engineer': 'Ingénieur du son',
+  
+  // Prestataires - Promotion et marketing
+  'radio_curator': 'Programmateur radio/playlist',
+  'community_manager': 'Community manager',
+  
+  // Prestataires - Visuel
+  'clipmaker': 'Clipmaker',
+  'video_editor': 'Monteur vidéo',
+  'monteur': 'Monteur',
+  'photographer': 'Photographe',
+  'photographe': 'Photographe',
+  'graphic_designer': 'Graphiste',
+  'graphiste': 'Graphiste',
+  
+  // Prestataires - Distribution
+  'distributor': 'Distributeur de musique',
+  
+  // Prestataires - Droits
+  'music_lawyer': 'Avocat spécialisé',
+  
+  // Prestataires - Formation
+  'vocal_coach': 'Coach vocal',
+  'music_workshop': 'Ateliers de musique',
+  
+  // Partenaires
+  'label': 'Label / Maison de disque',
+  'manager': 'Manager / Directeur artistique',
+  'directeur artistique': 'Directeur artistique',
+};
+
+// Fonction utilitaire pour traduire une catégorie
+export const translateCategory = (category: string | null | undefined): string => {
+  if (!category) return '';
+  
+  // Nettoyer la catégorie (enlever les espaces, mettre en minuscules)
+  const cleanCategory = category.toLowerCase().trim();
+  
+  // Chercher la traduction
+  const translation = CATEGORY_TRANSLATIONS[cleanCategory];
+  
+  // Si pas de traduction trouvée, retourner la catégorie originale
+  return translation || category;
+}; 
