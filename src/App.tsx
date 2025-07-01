@@ -31,6 +31,7 @@ import About from './pages/About';
 import ArtistProfileSettings from './pages/ArtistProfileSettings';
 import PartnerProfileSettings from './pages/PartnerProfileSettings';
 import Chat from './pages/Chat';
+import AdminUsers from './pages/AdminUsers';
 
 const queryClient = new QueryClient();
 
@@ -191,6 +192,7 @@ const App = () => {
             <Route path="/mon-compte" element={<AccountSettingsRouter />} />
             <Route path="/partner-account" element={<PartnerAccountSettings />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
