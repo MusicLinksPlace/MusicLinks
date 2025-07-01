@@ -19,6 +19,29 @@ export type Database = {
         Insert: Omit<Database['public']['Tables']['Project']['Row'], 'id' | 'createdAt'>
         Update: Partial<Database['public']['Tables']['Project']['Insert']>
       }
+      User: {
+        Row: {
+          id: string
+          email: string
+          name: string
+          role: string
+          subCategory?: string | null
+          location?: string | null
+          bio?: string | null
+          profilepicture?: string | null
+          galleryimages?: string[] | null
+          portfolio_url?: string | null
+          social_links?: string[] | null
+          createdat: string
+          skills?: string[] | null
+          musicStyle?: string | null
+          verified: number
+          disabled: number
+          isAdmin: boolean
+        }
+        Insert: Omit<Database['public']['Tables']['User']['Row'], 'id' | 'createdat'>
+        Update: Partial<Database['public']['Tables']['User']['Insert']>
+      }
     }
   }
 }

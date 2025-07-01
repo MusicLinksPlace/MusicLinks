@@ -407,6 +407,11 @@ const Header = () => {
                   <DropdownMenuItem asChild>
                     <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Mes projets</Link>
                   </DropdownMenuItem>
+                  {currentUser.isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/users" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Administration</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 py-2 text-gray-700 hover:text-red-600 cursor-pointer">Déconnexion</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
