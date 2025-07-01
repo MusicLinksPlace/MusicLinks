@@ -25,6 +25,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LocationFilter } from '@/components/ui/LocationFilter';
+import AccountTabs from '@/components/profile/AccountTabs';
+import ConversationList from '@/components/profile/ConversationList';
 
 interface UserProfileData {
   id: string;
@@ -53,6 +55,7 @@ const ArtistAccount = () => {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<UserProfileData>>({});
   const [filesToUpload, setFilesToUpload] = useState<{ [key: string]: File }>({});
+  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -243,124 +246,134 @@ const ArtistAccount = () => {
     <>
       <Header />
       <div className="bg-gray-100 min-h-screen py-8 sm:py-12">
-        <form onSubmit={handleSubmit} className="container mx-auto px-4 max-w-2xl">
-          <div className="bg-white rounded-2xl shadow-xl flex flex-col p-6 gap-8">
-            <h1 className="text-2xl font-bold text-gray-800">Mon Compte</h1>
-            
-            {/* --- General Information --- */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold border-b pb-2">Informations Générales</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <Label htmlFor="name">Nom / Nom de scène</Label>
-                    <Input id="name" name="name" value={formData.name || ''} onChange={handleInputChange} />
-                </div>
-                <div>
-                    <Label htmlFor="location">Ville</Label>
-                    {isMobile ? (
-                      <Drawer open={isLocationOpen} onOpenChange={setIsLocationOpen}>
-                          <DrawerTrigger asChild>{locationTrigger}</DrawerTrigger>
-                          <DrawerContent className="h-[95vh] top-0 mt-0">
-                              <DrawerHeader className="text-left">
-                                  <DrawerTitle className="text-2xl font-bold">Où êtes-vous basé ?</DrawerTitle>
-                              </DrawerHeader>
-                              <div className="px-2 overflow-y-auto">
+        <div className="container mx-auto px-4 max-w-2xl">
+          <AccountTabs activeTab={activeTab} setActiveTab={(tab) => setActiveTab(tab as 'profil' | 'activite' | 'messages')}>
+            {activeTab === 'profil' && (
+              <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl flex flex-col p-6 gap-8">
+                <h1 className="text-2xl font-bold text-gray-800">Mon Compte</h1>
+                
+                {/* --- General Information --- */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold border-b pb-2">Informations Générales</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="name">Nom / Nom de scène</Label>
+                        <Input id="name" name="name" value={formData.name || ''} onChange={handleInputChange} />
+                    </div>
+                    <div>
+                        <Label htmlFor="location">Ville</Label>
+                        {isMobile ? (
+                          <Drawer open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                              <DrawerTrigger asChild>{locationTrigger}</DrawerTrigger>
+                              <DrawerContent className="h-[95vh] top-0 mt-0">
+                                  <DrawerHeader className="text-left">
+                                      <DrawerTitle className="text-2xl font-bold">Où êtes-vous basé ?</DrawerTitle>
+                                  </DrawerHeader>
+                                  <div className="px-2 overflow-y-auto">
+                                      {locationContent}
+                                  </div>
+                              </DrawerContent>
+                          </Drawer>
+                      ) : (
+                          <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
+                              <PopoverTrigger asChild>{locationTrigger}</PopoverTrigger>
+                              <PopoverContent className="w-[340px] p-0">
                                   {locationContent}
-                              </div>
-                          </DrawerContent>
-                      </Drawer>
-                  ) : (
-                      <Popover open={isLocationOpen} onOpenChange={setIsLocationOpen}>
-                          <PopoverTrigger asChild>{locationTrigger}</PopoverTrigger>
-                          <PopoverContent className="w-[340px] p-0">
-                              {locationContent}
-                          </PopoverContent>
-                      </Popover>
-                  )}
+                              </PopoverContent>
+                          </Popover>
+                      )}
+                    </div>
+                  </div>
+                   <div>
+                      <Label htmlFor="bio">Biographie</Label>
+                      <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre musique..." rows={5}/>
+                  </div>
+                   <div>
+                      <Label htmlFor="musicStyle">Style musical principal</Label>
+                      <Select name="musicStyle" onValueChange={(value) => handleSelectChange('musicStyle', value)} value={formData.musicStyle || ''}>
+                        <SelectTrigger><SelectValue placeholder="Sélectionnez votre style..." /></SelectTrigger>
+                        <SelectContent>
+                          {MUSIC_STYLES.map((style) => (
+                            <SelectItem key={style.value} value={style.value}>{style.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                  </div>
                 </div>
-              </div>
-               <div>
-                  <Label htmlFor="bio">Biographie</Label>
-                  <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre musique..." rows={5}/>
-              </div>
-               <div>
-                  <Label htmlFor="musicStyle">Style musical principal</Label>
-                  <Select name="musicStyle" onValueChange={(value) => handleSelectChange('musicStyle', value)} value={formData.musicStyle || ''}>
-                    <SelectTrigger><SelectValue placeholder="Sélectionnez votre style..." /></SelectTrigger>
-                    <SelectContent>
-                      {MUSIC_STYLES.map((style) => (
-                        <SelectItem key={style.value} value={style.value}>{style.label}</SelectItem>
+
+                {/* --- Skills & Links --- */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold border-b pb-2">Liens</h2>
+                  <div>
+                    <Label htmlFor="portfolio_url">Lien Portfolio / Site web</Label>
+                    <Input id="portfolio_url" name="portfolio_url" value={formData.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com"/>
+                  </div>
+                </div>
+
+                {/* --- Images --- */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold border-b pb-2">Images du Profil</h2>
+                  {/* Profile Picture */}
+                  <div className="space-y-2">
+                    <Label>Photo de profil</Label>
+                    <div className="flex items-center gap-4">
+                      <img src={formData.profilepicture || '/placeholder.svg'} alt="Avatar" className="w-20 h-20 rounded-full object-cover bg-gray-200"/>
+                      <Input id="profilepicture_file" name="profilepicture_file" type="file" onChange={handleFileChange} className="max-w-xs"/>
+                    </div>
+                  </div>
+                  {/* Gallery Images */}
+                  <div className="space-y-2">
+                    <Label>Images de la galerie (utilisées dans le carrousel)</Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[0, 1, 2, 3].map(index => (
+                        <div key={index} className="space-y-2">
+                          <img src={formData.galleryimages?.[index] || '/placeholder.svg'} alt={`Gallery image ${index + 1}`} className="w-full h-24 rounded-md object-cover bg-gray-200"/>
+                          <Input id={`gallery_file_${index}`} name={`gallery_file_${index}`} type="file" onChange={(e) => handleFileChange(e, index)} className="text-sm"/>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
-              </div>
-            </div>
-
-            {/* --- Skills & Links --- */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold border-b pb-2">Liens</h2>
-              <div>
-                <Label htmlFor="portfolio_url">Lien Portfolio / Site web</Label>
-                <Input id="portfolio_url" name="portfolio_url" value={formData.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com"/>
-              </div>
-            </div>
-
-            {/* --- Images --- */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold border-b pb-2">Images du Profil</h2>
-              {/* Profile Picture */}
-              <div className="space-y-2">
-                <Label>Photo de profil</Label>
-                <div className="flex items-center gap-4">
-                  <img src={formData.profilepicture || '/placeholder.svg'} alt="Avatar" className="w-20 h-20 rounded-full object-cover bg-gray-200"/>
-                  <Input id="profilepicture_file" name="profilepicture_file" type="file" onChange={handleFileChange} className="max-w-xs"/>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              {/* Gallery Images */}
-              <div className="space-y-2">
-                <Label>Images de la galerie (utilisées dans le carrousel)</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {[0, 1, 2, 3].map(index => (
-                    <div key={index} className="space-y-2">
-                      <img src={formData.galleryimages?.[index] || '/placeholder.svg'} alt={`Gallery image ${index + 1}`} className="w-full h-24 rounded-md object-cover bg-gray-200"/>
-                      <Input id={`gallery_file_${index}`} name={`gallery_file_${index}`} type="file" onChange={(e) => handleFileChange(e, index)} className="text-sm"/>
+
+                {/* --- Social Links --- */}
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
+                  {formData.social_links?.map((link, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input 
+                        value={link || ''} 
+                        onChange={(e) => handleSocialLinkChange(index, e.target.value)}
+                        placeholder="https://soundcloud.com/artiste"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
+                        <Trash2 className="h-4 w-4 text-red-500"/>
+                      </Button>
                     </div>
                   ))}
+                  {(!formData.social_links || formData.social_links.length < 5) && (
+                    <Button variant="outline" size="sm" onClick={addSocialLink} type="button">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Ajouter un lien
+                    </Button>
+                  )}
                 </div>
-              </div>
-            </div>
 
-            {/* --- Social Links --- */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
-              {formData.social_links?.map((link, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <Input 
-                    value={link || ''} 
-                    onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                    placeholder="https://soundcloud.com/artiste"
-                  />
-                  <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
-                    <Trash2 className="h-4 w-4 text-red-500"/>
-                  </Button>
+                <div className="mt-4 flex justify-end">
+                    <Button type="submit" disabled={isSaving}>
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                        Enregistrer les modifications
+                    </Button>
                 </div>
-              ))}
-              {(!formData.social_links || formData.social_links.length < 5) && (
-                <Button variant="outline" size="sm" onClick={addSocialLink} type="button">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Ajouter un lien
-                </Button>
-              )}
-            </div>
-
-            <div className="mt-4 flex justify-end">
-                <Button type="submit" disabled={isSaving}>
-                    {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    Enregistrer les modifications
-                </Button>
-            </div>
-          </div>
-        </form>
+              </form>
+            )}
+            {activeTab === 'activite' && (
+              <div className="bg-white rounded-2xl shadow-xl p-6 text-center text-gray-400">Historique d'activité à venir…</div>
+            )}
+            {activeTab === 'messages' && (
+              <ConversationList />
+            )}
+          </AccountTabs>
+        </div>
       </div>
     </>
   );

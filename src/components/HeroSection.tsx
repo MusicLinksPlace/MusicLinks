@@ -60,7 +60,7 @@ const HeroSection = () => {
         </div>
 
         {/* Stats de réassurance - Layout horizontal compact */}
-        <div className="flex justify-center items-center space-x-8 md:space-x-16">
+        <div className="flex flex-nowrap justify-center items-center space-x-4 md:space-x-16 overflow-x-auto">
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3">
@@ -68,12 +68,10 @@ const HeroSection = () => {
               </div>
               <span className="text-2xl md:text-3xl font-bold text-white">500+</span>
             </div>
-            <p className="text-xs md:text-sm text-gray-200 font-medium leading-tight">
-              profils <br className="md:hidden" />
-              vérifiés
+            <p className="text-[11px] md:text-sm text-gray-200 font-medium leading-tight whitespace-nowrap">
+              profils vérifiés
             </p>
           </div>
-          
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3">
@@ -81,11 +79,10 @@ const HeroSection = () => {
               </div>
               <span className="text-2xl md:text-3xl font-bold text-white">1200+</span>
             </div>
-            <p className="text-xs md:text-sm text-gray-200 font-medium leading-tight">
-              Collaborations<br className="md:hidden" />
+            <p className="text-[11px] md:text-sm text-gray-200 font-medium leading-tight whitespace-nowrap">
+              Collaborations
             </p>
           </div>
-          
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg md:rounded-xl flex items-center justify-center mr-2 md:mr-3">
@@ -93,9 +90,8 @@ const HeroSection = () => {
               </div>
               <span className="text-2xl md:text-3xl font-bold text-white">98%</span>
             </div>
-            <p className="text-xs md:text-sm text-gray-200 font-medium leading-tight">
-              Satisfaction <br className="md:hidden" />
-              client
+            <p className="text-[11px] md:text-sm text-gray-200 font-medium leading-tight whitespace-nowrap">
+              Satisfaction client
             </p>
           </div>
         </div>
