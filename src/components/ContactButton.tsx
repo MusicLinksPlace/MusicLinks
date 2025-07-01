@@ -21,6 +21,11 @@ const ContactButton: React.FC<ContactButtonProps> = ({
   const navigate = useNavigate();
 
   const handleContact = () => {
+    const user = localStorage.getItem('musiclinks_user');
+    if (!user) {
+      navigate('/signup');
+      return;
+    }
     navigate(`/chat?userId=${userId}`);
   };
 

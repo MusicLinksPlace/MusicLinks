@@ -186,23 +186,33 @@ const Header = () => {
     }, 150);
   };
 
+  const handleChatClick = () => {
+    const user = localStorage.getItem('musiclinks_user');
+    if (!user) {
+      navigate('/signup', { state: { from: location.pathname } });
+      return;
+    }
+    navigate('/chat');
+  };
+
   return (
     <>
       {/* Header Desktop */}
       <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm hidden md:block">
-        <div className="w-full px-8 flex items-center h-20 justify-between">
+        <div className="flex items-center justify-between w-full px-8 h-20">
           {/* Logo à gauche */}
-          <Link to="/" className="flex items-center gap-3 min-w-[160px]">
-            <img 
-              src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
-              alt="MusicLinks" 
-              className="h-8 w-auto"
-            />
-          </Link>
-
-          {/* Navigation centrée */}
-          <nav className="flex-1 flex justify-center items-center gap-2 font-sans">
-            <div className="flex gap-2 md:gap-8 items-center justify-center w-full">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center min-w-[160px]">
+              <img 
+                src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
+                alt="MusicLinks" 
+                className="h-8 w-auto"
+              />
+            </Link>
+          </div>
+          {/* Centre : navigation principale */}
+          <nav className="flex items-center gap-8">
+            <div className="flex gap-8 items-center justify-center">
               {megaMenu.map((item) => {
                 const isSelected = isActive(item.link);
                 return (
@@ -213,12 +223,12 @@ const Header = () => {
                     onMouseLeave={handleMenuLeave}
                   >
                     <button
-                      className={`flex items-center gap-2 md:gap-3 px-3 py-2 md:px-5 md:py-3 rounded-full transition-all duration-150 ${isSelected ? 'font-bold text-blue-700' : 'font-medium text-gray-700 hover:text-blue-700'} bg-transparent border-none focus:outline-none`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-150 ${isSelected ? 'font-bold text-blue-700' : 'font-medium text-gray-700 hover:text-blue-700'} bg-transparent border-none focus:outline-none`}
                       style={{ fontSize: '1.1rem', position: 'relative' }}
                       onClick={() => navigate(item.link)}
                     >
-                      <span className="text-xl md:text-2xl flex items-center justify-center" style={{ lineHeight: 1 }}>{navIcons[item.type]}</span>
-                      <span className="truncate text-base md:text-lg" style={{ lineHeight: 1 }}>{item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}</span>
+                      <span className="text-xl flex items-center justify-center" style={{ lineHeight: 1 }}>{navIcons[item.type]}</span>
+                      <span className="truncate text-base" style={{ lineHeight: 1 }}>{item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}</span>
                     </button>
                     {(isSelected || hoveredMenu === item.type) && (
                       <span className="block absolute left-0 right-0 -bottom-1 h-1 rounded-full bg-blue-600" style={{ width: '80%', margin: '0 auto' }} />
@@ -346,109 +356,68 @@ const Header = () => {
                 );
               })}
             </div>
-            {/* Right-aligned secondary menu */}
-            <div className="ml-auto flex items-center gap-4">
-              {/* Bouton Messages */}
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link to="/chat">
-                      <Button variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative flex items-center justify-center" style={{ height: '48px', width: '48px' }}>
-                        <img src="/bnbicons/message.png" alt="Messages" className="w-12 h-12 object-contain" style={{ display: 'block' }} />
-                        <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
-                      </Button>
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" align="center" className="text-xs font-medium">
-                    Nouveaux messages
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="text-base font-medium text-gray-700 hover:text-blue-700 px-2 py-1 border-b-2 border-transparent hover:border-blue-600 bg-transparent">Découvrir</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Projets</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/how-it-works" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Comment ça marche</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/about" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Qui sommes-nous ?</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowSocialDialog(true)} className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600 cursor-pointer">Suivez-nous</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </nav>
+          {/* Actions à droite */}
+          <div className="flex items-center gap-6">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button onClick={handleChatClick} variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative flex items-center justify-center" style={{ height: '48px', width: '48px' }}>
+                    <img src="/bnbicons/message.png" alt="Messages" className="w-12 h-12 object-contain" style={{ display: 'block' }} />
+                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center" className="text-xs font-medium">
+                  Messages
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            {currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 flex items-center justify-center">
-                    <span className="text-2xl md:text-3xl leading-none">☰</span>
+                  <Button variant="ghost" className="flex items-center gap-2 px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-700">
+                    <Avatar className="w-8 h-8">
+                      <AvatarImage src={currentUser.profilepicture} alt={currentUser.name} />
+                      <AvatarFallback>{currentUser.name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <span>{currentUser.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuItem asChild>
-                    <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
-                      <span>Projets</span>
-                    </Link>
+                    <Link to="/mon-compte" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Mon profil</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/how-it-works" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
-                      <span>Comment ça marche</span>
-                    </Link>
+                    <Link to="/Project" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Mes projets</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/about" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">
-                      <span>Qui sommes-nous ?</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setShowSocialDialog(true)}
-                    className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600 cursor-pointer"
-                  >
-                    <span>Suivez-nous</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </nav>
-
-          {/* Actions à droite */}
-          <div className="flex items-center gap-3 min-w-[220px] justify-end">
-            {currentUser ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 font-medium flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200">
-                    {currentUser.profilepicture ? (
-                      <img
-                        src={currentUser.profilepicture}
-                        alt="Profile"
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <User className="h-5 w-5" />
-                    )}
-                    <span className="font-medium text-[16px]">{currentUser.name || 'Mon compte'}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {currentUser.role === 'artist' && (
-                    <DropdownMenuItem onClick={() => navigate('/profile/artist')}>
-                      Mon profil artiste
-                    </DropdownMenuItem>
-                  )}
-                  {currentUser.role === 'provider' && (
-                    <DropdownMenuItem onClick={() => navigate('/provider-settings')}>
-                      Mon profil prestataire
-                    </DropdownMenuItem>
-                  )}
-                  {currentUser.role === 'partner' && (
-                    <DropdownMenuItem onClick={() => navigate('/profile/partner')}>
-                      Mon profil partenaire
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Se déconnecter
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 py-2 text-gray-700 hover:text-red-600 cursor-pointer">Déconnexion</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
               <>
-                <Link to="/login" state={{ from: location }}>
-                  <Button variant="outline" size="sm" className="rounded-full px-6 py-2 text-[16px] font-medium border-gray-300 hover:border-blue-600 hover:text-blue-600 bg-white shadow-none">
-                Connexion
-              </Button>
-            </Link>
-                <Link to="/signup" state={{ from: location }}>
-                  <Button size="sm" className="rounded-full px-6 py-2 text-[16px] font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md">
-                S'inscrire
-              </Button>
-            </Link>
+                <Link to="/login" className="mr-2">
+                  <Button variant="outline" className="rounded-full px-6 py-2 text-[16px] font-medium border-gray-300 hover:border-blue-600 hover:text-blue-600 bg-white shadow-none">Connexion</Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" className="rounded-full px-6 py-2 text-[16px] font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md">S'inscrire</Button>
+                </Link>
               </>
             )}
           </div>
@@ -524,21 +493,18 @@ const Header = () => {
                 <li>
                   <Link to="/partners" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
                     Partenaires stratégiques
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-            </Link>
+                  </Link>
                 </li>
                 <hr className="my-4 mx-4 border-gray-200" />
                 <li>
                   <Link to="/Project" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-              Projets
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                    Projets
                   </Link>
                 </li>
                 <li>
                   <Link to="/how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
                     Comment ça marche
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-            </Link>
+                  </Link>
                 </li>
                 <li>
                   <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100 relative">
@@ -585,27 +551,27 @@ const Header = () => {
             {currentUser ? (
               <div className="space-y-4">
                 <Link to="/mon-compte" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
-                    <Button variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
-                      <User className="h-5 w-5" /> Mon compte
-                    </Button>
-            </Link>
+                  <Button variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
+                    <User className="h-5 w-5" /> Mon compte
+                  </Button>
+                </Link>
                 <Button onClick={handleSignOut} variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
                   <LogOut className="h-5 w-5" /> Se déconnecter
                 </Button>
               </div>
             ) : (
               <div className="space-y-3">
-                <Link to="/login" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
+                <Link to="/signup" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                   <Button variant="outline" className="w-full font-semibold text-base py-3">
-                  Connexion
-                </Button>
-              </Link>
+                    Connexion
+                  </Button>
+                </Link>
                 <Link to="/signup" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
                   <Button className="w-full font-bold text-base py-3 bg-ml-blue hover:bg-ml-blue/90 text-white rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors">
-                  S'inscrire
-                </Button>
-              </Link>
-            </div>
+                    S'inscrire
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         </div>
