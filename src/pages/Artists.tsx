@@ -22,6 +22,7 @@ interface User {
   musicStyle?: string;
   portfolio_url?: string;
   social_links?: string[];
+  reviewCount: number;
 }
 
 // Fonction pour trier les villes par priorité
@@ -163,26 +164,38 @@ const ArtistsPage = () => {
       if (error) {
         console.error('Error fetching artists:', error);
       } else if (data) {
-        // Trier les artistes par ville (Paris, Lyon, Marseille, puis autres)
+        // Fetch reviews groupées par artiste
+        const { data: reviews } = await supabase
+          .from('Review')
+          .select('toUserid, rating')
+          .in('toUserid', data.map((u: any) => u.id));
+        // Calcule moyenne et nombre d'avis par artiste
+        const reviewMap: Record<string, { sum: number, count: number }> = {};
+        reviews?.forEach((r: any) => {
+          if (!reviewMap[r.toUserid]) reviewMap[r.toUserid] = { sum: 0, count: 0 };
+          reviewMap[r.toUserid].sum += r.rating;
+          reviewMap[r.toUserid].count += 1;
+        });
+        // Injecte dans les users
         const sortedArtists = data.sort((a, b) => {
           const priorityCities = ['Paris', 'Lyon', 'Marseille'];
           const aIndex = priorityCities.indexOf(a.location || '');
           const bIndex = priorityCities.indexOf(b.location || '');
-          
           if (aIndex !== -1 && bIndex !== -1) {
             return aIndex - bIndex;
           }
           if (aIndex !== -1) return -1;
           if (bIndex !== -1) return 1;
           return (a.location || '').localeCompare(b.location || '');
-        });
-        
+        }).map((artist: any) => ({
+          ...artist,
+          rating: reviewMap[artist.id]?.count ? reviewMap[artist.id].sum / reviewMap[artist.id].count : null,
+          reviewCount: reviewMap[artist.id]?.count || 0
+        }));
         setAllArtists(sortedArtists);
-        const distinctLocations = [...new Set(data.map(u => u.location).filter(Boolean) as string[])];
       }
       setLoading(false);
     };
-
     fetchArtists();
   }, []);
 
@@ -226,7 +239,7 @@ const ArtistsPage = () => {
           </div>
         </div>
         
-        <div className="max-w-7xl mx-auto px-4 w-full py-12 md:py-16">
+        <div className="w-full px-4 lg:px-0 py-12 md:py-16">
           {loading ? (
             <div className="text-center text-gray-500 text-lg">Chargement des artistes...</div>
           ) : filteredArtists.length > 0 ? (
@@ -235,7 +248,8 @@ const ArtistsPage = () => {
               {filteredArtists.filter(artist => artist.location === 'Paris').length > 0 && (
                 <HorizontalCarousel 
                   title="Artistes à Paris" 
-                  users={filteredArtists.filter(artist => artist.location === 'Paris')} 
+                  users={filteredArtists.filter(artist => artist.location === 'Paris')}
+                  userRole="artist"
                 />
               )}
               
@@ -243,7 +257,8 @@ const ArtistsPage = () => {
               {filteredArtists.filter(artist => artist.location === 'Lyon').length > 0 && (
                 <HorizontalCarousel 
                   title="Artistes à Lyon" 
-                  users={filteredArtists.filter(artist => artist.location === 'Lyon')} 
+                  users={filteredArtists.filter(artist => artist.location === 'Lyon')}
+                  userRole="artist"
                 />
               )}
               
@@ -251,7 +266,8 @@ const ArtistsPage = () => {
               {filteredArtists.filter(artist => artist.location === 'Marseille').length > 0 && (
                 <HorizontalCarousel 
                   title="Artistes à Marseille" 
-                  users={filteredArtists.filter(artist => artist.location === 'Marseille')} 
+                  users={filteredArtists.filter(artist => artist.location === 'Marseille')}
+                  userRole="artist"
                 />
               )}
               
@@ -259,7 +275,8 @@ const ArtistsPage = () => {
               {filteredArtists.filter(artist => !['Paris', 'Lyon', 'Marseille'].includes(artist.location || '')).length > 0 && (
                 <HorizontalCarousel 
                   title="Autres villes" 
-                  users={filteredArtists.filter(artist => !['Paris', 'Lyon', 'Marseille'].includes(artist.location || ''))} 
+                  users={filteredArtists.filter(artist => !['Paris', 'Lyon', 'Marseille'].includes(artist.location || ''))}
+                  userRole="artist"
                 />
               )}
             </div>

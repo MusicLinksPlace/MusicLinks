@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import CatalogueCard from '@/components/CatalogueCard';
+import ArtistCard from '@/components/ArtistCard';
 import { cn } from '@/lib/utils';
 
 interface User {
@@ -13,15 +14,25 @@ interface User {
   musicStyle?: string;
   portfolio_url?: string;
   social_links?: string[];
+  role?: string;
+  subcategory?: string;
+  bio?: string;
+  rating?: number;
+  reviewCount?: number;
+  coverImage?: string | null;
+  isVideo?: boolean;
+  price?: number;
+  badges?: string[];
 }
 
 interface HorizontalCarouselProps {
   title: string;
   users: User[];
   cardClassName?: string;
+  userRole?: string;
 }
 
-const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, cardClassName }) => {
+const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, cardClassName, userRole }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -39,8 +50,11 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, c
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-4 px-4">
+    <div className="w-full">
+      <div className={cn(
+        "flex justify-between items-center mb-4",
+        userRole === 'artist' ? 'px-[5vw] lg:px-[6vw]' : 'px-4'
+      )}>
         <h3 className="text-xl font-bold text-gray-800">{title}</h3>
         <div className="hidden md:flex gap-2">
           <Button
@@ -63,15 +77,21 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, c
       </div>
       <div
         ref={scrollContainerRef}
-        className="flex overflow-x-auto space-x-6 scroll-smooth scrollbar-hide py-4 -mb-4 px-4 md:px-0 md:-mx-24"
+        className={cn(
+          "w-full flex overflow-x-auto gap-x-4 scroll-smooth scrollbar-hide py-4 -mb-4",
+          userRole === 'artist' ? 'px-[5vw] lg:px-[6vw]' : 'px-4 md:px-0 md:-mx-24'
+        )}
       >
         {users.map((user, index) => (
           <div key={user.id} className={cn(
-            "border-l-4 pl-4 snap-start",
-            cardClassName,
-            index === 0 && "md:ml-28"
+            "snap-start",
+            cardClassName
           )}>
-            <CatalogueCard user={user} />
+            {userRole === 'artist' ? (
+              <ArtistCard user={user} />
+            ) : (
+              <CatalogueCard user={user} />
+            )}
           </div>
         ))}
       </div>

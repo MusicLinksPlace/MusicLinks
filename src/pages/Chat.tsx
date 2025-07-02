@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Star as StarIcon } from 'lucide-react';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface Conversation {
   id: string;
@@ -57,6 +61,13 @@ const Chat = () => {
   const [fileUploading, setFileUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
+  const [reviewRating, setReviewRating] = useState<number>(0);
+  const [reviewComment, setReviewComment] = useState('');
+  const [hasReview, setHasReview] = useState<boolean>(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [canLeaveReview, setCanLeaveReview] = useState(false);
+  const [reviewCheckLoading, setReviewCheckLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -391,6 +402,39 @@ const Chat = () => {
     }
   }, [messages]);
 
+  // Vérifie si une review existe déjà pour ce duo
+  useEffect(() => {
+    const checkReview = async () => {
+      if (!currentUser?.id || !selectedUserId) return;
+      setReviewCheckLoading(true);
+      const { data, error } = await supabase
+        .from('Review')
+        .select('id')
+        .eq('fromUserid', currentUser.id)
+        .eq('toUserid', selectedUserId)
+        .maybeSingle();
+      setHasReview(!!data);
+      setReviewCheckLoading(false);
+    };
+    checkReview();
+  }, [currentUser, selectedUserId, showReviewDialog]);
+
+  // Vérifie si chaque utilisateur a envoyé au moins un message
+  useEffect(() => {
+    const checkMessages = async () => {
+      if (!currentUser?.id || !selectedUserId) return setCanLeaveReview(false);
+      const { data, error } = await supabase
+        .from('Message')
+        .select('senderId')
+        .or(`and(senderId.eq.${currentUser.id},receiverId.eq.${selectedUserId}),and(senderId.eq.${selectedUserId},receiverId.eq.${currentUser.id})`);
+      if (error) return setCanLeaveReview(false);
+      const sentByMe = data.some((m: any) => m.senderId === currentUser.id);
+      const sentByOther = data.some((m: any) => m.senderId === selectedUserId);
+      setCanLeaveReview(sentByMe && sentByOther);
+    };
+    checkMessages();
+  }, [currentUser, selectedUserId, messages]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -487,6 +531,125 @@ const Chat = () => {
               <h2 className="font-semibold text-gray-900 text-lg md:text-2xl truncate">
                 {otherUser?.name || 'Utilisateur'}
               </h2>
+              {/* BOUTON AVIS */}
+              <div className="ml-auto flex items-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+                          <DialogTrigger asChild>
+                            <Button
+                              type="button"
+                              variant={hasReview ? "outline" : canLeaveReview ? "default" : "outline"}
+                              size="sm"
+                              className={
+                                `ml-4 flex items-center gap-2 rounded-full px-4 py-2 font-semibold shadow-md transition-all
+                                ${hasReview ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200' : canLeaveReview ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:scale-105' : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'}
+                                `
+                              }
+                              disabled={hasReview || !canLeaveReview || reviewCheckLoading}
+                              onClick={e => {
+                                if (!canLeaveReview) {
+                                  e.preventDefault();
+                                  toast({ title: "Impossible de laisser un avis", description: "Vous devez avoir échangé au moins un message chacun pour pouvoir laisser un avis.", variant: "default" });
+                                }
+                              }}
+                            >
+                              <StarIcon className="w-5 h-5 mr-1" fill="currentColor" />
+                              {hasReview ? 'Avis déjà laissé' : 'Laisser un avis'}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Noter cette personne</DialogTitle>
+                            </DialogHeader>
+                            <form
+                              onSubmit={async (e) => {
+                                e.preventDefault();
+                                if (!reviewRating || reviewLoading) return;
+                                setReviewLoading(true);
+                                const { error } = await supabase.from('Review').insert({
+                                  id: crypto.randomUUID(),
+                                  rating: reviewRating,
+                                  comment: reviewComment,
+                                  createdat: new Date().toISOString(),
+                                  fromUserid: currentUser.id,
+                                  toUserid: selectedUserId,
+                                  bookingid: null
+                                });
+                                setReviewLoading(false);
+                                if (!error) {
+                                  setShowReviewDialog(false);
+                                  setReviewRating(0);
+                                  setReviewComment('');
+                                  setHasReview(true);
+                                  toast({ title: 'Merci pour votre avis !', description: 'Votre avis a bien été envoyé.' });
+                                } else {
+                                  toast({ title: 'Erreur', description: "Impossible d'envoyer l'avis.", variant: 'destructive' });
+                                }
+                              }}
+                              className="space-y-6"
+                            >
+                              {/* Sélecteur d'étoiles */}
+                              <div className="flex items-center justify-center gap-2 my-2">
+                                {[1,2,3,4,5].map((star) => (
+                                  <button
+                                    type="button"
+                                    key={star}
+                                    onClick={() => setReviewRating(star)}
+                                    className="focus:outline-none"
+                                  >
+                                    <StarIcon
+                                      className={
+                                        `w-8 h-8 ${reviewRating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} transition-colors`
+                                      }
+                                      strokeWidth={reviewRating >= star ? 0 : 1.5}
+                                    />
+                                  </button>
+                                ))}
+                              </div>
+                              {/* Commentaire */}
+                              <Textarea
+                                value={reviewComment}
+                                onChange={e => setReviewComment(e.target.value)}
+                                placeholder="Votre commentaire (optionnel)"
+                                className="resize-none min-h-[80px]"
+                                maxLength={500}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && !e.shiftKey) {
+                                    e.preventDefault();
+                                    if (reviewRating && !reviewLoading) {
+                                      // Simule submit
+                                      (e.target as HTMLTextAreaElement).form?.requestSubmit();
+                                    }
+                                  }
+                                }}
+                              />
+                              <DialogFooter>
+                                <Button
+                                  type="submit"
+                                  disabled={!reviewRating || reviewLoading}
+                                  className="w-full"
+                                >
+                                  {reviewLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : 'Envoyer'}
+                                </Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center">
+                      {hasReview
+                        ? "Vous avez déjà laissé un avis pour cette personne."
+                        : !canLeaveReview
+                          ? "Vous devez avoir échangé au moins un message chacun pour pouvoir laisser un avis."
+                          : "Laisser un avis sur cette personne"}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             </div>
             {/* Zone messages - scrollable sur mobile, coupée sur desktop */}
             <div
