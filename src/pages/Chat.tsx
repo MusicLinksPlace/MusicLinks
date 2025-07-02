@@ -224,46 +224,58 @@ const Chat = () => {
   useEffect(() => {
     if (!selectedUserId || !currentUser) return;
     loadMessages();
-    // Écouter tous les nouveaux messages en temps réel
+    // Abonnement realtime : ajoute le message en live sans recharger toute la conversation
     const channel = supabase
       .channel('messages-realtime-global')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'Message',
-      }, (payload) => {
-        console.log('REALTIME PAYLOAD', payload);
+      }, async (payload) => {
         const newMessage = payload.new;
         // N'ajoute que si le message concerne la conversation courante
         if (
           (newMessage.senderId === currentUser.id && newMessage.receiverId === selectedUserId) ||
           (newMessage.senderId === selectedUserId && newMessage.receiverId === currentUser.id)
         ) {
-          console.log('REALTIME MATCH', newMessage);
+          // Cherche le sender dans les messages existants
+          let sender = null;
+          if (newMessage.senderId === currentUser.id) {
+            sender = { name: currentUser.name, profilepicture: currentUser.profilepicture };
+          } else {
+            // Cherche dans les messages existants
+            sender = messages.find(m => m.senderId === newMessage.senderId)?.sender;
+            // Si pas trouvé, fetch minimal
+            if (!sender) {
+              const { data, error } = await supabase
+                .from('User')
+                .select('name, profilepicture')
+                .eq('id', newMessage.senderId)
+                .single();
+              sender = data ? { name: data.name, profilepicture: data.profilepicture } : { name: '', profilepicture: '' };
+            }
+          }
           setMessages(prev => {
             if (prev.some(m => m.id === newMessage.id)) return prev;
-            const formattedMessage: Message = {
+            const formattedMessage = {
               id: newMessage.id,
               content: newMessage.content,
               senderId: newMessage.senderId,
               receiverId: newMessage.receiverId,
               createdAt: newMessage.createdAt,
-              sender: prev.find(m => m.senderId === newMessage.senderId)?.sender || { name: '', profilepicture: '' },
+              sender,
               attachmentUrl: newMessage.attachmentUrl,
               attachmentType: newMessage.attachmentType,
             };
             return [...prev, formattedMessage];
           });
-        } else {
-          console.log('REALTIME IGNORED', newMessage);
         }
       })
       .subscribe();
-
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedUserId, currentUser, toast]);
+  }, [selectedUserId, currentUser, messages]);
 
   // Charger le profil de l'autre utilisateur à chaque changement de selectedUserId
   useEffect(() => {
@@ -279,31 +291,6 @@ const Chat = () => {
     };
     fetchOtherUser();
   }, [selectedUserId]);
-
-  // --- REALTIME GLOBAL ---
-  useEffect(() => {
-    if (!currentUser) return;
-    const channel = supabase
-      .channel('messages-global')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'Message',
-      }, (payload) => {
-        // Rafraîchir conversations
-        loadConversations();
-        // Si la conversation ouverte est concernée, rafraîchir les messages
-        const msg = payload.new;
-        if (
-          (msg.senderId === currentUser.id && msg.receiverId === selectedUserId) ||
-          (msg.senderId === selectedUserId && msg.receiverId === currentUser.id)
-        ) {
-          loadMessages();
-        }
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [currentUser, selectedUserId]);
 
   useEffect(() => {
     console.log('Current user:', currentUser);
