@@ -67,7 +67,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
           <div className="flex items-center justify-between mt-2 text-sm">
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="font-semibold text-gray-700">{(user.rating || 4.8).toFixed(1)}</span>
+              <span className="font-semibold text-gray-700">{typeof user.rating === 'number' ? user.rating.toFixed(1) : '—'}</span>
             </div>
             {user.location && (
               <div className="flex items-center gap-1.5 text-gray-500">

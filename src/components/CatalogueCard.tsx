@@ -64,9 +64,9 @@ const CatalogueCard: React.FC<CatalogueCardProps> = ({ user }) => {
           <div className="text-right flex-shrink-0">
             <div className="flex items-center gap-1 justify-end">
               <Star className="w-4 h-4 text-yellow-400 fill-current" />
-              <span className="font-bold text-sm">{ (user.rating || 4.2).toFixed(1) }/5</span>
+              <span className="font-bold text-sm">{typeof user.rating === 'number' ? user.rating.toFixed(1) : '—'}/5</span>
             </div>
-            <p className="text-xs text-gray-400">({user.reviewCount || 120} avis)</p>
+            <p className="text-xs text-gray-400">({user.reviewCount ?? 0} avis)</p>
           </div>
         </div>
         
