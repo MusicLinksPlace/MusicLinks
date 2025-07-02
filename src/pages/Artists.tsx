@@ -222,7 +222,7 @@ const ArtistsPage = () => {
       <main className="flex-1">
         <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque2.png')" }}>
           <div className="absolute inset-0 bg-black/40"></div>
-          <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
+          <div className="relative w-full px-0 py-16 md:py-24 z-10">
             <div className="text-center mb-12">
               <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
                 Découvrez nos <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Artistes</span>
@@ -239,7 +239,7 @@ const ArtistsPage = () => {
           </div>
         </div>
         
-        <div className="w-full px-4 lg:px-0 py-12 md:py-16">
+        <div className="w-full px-0 py-12 md:py-16">
           {loading ? (
             <div className="text-center text-gray-500 text-lg">Chargement des artistes...</div>
           ) : filteredArtists.length > 0 ? (

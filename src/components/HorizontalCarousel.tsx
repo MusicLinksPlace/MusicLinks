@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import CatalogueCard from '@/components/CatalogueCard';
 import ArtistCard from '@/components/ArtistCard';
+import PartnerCard from '@/components/PartnerCard';
 import { cn } from '@/lib/utils';
 
 interface User {
@@ -51,10 +52,7 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, c
 
   return (
     <div className="w-full">
-      <div className={cn(
-        "flex justify-between items-center mb-4",
-        userRole === 'artist' ? 'px-[5vw] lg:px-[6vw]' : 'px-4'
-      )}>
+      <div className="flex justify-between items-center mb-4 px-8 lg:px-[5vw]">
         <h3 className="text-xl font-bold text-gray-800">{title}</h3>
         <div className="hidden md:flex gap-2">
           <Button
@@ -78,8 +76,8 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, c
       <div
         ref={scrollContainerRef}
         className={cn(
-          "w-full flex overflow-x-auto gap-x-4 scroll-smooth scrollbar-hide py-4 -mb-4",
-          userRole === 'artist' ? 'px-[5vw] lg:px-[6vw]' : 'px-4 md:px-0 md:-mx-24'
+          "w-full flex overflow-x-auto gap-x-4 scroll-smooth scrollbar-hide py-4 -mb-4 px-8 lg:px-[5vw]",
+          userRole === 'artist' || userRole === 'partner' ? '' : 'px-4 md:px-0 md:-mx-24'
         )}
       >
         {users.map((user, index) => (
@@ -87,7 +85,9 @@ const HorizontalCarousel: React.FC<HorizontalCarouselProps> = ({ title, users, c
             "snap-start",
             cardClassName
           )}>
-            {userRole === 'artist' ? (
+            {userRole === 'partner' ? (
+              <PartnerCard partner={user} />
+            ) : userRole === 'artist' ? (
               <ArtistCard user={user} />
             ) : (
               <CatalogueCard user={user} />

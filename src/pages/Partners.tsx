@@ -11,6 +11,7 @@ import { LocationFilter } from '@/components/ui/LocationFilter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { useLocation } from 'react-router-dom';
+import PartnerCard from '@/components/PartnerCard';
 
 interface User {
   id: string;
@@ -187,7 +188,7 @@ const PartnersPage = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto w-full py-12 md:py-16">
+        <div className="w-full py-12 md:py-16">
           {loading ? (
             <div className="text-center text-gray-500 text-lg">Chargement des partenaires...</div>
           ) : (
@@ -195,19 +196,19 @@ const PartnersPage = () => {
               {filters.selectedSubCategory === 'all' ? (
                 <>
                   {labels.length > 0 && (
-                    <HorizontalCarousel title="Maisons de disque & labels" users={labels} />
+                    <HorizontalCarousel title="Maisons de disque & labels" users={labels} userRole="partner" />
                   )}
                   {managers.length > 0 && (
-                    <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} />
+                    <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} userRole="partner" />
                   )}
                 </>
               ) : filters.selectedSubCategory === 'label' ? (
                 labels.length > 0 && (
-                  <HorizontalCarousel title="Maisons de disque & labels" users={labels} />
+                  <HorizontalCarousel title="Maisons de disque & labels" users={labels} userRole="partner" />
                 )
               ) : filters.selectedSubCategory === 'manager' ? (
                 managers.length > 0 && (
-                  <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} />
+                  <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} userRole="partner" />
                 )
               ) : null}
               
