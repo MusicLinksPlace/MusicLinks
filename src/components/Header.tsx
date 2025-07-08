@@ -334,12 +334,15 @@ const Header = () => {
                                         const subCat = section?.subCategories[0] || sub.toLowerCase();
                                         return (
                                           <li key={sub}>
-                                            <a
-                                              href={`/providers?subCategory=${encodeURIComponent(subCat)}`}
-                                              className="flex items-center text-sm text-gray-700 hover:text-gray-900 py-1.5 px-1 rounded transition-colors"
+                                            <button
+                                              onClick={() => {
+                                                navigate(`/providers?subCategory=${encodeURIComponent(subCat)}`);
+                                                setHoveredMenu(null);
+                                              }}
+                                              className="flex items-center text-sm text-gray-700 hover:text-gray-900 py-1.5 px-1 rounded transition-colors w-full text-left"
                                             >
                                               <span className="font-normal">{sub}</span>
-                                            </a>
+                                            </button>
                                           </li>
                                         );
                                       })}
