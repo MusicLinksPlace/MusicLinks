@@ -39,6 +39,7 @@ interface Message {
   };
   attachmentType?: string;
   attachmentUrl?: string;
+  type?: string;
 }
 
 const Chat = () => {
@@ -68,15 +69,12 @@ const Chat = () => {
   const [reviewLoading, setReviewLoading] = useState(false);
   const [canLeaveReview, setCanLeaveReview] = useState(false);
   const [reviewCheckLoading, setReviewCheckLoading] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
+  const [prevMessagesCount, setPrevMessagesCount] = useState(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
-  // Scroll automatique quand les messages changent
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Récupérer l'utilisateur connecté
   useEffect(() => {
@@ -342,7 +340,7 @@ const Chat = () => {
     }
 
     // Optimistic update : ajoute le message localement tout de suite
-    const optimisticMessage: Message = {
+    const optimisticMessage = {
       id: `optimistic-${Date.now()}`,
       content: newMessage,
       senderId: currentUser.id,
@@ -356,6 +354,7 @@ const Chat = () => {
       attachmentType: attachmentType || undefined,
     };
     setMessages(prev => [...prev, optimisticMessage]);
+    setTimeout(() => scrollToBottom(), 0);
 
     // Insertion du message
     await supabase.from('Message').insert({
@@ -381,13 +380,6 @@ const Chat = () => {
   const filteredConversations = conversations.filter(conv =>
     conv.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Ajoute un useEffect pour scroll auto vers le bas à chaque changement de messages
-  useEffect(() => {
-    if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
 
   // Vérifie si une review existe déjà pour ce duo
   useEffect(() => {
@@ -421,6 +413,25 @@ const Chat = () => {
     };
     checkMessages();
   }, [currentUser, selectedUserId, messages]);
+
+  // On conversation change, scroll en bas une seule fois
+  useEffect(() => {
+    if (selectedUserId) {
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 0);
+    }
+    // eslint-disable-next-line
+  }, [selectedUserId, messages.length]);
+
+  const handleMessagesScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+    setAutoScroll(atBottom);
+  };
 
   if (isLoading) {
     return (
@@ -565,8 +576,13 @@ const Chat = () => {
                                   toUserid: selectedUserId,
                                   bookingid: null
                                 });
-                                setReviewLoading(false);
                                 if (!error) {
+                                  await supabase.from('Message').insert({
+                                    senderId: currentUser.id,
+                                    receiverId: selectedUserId,
+                                    content: `${currentUser.name} vous a laissé un avis !`,
+                                    type: 'system',
+                                  });
                                   setShowReviewDialog(false);
                                   setReviewRating(0);
                                   setReviewComment('');
@@ -575,6 +591,7 @@ const Chat = () => {
                                 } else {
                                   toast({ title: 'Erreur', description: "Impossible d'envoyer l'avis.", variant: 'destructive' });
                                 }
+                                setReviewLoading(false);
                               }}
                               className="space-y-6"
                             >
@@ -641,11 +658,21 @@ const Chat = () => {
             {/* Zone messages - scrollable sur mobile, coupée sur desktop */}
             <div
               ref={messagesContainerRef}
+              onScroll={handleMessagesScroll}
               className="flex-1 overflow-y-auto max-h-[calc(100vh-48px-60px-60px)] md:max-h-[calc(100vh-80px-60px-60px)] px-4 py-2 space-y-2"
             >
               {messages.map((message) => (
                 (() => {
-                  console.log('MESSAGE DEBUG', message);
+                  if (message.type === 'system') {
+                    return (
+                      <div key={message.id} className="flex justify-center">
+                        <div className="bg-gray-100 text-gray-500 text-xs italic rounded-full px-4 py-2 my-2 shadow-sm">
+                          {message.content}
+                        </div>
+                      </div>
+                    );
+                  }
+                  // Message classique
                   return (
                     <div key={message.id} className={`flex ${message.senderId === currentUser?.id ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.senderId === currentUser?.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900'}`}>
