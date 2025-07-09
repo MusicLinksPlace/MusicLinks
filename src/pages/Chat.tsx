@@ -86,13 +86,21 @@ const Chat = () => {
     setCurrentUser(JSON.parse(storedUser));
   }, [navigate]);
 
-  // Vérifier si un userId est passé en paramètre (pour le bouton "Contacter")
+  // Vérifier si un userId et projectId sont passés en paramètre
   useEffect(() => {
     const userId = searchParams.get('userId');
     if (userId) {
       setSelectedUserId(userId);
     }
   }, [searchParams]);
+
+  // Charger les messages quand l'utilisateur sélectionné change
+  useEffect(() => {
+    if (selectedUserId && currentUser) {
+      loadMessages();
+      fetchOtherUser();
+    }
+  }, [selectedUserId, currentUser]);
 
   // Charger les conversations
   const loadConversations = async () => {
@@ -133,6 +141,7 @@ const Chat = () => {
       conversationsData?.forEach((msg: any) => {
         const otherUserId = msg.senderId === currentUser.id ? msg.receiverId : msg.senderId;
         const otherUser = usersMap.get(otherUserId);
+        
         if (!conversationMap.has(otherUserId) && otherUser) {
           conversationMap.set(otherUserId, {
             id: otherUserId,
@@ -176,6 +185,7 @@ const Chat = () => {
         `)
         .or(`and(senderId.eq.${currentUser.id},receiverId.eq.${selectedUserId}),and(senderId.eq.${selectedUserId},receiverId.eq.${currentUser.id})`)
         .order('createdAt', { ascending: true });
+      
       if (error) throw error;
       // Récupérer les informations des expéditeurs
       const senderIds = [...new Set(messagesData?.map((msg: any) => msg.senderId) || [])];
@@ -198,14 +208,15 @@ const Chat = () => {
           receiverId: msg.receiverId,
           createdAt: msg.createdAt,
           sender: {
-            name: sender?.name || '',
+            name: sender?.name || 'Utilisateur inconnu',
             profilepicture: sender?.profilepicture || ''
           },
-          attachmentUrl: msg.attachmentUrl,
           attachmentType: msg.attachmentType,
+          attachmentUrl: msg.attachmentUrl
         };
       }) || [];
       setMessages(transformedMessages);
+      setPrevMessagesCount(transformedMessages.length);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({ title: "Erreur", description: "Impossible de charger les messages.", variant: "destructive" });
@@ -264,6 +275,8 @@ const Chat = () => {
               sender,
               attachmentUrl: newMessage.attachmentUrl,
               attachmentType: newMessage.attachmentType,
+              projectId: newMessage.projectId,
+              type: newMessage.type
             };
             return [...prev, formattedMessage];
           });
@@ -281,7 +294,7 @@ const Chat = () => {
       if (!selectedUserId) return setOtherUser(null);
       const { data, error } = await supabase
         .from('User')
-        .select('id, name, profilepicture')
+        .select('id, name, profilepicture, role')
         .eq('id', selectedUserId)
         .single();
       if (!error && data) setOtherUser(data);
@@ -298,10 +311,10 @@ const Chat = () => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      if (file.type.startsWith('image')) {
-        setFilePreview(URL.createObjectURL(file));
-      } else {
-        setFilePreview(null);
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => setFilePreview(e.target?.result as string);
+        reader.readAsDataURL(file);
       }
     }
   };
@@ -311,63 +324,63 @@ const Chat = () => {
     setFilePreview(null);
   };
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Envoi de message : optimistic update
   const sendMessage = async () => {
-    let attachmentUrl = null;
-    let attachmentType = null;
-
-    if (selectedFile) {
-      // Upload du fichier
-      const ext = selectedFile.name.split('.').pop();
-      const type = selectedFile.type.startsWith('image')
-        ? 'image'
-        : selectedFile.type.startsWith('audio')
-        ? 'audio'
-        : selectedFile.type.startsWith('video')
-        ? 'video'
-        : 'file';
-      const filePath = `chat-uploads/${currentUser.id}_${Date.now()}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from('chat-uploads')
-        .upload(filePath, selectedFile, { upsert: true });
-      if (uploadError) {
-        toast({ title: 'Erreur', description: 'Upload échoué.', variant: 'destructive' });
-        return;
+    if ((!newMessage.trim() && !selectedFile) || !selectedUserId || !currentUser || isSending) return;
+    
+    setIsSending(true);
+    try {
+      let attachmentUrl = null;
+      let attachmentType = null;
+      
+      if (selectedFile) {
+        // Upload du fichier
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `attachments/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('attachments')
+          .upload(filePath, selectedFile);
+        
+        if (uploadError) {
+          throw uploadError;
+        }
+        
+        // Récupérer l'URL publique
+        const { data } = supabase.storage
+          .from('attachments')
+          .getPublicUrl(filePath);
+        
+        attachmentUrl = data.publicUrl;
+        attachmentType = selectedFile.type.startsWith('image/') ? 'image' : 'file';
       }
-      const { data: { publicUrl } } = supabase.storage.from('chat-uploads').getPublicUrl(filePath);
-      attachmentUrl = publicUrl;
-      attachmentType = type;
+      
+      const messageData = {
+        senderId: currentUser.id,
+        receiverId: selectedUserId,
+        content: newMessage.trim() || `[${attachmentType === 'image' ? 'Image' : 'Fichier'} envoyé(e)]`,
+        attachmentUrl,
+        attachmentType
+      };
+
+      const { error } = await supabase
+        .from('Message')
+        .insert([messageData]);
+      
+      if (error) throw error;
+      
+      setNewMessage('');
+      removeFile();
+      loadMessages();
+    } catch (error: any) {
+      console.error('Error sending message:', error);
+      toast({ title: "Erreur", description: "Impossible d'envoyer le message: " + error.message, variant: "destructive" });
+    } finally {
+      setIsSending(false);
     }
-
-    // Optimistic update : ajoute le message localement tout de suite
-    const optimisticMessage = {
-      id: `optimistic-${Date.now()}`,
-      content: newMessage,
-      senderId: currentUser.id,
-      receiverId: selectedUserId,
-      createdAt: new Date().toISOString(),
-      sender: {
-        name: currentUser.name || '',
-        profilepicture: currentUser.profilepicture || ''
-      },
-      attachmentUrl: attachmentUrl || undefined,
-      attachmentType: attachmentType || undefined,
-    };
-    setMessages(prev => [...prev, optimisticMessage]);
-    setTimeout(() => scrollToBottom(), 0);
-
-    // Insertion du message
-    await supabase.from('Message').insert({
-      senderId: currentUser.id,
-      receiverId: selectedUserId,
-      content: newMessage,
-      attachmentUrl,
-      attachmentType,
-    });
-
-    setNewMessage('');
-    setSelectedFile(null);
-    setFilePreview(null);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -427,10 +440,51 @@ const Chat = () => {
   }, [selectedUserId, messages.length]);
 
   const handleMessagesScroll = () => {
-    const el = messagesContainerRef.current;
-    if (!el) return;
-    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-    setAutoScroll(atBottom);
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const isAtBottom = scrollHeight - scrollTop <= clientHeight + 100;
+      setAutoScroll(isAtBottom);
+    }
+  };
+
+  // Charger les conversations au démarrage
+  useEffect(() => {
+    if (currentUser) {
+      loadConversations();
+    }
+  }, [currentUser]);
+
+  // Charger les messages quand l'utilisateur sélectionné change
+  useEffect(() => {
+    if (selectedUserId && currentUser) {
+      loadMessages();
+      fetchOtherUser();
+    }
+  }, [selectedUserId, currentUser]);
+
+  // Auto-scroll pour les nouveaux messages
+  useEffect(() => {
+    if (autoScroll && messages.length > prevMessagesCount) {
+      scrollToBottom();
+    }
+    setPrevMessagesCount(messages.length);
+  }, [messages, autoScroll, prevMessagesCount]);
+
+  // Récupérer les données de l'autre utilisateur
+  const fetchOtherUser = async () => {
+    if (!selectedUserId) return;
+    try {
+      const { data, error } = await supabase
+        .from('User')
+        .select('id, name, profilepicture, role')
+        .eq('id', selectedUserId)
+        .single();
+
+      if (error) throw error;
+      setOtherUser(data);
+    } catch (error) {
+      console.error('Error fetching other user:', error);
+    }
   };
 
   if (isLoading) {
@@ -443,311 +497,222 @@ const Chat = () => {
     );
   }
 
+
+
   return (
-    <div className="h-screen flex flex-col bg-gray-100">
-      {/* MOBILE :
-        - Si mobile & PAS de conversation sélectionnée => header principal + liste des conversations
-        - Si mobile & conversation sélectionnée => header du chat uniquement
-        DESKTOP :
-        - Toujours header principal
-      */}
-      {(!isMobile || !selectedUserId) && <Header />}
-      <div className="flex flex-1 h-full">
-        {/* Colonne gauche (sidebar/messages) */}
-        {/* Sur mobile, si une conversation est sélectionnée, cache la colonne gauche */}
-        <div className={`w-full md:w-1/3 border-r border-gray-200 flex flex-col overflow-hidden ${selectedUserId && isMobile ? 'hidden' : 'block'}`}>
-          <div className="flex-shrink-0 p-4 border-b border-gray-200 bg-white">
-            <h1 className="text-xl font-bold text-gray-900 mb-4">Messages</h1>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Rechercher..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {filteredConversations.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <p>Aucune conversation</p>
-              </div>
-            ) : (
-              filteredConversations.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  onClick={() => setSelectedUserId(conversation.id)}
-                  className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
-                >
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={conversation.otherUser.profilepicture || '/placeholder.svg'}
-                      alt={conversation.otherUser.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
-                          {conversation.otherUser.name}
-                        </h3>
-                        <span className="text-xs text-gray-500">
-                          {new Date(conversation.lastMessage.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 truncate">
-                        {conversation.lastMessage.senderId === currentUser?.id ? 'Vous: ' : ''}
-                        {conversation.lastMessage.content}
-                      </p>
-                    </div>
-                  </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Header />
+      <div className="flex-1 container mx-auto p-4 flex">
+        <div className="flex-1 max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden h-[calc(100vh-120px)] flex">
+            {/* Liste des conversations */}
+            <div className={`w-full md:w-1/3 border-r border-gray-200 ${selectedUserId && isMobile ? 'hidden' : 'block'}`}>
+              <div className="p-4 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">Messages</h2>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Rechercher une conversation..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-        {/* Colonne droite (chat) */}
-        {selectedUserId && (
-          <div className="flex flex-col w-full md:w-2/3 bg-white">
-            {/* Header du chat - fixé en haut */}
-            <div className="h-[60px] shrink-0 border-b px-4 flex items-center z-30 shadow-sm">
-              {isMobile && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSelectedUserId(null)}
-                  className="mr-4"
-                >
-                  <ArrowLeft className="h-6 w-6" />
-                </Button>
-              )}
-              <img
-                src={otherUser?.profilepicture || '/placeholder.svg'}
-                alt="Profile"
-                className="w-12 h-12 rounded-full object-cover mr-4"
-              />
-              <h2 className="font-semibold text-gray-900 text-lg md:text-2xl truncate">
-                {otherUser?.name || 'Utilisateur'}
-              </h2>
-              {/* BOUTON AVIS */}
-              <div className="ml-auto flex items-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span>
-                        <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-                          <DialogTrigger asChild>
-                            <Button
-                              type="button"
-                              variant={hasReview ? "outline" : canLeaveReview ? "default" : "outline"}
-                              size="sm"
-                              className={
-                                `ml-4 flex items-center gap-2 rounded-full px-4 py-2 font-semibold shadow-md transition-all
-                                ${hasReview ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-200' : canLeaveReview ? 'bg-blue-500 hover:bg-blue-600 text-white border-blue-500 hover:scale-105' : 'bg-gray-100 text-gray-400 border-gray-100 cursor-not-allowed'}
-                                `
-                              }
-                              disabled={hasReview || !canLeaveReview || reviewCheckLoading}
-                              onClick={e => {
-                                if (!canLeaveReview) {
-                                  e.preventDefault();
-                                  toast({ title: "Impossible de laisser un avis", description: "Vous devez avoir échangé au moins un message chacun pour pouvoir laisser un avis.", variant: "default" });
-                                }
-                              }}
-                            >
-                              <StarIcon className="w-5 h-5 mr-1" fill="currentColor" />
-                              {hasReview ? 'Avis déjà laissé' : 'Laisser un avis'}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <DialogTitle>Noter cette personne</DialogTitle>
-                            </DialogHeader>
-                            <form
-                              onSubmit={async (e) => {
-                                e.preventDefault();
-                                if (!reviewRating || reviewLoading) return;
-                                setReviewLoading(true);
-                                const { error } = await supabase.from('Review').insert({
-                                  id: crypto.randomUUID(),
-                                  rating: reviewRating,
-                                  comment: reviewComment,
-                                  createdat: new Date().toISOString(),
-                                  fromUserid: currentUser.id,
-                                  toUserid: selectedUserId,
-                                  bookingid: null
-                                });
-                                if (!error) {
-                                  await supabase.from('Message').insert({
-                                    senderId: currentUser.id,
-                                    receiverId: selectedUserId,
-                                    content: `${currentUser.name} vous a laissé un avis !`,
-                                    type: 'system',
-                                  });
-                                  setShowReviewDialog(false);
-                                  setReviewRating(0);
-                                  setReviewComment('');
-                                  setHasReview(true);
-                                  toast({ title: 'Merci pour votre avis !', description: 'Votre avis a bien été envoyé.' });
-                                } else {
-                                  toast({ title: 'Erreur', description: "Impossible d'envoyer l'avis.", variant: 'destructive' });
-                                }
-                                setReviewLoading(false);
-                              }}
-                              className="space-y-6"
-                            >
-                              {/* Sélecteur d'étoiles */}
-                              <div className="flex items-center justify-center gap-2 my-2">
-                                {[1,2,3,4,5].map((star) => (
-                                  <button
-                                    type="button"
-                                    key={star}
-                                    onClick={() => setReviewRating(star)}
-                                    className="focus:outline-none"
-                                  >
-                                    <StarIcon
-                                      className={
-                                        `w-8 h-8 ${reviewRating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'} transition-colors`
-                                      }
-                                      strokeWidth={reviewRating >= star ? 0 : 1.5}
-                                    />
-                                  </button>
-                                ))}
-                              </div>
-                              {/* Commentaire */}
-                              <Textarea
-                                value={reviewComment}
-                                onChange={e => setReviewComment(e.target.value)}
-                                placeholder="Votre commentaire (optionnel)"
-                                className="resize-none min-h-[80px]"
-                                maxLength={500}
-                                onKeyDown={e => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    if (reviewRating && !reviewLoading) {
-                                      // Simule submit
-                                      (e.target as HTMLTextAreaElement).form?.requestSubmit();
-                                    }
-                                  }
-                                }}
+              </div>
+              
+              <div className="overflow-y-auto h-full">
+                {isLoading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {conversations
+                      .filter(conv => 
+                        conv.otherUser.name.toLowerCase().includes(searchQuery.toLowerCase())
+                      )
+                      .map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          onClick={() => {
+                            setSelectedUserId(conversation.otherUser.id);
+                          }}
+                          className={`p-4 cursor-pointer hover:bg-gray-50 border-b border-gray-100 ${
+                            selectedUserId === conversation.otherUser.id ? 'bg-blue-50' : ''
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="relative">
+                              <img
+                                src={conversation.otherUser.profilepicture || '/lovable-uploads/logo2.png'}
+                                alt={conversation.otherUser.name}
+                                className="w-12 h-12 rounded-full object-cover"
                               />
-                              <DialogFooter>
-                                <Button
-                                  type="submit"
-                                  disabled={!reviewRating || reviewLoading}
-                                  className="w-full"
-                                >
-                                  {reviewLoading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : 'Envoyer'}
-                                </Button>
-                              </DialogFooter>
-                            </form>
-                          </DialogContent>
-                        </Dialog>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="center">
-                      {hasReview
-                        ? "Vous avez déjà laissé un avis pour cette personne."
-                        : !canLeaveReview
-                          ? "Vous devez avoir échangé au moins un message chacun pour pouvoir laisser un avis."
-                          : "Laisser un avis sur cette personne"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {conversation.otherUser.name}
+                              </p>
+                              <p className="text-sm text-gray-500 truncate">
+                                {conversation.lastMessage.senderId === currentUser?.id ? 'Vous: ' : ''}
+                                {conversation.lastMessage.content}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
             </div>
-            {/* Zone messages - scrollable sur mobile, coupée sur desktop */}
-            <div
-              ref={messagesContainerRef}
-              onScroll={handleMessagesScroll}
-              className="flex-1 overflow-y-auto max-h-[calc(100vh-48px-60px-60px)] md:max-h-[calc(100vh-80px-60px-60px)] px-4 py-2 space-y-2"
-            >
-              {messages.map((message) => (
-                (() => {
-                  if (message.type === 'system') {
-                    return (
-                      <div key={message.id} className="flex justify-center">
-                        <div className="bg-gray-100 text-gray-500 text-xs italic rounded-full px-4 py-2 my-2 shadow-sm">
-                          {message.content}
+
+            {/* Zone de chat */}
+            <div className={`flex-1 flex flex-col ${selectedUserId ? 'block' : 'hidden md:block'}`}>
+              {selectedUserId ? (
+                <>
+                  {/* Header de conversation */}
+                  <div className="border-b border-gray-200">
+                    <div className="p-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        {isMobile && (
+                          <Button
+                            onClick={() => setSelectedUserId(null)}
+                            variant="ghost"
+                            size="icon"
+                            className="mr-2"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <img
+                          src={otherUser?.profilepicture || '/lovable-uploads/logo2.png'}
+                          alt={otherUser?.name || 'Utilisateur'}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div>
+                          <h3 className="font-medium text-gray-900">{otherUser?.name}</h3>
+                          <p className="text-sm text-gray-500">
+                            {otherUser?.role ? `${otherUser.role.charAt(0).toUpperCase()}${otherUser.role.slice(1)}` : ''}
+                          </p>
                         </div>
                       </div>
-                    );
-                  }
-                  // Message classique
-                  return (
-                    <div key={message.id} className={`flex ${message.senderId === currentUser?.id ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${message.senderId === currentUser?.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900'}`}>
-                        {/* Aperçu du fichier si présent */}
-                        {message.attachmentUrl && message.attachmentType === 'image' && (
-                          <img src={message.attachmentUrl} alt="img" className="max-w-[220px] rounded mb-2" />
-                        )}
-                        {message.attachmentUrl && message.attachmentType === 'audio' && (
-                          <audio controls src={message.attachmentUrl} className="mb-2 w-full" />
-                        )}
-                        {message.attachmentUrl && message.attachmentType === 'video' && (
-                          <video controls src={message.attachmentUrl} className="mb-2 max-w-[220px] rounded" />
-                        )}
-                        {message.attachmentUrl && !['image','audio','video'].includes(message.attachmentType) && (
-                          <a href={message.attachmentUrl} target="_blank" rel="noopener noreferrer" className="block text-xs underline mb-2">Fichier à télécharger</a>
-                        )}
-                        {/* Texte du message */}
-                        {message.content && <p className="text-sm">{message.content}</p>}
-                        <p className={`text-xs mt-1 ${message.senderId === currentUser?.id ? 'text-blue-100' : 'text-gray-500'}`}>
-                          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
                     </div>
-                  );
-                })()
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-            {/* Champ d'envoi - toujours visible en bas */}
-            <div className="h-[60px] shrink-0 border-t px-4 flex items-center bg-white gap-2">
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                accept="image/*,audio/*,video/*"
-                onChange={handleFileChange}
-              />
-              <Button asChild variant="ghost" size="icon" className="p-2" disabled={fileUploading}>
-                <label htmlFor="file-upload">
-                  <Paperclip className="h-6 w-6" />
-                </label>
-              </Button>
+                  </div>
 
-              {/* Aperçu du fichier sélectionné */}
-              {selectedFile && (
-                <div className="flex items-center gap-1 bg-gray-100 rounded px-2 py-1">
-                  {filePreview ? (
-                    <img src={filePreview} alt="preview" className="w-8 h-8 object-cover rounded" />
-                  ) : (
-                    <span className="text-xs max-w-[80px] truncate">{selectedFile.name}</span>
-                  )}
-                  <button onClick={removeFile} className="ml-1 text-gray-500 hover:text-red-500">
-                    ✕
-                  </button>
+                  {/* Messages */}
+                  <div 
+                    ref={messagesContainerRef}
+                    className="flex-1 overflow-y-auto p-4 space-y-4"
+                    onScroll={handleMessagesScroll}
+                  >
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.senderId === currentUser?.id ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                            message.senderId === currentUser?.id
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 text-gray-900'
+                          }`}
+                        >
+                          {message.attachmentType === 'image' && message.attachmentUrl && (
+                            <div className="mb-2">
+                              <img
+                                src={message.attachmentUrl}
+                                alt="Image"
+                                className="max-w-full h-auto rounded"
+                                style={{ maxHeight: '200px' }}
+                              />
+                            </div>
+                          )}
+                          {message.attachmentType === 'file' && message.attachmentUrl && (
+                            <div className="mb-2">
+                              <a
+                                href={message.attachmentUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-2 text-blue-600 hover:underline"
+                              >
+                                <Paperclip className="h-4 w-4" />
+                                <span>Fichier joint</span>
+                              </a>
+                            </div>
+                          )}
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                          <p className={`text-xs mt-1 ${
+                            message.senderId === currentUser?.id ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {new Date(message.createdAt).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  {/* Input pour nouveau message */}
+                  <div className="border-t border-gray-200 p-4">
+                    {selectedFile && (
+                      <div className="mb-2 p-2 bg-gray-100 rounded-lg flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <Paperclip className="h-4 w-4 text-gray-500" />
+                          <span className="text-sm text-gray-700">{selectedFile.name}</span>
+                        </div>
+                        <Button onClick={removeFile} variant="ghost" size="sm">
+                          ✕
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex space-x-2">
+                      <Input
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        placeholder="Tapez votre message..."
+                        onKeyPress={handleKeyPress}
+                        className="flex-1"
+                      />
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept="image/*,.pdf,.doc,.docx,.txt"
+                      />
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        variant="outline"
+                        size="icon"
+                        disabled={fileUploading}
+                      >
+                        <Paperclip className="h-4 w-4" />
+                      </Button>
+                      <Button onClick={sendMessage} disabled={isSending || (!newMessage.trim() && !selectedFile)}>
+                        {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-center">
+                    <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Sélectionnez une conversation
+                    </h3>
+                    <p className="text-gray-500">
+                      Choisissez une conversation dans la liste pour commencer à discuter
+                    </p>
+                  </div>
                 </div>
               )}
-
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Tapez votre message..."
-                className="flex-1"
-                disabled={fileUploading}
-              />
-              <Button
-                onClick={sendMessage}
-                disabled={isSending || (!newMessage.trim() && !selectedFile) || fileUploading}
-                size="sm"
-              >
-                {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

@@ -133,6 +133,7 @@ export const CATEGORY_TRANSLATIONS: Record<string, string> = {
   // Prestataires - Promotion et marketing
   'radio_curator': 'Programmateur radio/playlist',
   'community_manager': 'Community manager',
+  'media': 'Médias',
   
   // Prestataires - Visuel
   'clipmaker': 'Clipmaker',

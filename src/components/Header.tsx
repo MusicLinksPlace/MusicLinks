@@ -47,7 +47,7 @@ const providerMegaMenu = [
   },
   {
     title: "Promotion et marketing",
-    sub: ["Programmateurs de radio/playlist", "Community manager"],
+    sub: ["Programmateurs de radio/playlist", "Community manager", "Médias"],
   },
   {
     title: "Visuel",
