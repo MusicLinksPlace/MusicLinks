@@ -43,6 +43,7 @@ const PROVIDER_DOMAINS = [
     specialties: [
       { id: 'radio_curator', label: 'Programmateurs de radio/playlist' },
       { id: 'community_manager', label: 'Community manager' },
+      { id: 'media', label: 'Médias' },
     ],
   },
   {
@@ -76,6 +77,7 @@ const PROVIDER_SPECIALTIES = [
   { id: 'graphic_designer', label: 'Graphiste' },
   { id: 'radio_curator', label: 'Programmateur radio/playlist' },
   { id: 'community_manager', label: 'Community manager' },
+  { id: 'media', label: 'Médias' },
   { id: 'distributor', label: 'Distributeur' },
   { id: 'music_lawyer', label: 'Avocat spécialisé' },
   { id: 'vocal_coach', label: 'Coach vocal' },

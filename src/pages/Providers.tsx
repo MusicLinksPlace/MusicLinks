@@ -42,6 +42,7 @@ export const providerGroupsConfig = [
     sections: [
       { title: 'Programmateurs de radio/playlist', subCategories: ['radio_curator'] },
       { title: 'Community manager', subCategories: ['community_manager'] },
+      { title: 'Médias', subCategories: ['media'] },
     ],
   },
   {
@@ -205,6 +206,7 @@ const SUBCATEGORY_LABELS: Record<string, string> = {
   engineer: 'Ingénieurs du son',
   radio_curator: 'Programmateurs de radio/playlist',
   community_manager: 'Community manager',
+  media: 'Médias',
   clipmaker: 'Clipmaker',
   video_editor: 'Monteurs',
   photographer: 'Photographes',

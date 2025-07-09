@@ -48,6 +48,7 @@ const PROVIDER_SUB_CATEGORIES = {
   'Promotion & marketing': [
     { id: 'radio_curator', label: 'Programmateur radio / playlist' },
     { id: 'community_manager', label: 'Community manager' },
+    { id: 'media', label: 'Médias' },
   ],
   'Visuel': [
     { id: 'clipmaker', label: 'Clipmaker' },
