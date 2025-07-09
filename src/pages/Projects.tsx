@@ -400,7 +400,7 @@ const Projects = () => {
       <main>
         {/* Hero Section */}
         <section 
-          className="relative bg-center bg-cover flex-1 min-h-screen flex items-center justify-center"
+          className="relative bg-center bg-cover flex-1 min-h-[50vh] flex items-center justify-center"
           style={{ backgroundImage: "url('/background/disque5.png')" }}
         >
           <div className="absolute inset-0 bg-black/50"></div>
@@ -412,7 +412,7 @@ const Projects = () => {
             <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-pink-500 rounded-full blur-3xl"></div>
           </div>
           
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16 md:py-24">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-8 md:py-12">
             <div className="mb-8 animate-fade-in">
               <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight">
                 PROJETS
