@@ -15,6 +15,7 @@ import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 const megaMenu = [
   {
@@ -63,7 +64,7 @@ const providerMegaMenu = [
   },
   {
     title: "Formation",
-    sub: ["Coach vocal", "Ateliers et cours de musique"],
+    sub: ["Coach vocal", "Ateliers et cours de musique", "Chorégraphes"],
   },
 ];
 
@@ -80,24 +81,26 @@ const partnerCategories = [
 ];
 
 const subCategoryIcons: Record<string, React.ReactNode> = {
-  'Studios': <Camera className="w-5 h-5 text-blue-500" />,
-  'Beatmakers': <Mic className="w-5 h-5 text-blue-500" />,
-  'Ingénieurs du son': <Headphones className="w-5 h-5 text-blue-500" />,
-  'Programmateurs de radio/playlist': <Megaphone className="w-5 h-5 text-blue-500" />,
-  'Community manager': <Users className="w-5 h-5 text-blue-500" />,
-  'Clipmakers': <Camera className="w-5 h-5 text-blue-500" />,
-  'Monteurs': <Camera className="w-5 h-5 text-blue-500" />,
-  'Photographes': <Camera className="w-5 h-5 text-blue-500" />,
-  'Graphistes': <Camera className="w-5 h-5 text-blue-500" />,
-  'Distributeurs de musique': <GraduationCap className="w-5 h-5 text-blue-500" />,
-  'Avocats spécialisés': <Gavel className="w-5 h-5 text-blue-500" />,
-  'Coach vocal': <Mic className="w-5 h-5 text-blue-500" />,
-  'Ateliers et cours de musique': <GraduationCap className="w-5 h-5 text-blue-500" />,
+  'Studios': '🎙️',
+  'Beatmakers': '🎵',
+  'Ingénieurs du son': '🎧',
+  'Programmateurs de radio/playlist': '📻',
+  'Community manager': '📱',
+  'Médias': '📺',
+  'Clipmakers': '🎬',
+  'Monteurs': '✂️',
+  'Photographes': '📸',
+  'Graphistes': '🎨',
+  'Distributeurs de musique': '📲',
+  'Avocats spécialisés': '⚖️',
+  'Coach vocal': '🎤',
+  'Ateliers et cours de musique': '🎓',
+  'Chorégraphes': '💃',
 };
 
 const navIcons = {
   artists: '🎤',
-  providers: '🎧',
+  providers: '⭐️',
   partners: '🤝',
 };
 
@@ -314,17 +317,17 @@ const Header = () => {
                           <div className="max-w-7xl mx-auto px-8">
                             <div className="grid grid-cols-3 gap-12">
                               {providerMegaMenu.map(cat => {
-                                let icon = null;
-                                if (cat.title === "Professionnels de l'enregistrement") icon = '/bnbicons/recorder.png';
-                                if (cat.title === "Promotion et marketing") icon = '/bnbicons/marketing.png';
-                                if (cat.title === "Visuel") icon = '/bnbicons/visuel.png';
-                                if (cat.title === "Distribution") icon = '/bnbicons/distributor.png';
-                                if (cat.title === "Formation") icon = '/bnbicons/formation.png';
-                                if (cat.title === "Droits") icon = '/bnbicons/law.png';
+                                let emoji = '';
+                                if (cat.title === "Professionnels de l'enregistrement") emoji = '🎙️';
+                                if (cat.title === "Promotion et marketing") emoji = '📈';
+                                if (cat.title === "Visuel") emoji = '🎨';
+                                if (cat.title === "Distribution") emoji = '📲';
+                                if (cat.title === "Formation") emoji = '🎓';
+                                if (cat.title === "Droits") emoji = '⚖️';
                                 return (
                                   <div key={cat.title} className="space-y-4">
                                     <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-3">
-                                      {icon && <img src={icon} alt={cat.title} className="w-12 h-12 object-contain" />}
+                                      {emoji && <span className="text-2xl">{emoji}</span>}
                                       {cat.title}
                                     </h3>
                                     <ul className="space-y-1">
@@ -383,7 +386,7 @@ const Header = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button onClick={handleChatClick} variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative flex items-center justify-center" style={{ height: '48px', width: '48px' }}>
-                    <img src="/bnbicons/message.png" alt="Messages" className="w-12 h-12 object-contain" style={{ display: 'block' }} />
+                    <span className="text-2xl">💬</span>
                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                   </Button>
                 </TooltipTrigger>
@@ -397,7 +400,10 @@ const Header = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-700">
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={currentUser.profilepicture} alt={currentUser.name} />
+                      <AvatarImage 
+                        src={getImageUrlWithCacheBust(currentUser.profilepicture)} 
+                        alt={currentUser.name} 
+                      />
                       <AvatarFallback>{currentUser.name?.[0]}</AvatarFallback>
                     </Avatar>
                     <span>{currentUser.name}</span>
@@ -517,7 +523,7 @@ const Header = () => {
                 <li>
                   <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100 relative">
                     <span className="relative">
-                      <img src="/bnbicons/message.png" alt="Messages" className="w-10 h-10 object-contain" style={{ display: 'block' }} />
+                      <span className="text-2xl">💬</span>
                       <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
                     </span>
                     Messages

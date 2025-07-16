@@ -27,6 +27,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { LocationFilter } from '@/components/ui/LocationFilter';
 import AccountTabs from '@/components/profile/AccountTabs';
 import ConversationList from '@/components/profile/ConversationList';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 interface UserProfileData {
   id: string;
@@ -110,62 +111,82 @@ const ArtistAccount = () => {
     e.preventDefault();
     if (!formData.id) return;
     setIsSaving(true);
-
     try {
       const formUpdates = { ...formData };
+      console.log('[UPLOAD] Starting upload process...');
+      console.log('[UPLOAD] Files to upload:', Object.keys(filesToUpload));
       
-      // 1. Handle File Uploads
+      // Upload files
       for (const key in filesToUpload) {
         const file = filesToUpload[key];
+        console.log(`[UPLOAD] Processing file: ${key}`, file);
+        
         const isGalleryUpload = key.startsWith('gallery');
+        // Utiliser le bucket 'avatars' pour tout (plus simple)
+        const bucket = 'avatars';
         
-        const bucket = isGalleryUpload ? 'gallery' : 'avatars';
+        // Sanitize filename to remove spaces and special characters
+        const sanitizedFileName = file.name
+          .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+          .replace(/_+/g, '_') // Replace multiple underscores with single
+          .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
         
-        // Construct the file path based on RLS policies
         const filePath = isGalleryUpload 
-          ? `gallery_0/${formData.id}/${file.name}` // Path for gallery: gallery_0/user_id/file_name
-          : `${formData.id}/${Date.now()}_${file.name}`; // Path for avatars: user_id/timestamp_file_name
-
-        console.log(`[Upload] Attempting to upload to bucket: "${bucket}", path: "${filePath}"`);
-
+          ? `gallery/${formData.id}/${Date.now()}_${sanitizedFileName}`
+          : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        
+        console.log(`[UPLOAD] Uploading to bucket: ${bucket}, path: ${filePath}`);
+        
         const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
             cacheControl: '3600',
-            upsert: true, // Allows overwriting if file name is the same
+            upsert: true,
         });
-
-        if (uploadError) throw new Error(`Erreur d'upload (${key}): ${uploadError.message}`);
-
+        
+        if (uploadError) {
+          console.error(`[UPLOAD] Upload error for ${key}:`, uploadError);
+          throw new Error(`Erreur d'upload (${key}): ${uploadError.message}`);
+        }
+        
+        console.log(`[UPLOAD] Upload successful for ${key}`);
+        
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
-
+        console.log(`[UPLOAD] Public URL for ${key}:`, publicUrl);
+        
         if (isGalleryUpload) {
           const index = parseInt(key.split('_')[1]);
           if (!formUpdates.galleryimages) formUpdates.galleryimages = [];
           formUpdates.galleryimages[index] = publicUrl;
+          console.log(`[UPLOAD] Updated galleryimages[${index}] with URL`);
         } else {
           formUpdates.profilepicture = publicUrl;
+          console.log('[UPLOAD] Updated profilepicture with URL');
         }
       }
-
-      // 2. Clean up data for submission
+      
+      console.log('[UPLOAD] All files uploaded, updating database...');
+      
+      // Clean up data for submission
       const { id, createdat, email, role, verified, disabled, ...updateData } = formUpdates;
-
-      // 3. Update the user profile in the DB
+      // Update the user profile in the DB
       const { data: updatedUser, error: updateError } = await supabase
         .from('User')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
-
-      if (updateError) throw updateError;
-
-      // 4. Update local state and notify
+        
+      if (updateError) {
+        console.error('[UPLOAD] Database update error:', updateError);
+        throw updateError;
+      }
+      
+      console.log('[UPLOAD] Database updated successfully');
+      
       setFormData(updatedUser);
       localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
       window.dispatchEvent(new Event('auth-change'));
-      setFilesToUpload({}); // Clear upload queue
+      setFilesToUpload({});
       toast({ title: "Profil mis à jour !", description: "Vos modifications ont été enregistrées." });
-
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({ title: "Erreur", description: error.message, variant: "destructive" });
@@ -317,7 +338,7 @@ const ArtistAccount = () => {
                   <div className="space-y-2">
                     <Label>Photo de profil</Label>
                     <div className="flex items-center gap-4">
-                      <img src={formData.profilepicture || '/placeholder.svg'} alt="Avatar" className="w-20 h-20 rounded-full object-cover bg-gray-200"/>
+                      <img src={getImageUrlWithCacheBust(formData.profilepicture)} alt="Avatar" className="w-20 h-20 rounded-full object-cover bg-gray-200"/>
                       <Input id="profilepicture_file" name="profilepicture_file" type="file" onChange={handleFileChange} className="max-w-xs"/>
                     </div>
                   </div>
@@ -327,7 +348,7 @@ const ArtistAccount = () => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[0, 1, 2, 3].map(index => (
                         <div key={index} className="space-y-2">
-                          <img src={formData.galleryimages?.[index] || '/placeholder.svg'} alt={`Gallery image ${index + 1}`} className="w-full h-24 rounded-md object-cover bg-gray-200"/>
+                          <img src={getImageUrlWithCacheBust(formData.galleryimages?.[index])} alt={`Gallery image ${index + 1}`} className="w-full h-24 rounded-md object-cover bg-gray-200"/>
                           <Input id={`gallery_file_${index}`} name={`gallery_file_${index}`} type="file" onChange={(e) => handleFileChange(e, index)} className="text-sm"/>
                         </div>
                       ))}

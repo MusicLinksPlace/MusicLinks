@@ -79,6 +79,7 @@ export const providerGroupsConfig = [
     sections: [
       { title: 'Coach vocal', subCategories: ['vocal_coach'] },
       { title: 'Ateliers et cours de musique', subCategories: ['music_workshop'] },
+      { title: 'Chorégraphes', subCategories: ['danseur'] },
     ],
   },
 ];
@@ -215,6 +216,7 @@ const SUBCATEGORY_LABELS: Record<string, string> = {
   music_lawyer: 'Avocats spécialisés',
   vocal_coach: 'Coach vocal',
   music_workshop: 'Ateliers et cours de musique',
+  danseur: 'Chorégraphes',
 };
 
 const ProvidersPage = () => {
@@ -392,17 +394,17 @@ const ProvidersPage = () => {
           <div className="mb-6">
             <div className="space-y-6">
               {providerGroupsConfig.map((group, idx) => {
-                let icon = null;
-                if (group.title === "Professionnels de l'enregistrement") icon = '/bnbicons/recorder.png';
-                if (group.title === "Promotion et marketing") icon = '/bnbicons/marketing.png';
-                if (group.title === "Visuel") icon = '/bnbicons/visuel.png';
-                if (group.title === "Distribution") icon = '/bnbicons/distributor.png';
-                if (group.title === "Formation") icon = '/bnbicons/formation.png';
-                if (group.title === "Droits") icon = '/bnbicons/law.png';
+                let emoji = '';
+                if (group.title === "Professionnels de l'enregistrement") emoji = '🎙️';
+                if (group.title === "Promotion et marketing") emoji = '📈';
+                if (group.title === "Visuel") emoji = '🎨';
+                if (group.title === "Distribution") emoji = '📲';
+                if (group.title === "Formation") emoji = '🎓';
+                if (group.title === "Droits") emoji = '⚖️';
                 return (
                   <div key={group.title} className="mb-6">
-                    <div className="pt-8 text-base font-bold text-neutral-900 mb-2 flex items-center gap-1 pl-0 whitespace-nowrap">
-                      {icon && <img src={icon} alt={group.title} className="w-10 h-10 object-contain mr-1" />}
+                    <div className="pt-8 text-base font-bold text-neutral-900 mb-2 flex items-center gap-2 pl-0 whitespace-nowrap">
+                      {emoji && <span className="text-2xl">{emoji}</span>}
                       {group.title}
                     </div>
                     <ul className="space-y-4 pl-2">

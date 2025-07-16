@@ -36,9 +36,6 @@ export default function About() {
                     alt="Mauly Dieng" 
                     className="w-24 h-24 rounded-full mx-auto object-cover ring-4 ring-white/30"
                   />
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                    <Users className="w-4 h-4 text-white" />
-                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Mauly Dieng</h3>
                 <p className="text-green-200 font-medium text-lg">Directeur Commercial</p>
@@ -53,9 +50,6 @@ export default function About() {
                     alt="Nicolas Bohbot" 
                     className="w-24 h-24 rounded-full mx-auto object-cover ring-4 ring-white/30"
                   />
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Nicolas Bohbot</h3>
                 <p className="text-blue-200 font-medium text-lg">Fondateur</p>
@@ -70,9 +64,6 @@ export default function About() {
                     alt="Raphaël Levy" 
                     className="w-24 h-24 rounded-full mx-auto object-cover ring-4 ring-white/30"
                   />
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                    <Target className="w-4 h-4 text-white" />
-                  </div>
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">Raphaël Levy</h3>
                 <p className="text-purple-200 font-medium text-lg">CPO</p>

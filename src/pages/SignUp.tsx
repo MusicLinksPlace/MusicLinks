@@ -63,6 +63,7 @@ const PROVIDER_SUB_CATEGORIES = {
   'Formation': [
     { id: 'vocal_coach', label: 'Coach vocal' },
     { id: 'music_workshop', label: 'Ateliers de musique' },
+    { id: 'danseur', label: 'Chorégraphe' },
   ],
 };
 

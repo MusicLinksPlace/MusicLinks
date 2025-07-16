@@ -4,6 +4,7 @@ import { Star, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { MUSIC_STYLES } from '@/lib/constants';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -29,7 +30,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
 
   const imageUrl = isPlaceholder
     ? '/lovable-uploads/logo2.png'
-    : user.profilepicture;
+    : getImageUrlWithCacheBust(user.profilepicture);
 
   return (
     <Link to={`/profile/${user.id}`} className="block w-64 md:w-72 flex-shrink-0 snap-start group">

@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 const MUSIC_STYLES_MAP = {
     french_chanson: 'Variété / Chanson française',
@@ -35,8 +36,8 @@ const UserProfileHeader = ({ user }) => {
     const subCategoryLabel = user.subCategory?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     
     const imageUrls = [
-        user.profilepicture,
-        ...(user.galleryimages || [])
+        getImageUrlWithCacheBust(user.profilepicture),
+        ...(user.galleryimages || []).map(url => getImageUrlWithCacheBust(url))
     ].filter(url => url);
 
     const musicStyleLabel = user.musicStyle 
@@ -93,7 +94,7 @@ const UserProfileHeader = ({ user }) => {
       {/* --- Content Area with curved top --- */}
       <div className="relative bg-white pt-14 px-6 pb-6 -mt-10 rounded-t-3xl">
         <div className="absolute -top-12 left-6">
-            <img src={user.profilepicture || '/lovable-uploads/logo2.png'} alt={user.name} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"/>
+            <img src={getImageUrlWithCacheBust(user.profilepicture, '/lovable-uploads/logo2.png')} alt={user.name} className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"/>
         </div>
 
         <div>

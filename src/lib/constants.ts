@@ -153,6 +153,7 @@ export const CATEGORY_TRANSLATIONS: Record<string, string> = {
   // Prestataires - Formation
   'vocal_coach': 'Coach vocal',
   'music_workshop': 'Ateliers de musique',
+  'danseur': 'Chorégraphe',
   
   // Partenaires
   'label': 'Label / Maison de disque',

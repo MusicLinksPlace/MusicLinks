@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import ArtistAccountSettings from "./ArtistAccount";
+import ArtistProfileSettings from "./ArtistProfileSettings";
 import ProviderProfileSettings from "./ProviderProfileSettings";
-import PartnerAccountSettings from "./PartnerAccount";
+import PartnerProfileSettings from "./PartnerProfileSettings";
 
 export default function AccountSettingsRouter() {
   const [profile, setProfile] = useState(null);
@@ -25,11 +25,11 @@ export default function AccountSettingsRouter() {
 
   switch (profile.role) {
     case "artist":
-      return <ArtistAccountSettings />;
+      return <ArtistProfileSettings />;
     case "provider":
       return <ProviderProfileSettings />;
     case "partner":
-      return <PartnerAccountSettings />;
+      return <PartnerProfileSettings />;
     default:
       return <div>Type de compte inconnu.</div>;
   }

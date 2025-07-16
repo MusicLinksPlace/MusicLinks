@@ -3,6 +3,7 @@ import { Star, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { translateCategory } from '@/lib/constants';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 interface User {
   id: string;
@@ -142,7 +143,7 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
                     <div className="flex justify-center mb-4">
                       <div className="relative">
                         <img
-                          src={user.profilepicture || '/lovable-uploads/logo2.png'}
+                          src={getImageUrlWithCacheBust(user.profilepicture, '/lovable-uploads/logo2.png')}
                           alt={user.name}
                           className="w-20 h-20 rounded-full object-cover border-4 border-white shadow group-hover:scale-105 transition-transform duration-300"
                         />
