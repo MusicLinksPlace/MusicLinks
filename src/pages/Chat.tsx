@@ -11,6 +11,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Textarea } from '@/components/ui/textarea';
 import { Star as StarIcon } from 'lucide-react';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 interface Conversation {
   id: string;
@@ -544,7 +545,7 @@ const Chat = () => {
                           <div className="flex items-center space-x-3">
                             <div className="relative">
                               <img
-                                src={conversation.otherUser.profilepicture || '/lovable-uploads/logo2.png'}
+                                src={getImageUrlWithCacheBust(conversation.otherUser.profilepicture, '/lovable-uploads/logo2.png')}
                                 alt={conversation.otherUser.name}
                                 className="w-12 h-12 rounded-full object-cover"
                               />
@@ -585,7 +586,7 @@ const Chat = () => {
                           </Button>
                         )}
                         <img
-                          src={otherUser?.profilepicture || '/lovable-uploads/logo2.png'}
+                          src={getImageUrlWithCacheBust(otherUser?.profilepicture, '/lovable-uploads/logo2.png')}
                           alt={otherUser?.name || 'Utilisateur'}
                           className="w-10 h-10 rounded-full object-cover"
                         />

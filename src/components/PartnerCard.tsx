@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 interface Partner {
   id: string;
@@ -22,7 +23,7 @@ const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
       {/* Image de fond */}
       {partner.profilepicture ? (
         <img
-          src={partner.profilepicture}
+          src={getImageUrlWithCacheBust(partner.profilepicture)}
           alt={partner.name}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
         />

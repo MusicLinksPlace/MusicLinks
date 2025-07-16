@@ -16,7 +16,6 @@ const Index = () => {
         <ServiceCategories />
         <TopUsersSection role="provider" title="Top prestataires du moment" />
         <HowItWorks />
-        <TopUsersSection role="partner" title="Top partenaires du moment" />
       </main>
       <Footer />
     </div>

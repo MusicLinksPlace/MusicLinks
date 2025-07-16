@@ -1,5 +1,4 @@
-// Copie du fichier ProviderProfileSettings.tsx pour les partenaires
-// Tu pourras ensuite personnaliser ce fichier pour les besoins partenaires
+// Page de paramètres de profil spécifique aux partenaires
 
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
-import { Loader2, Trash2, PlusCircle, Mail, Pencil } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle, Mail, Pencil, User, Music, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,69 +18,15 @@ import { LocationFilter } from '@/components/ui/LocationFilter';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MUSIC_STYLES } from '@/lib/constants';
+import AccountTabs from '@/components/profile/AccountTabs';
+import ConversationList from '@/components/profile/ConversationList';
+import ImageCropper from '@/components/ui/ImageCropper';
+import MobileTabs from '@/components/ui/MobileTabs';
+import { getImageUrlWithCacheBust } from '@/lib/utils';
 
-const PROVIDER_DOMAINS = [
-  {
-    domain: "Professionnels de l'enregistrement",
-    specialties: [
-      { id: 'studio', label: 'Studios' },
-      { id: 'beatmaker', label: 'Beatmakers' },
-      { id: 'engineer', label: 'Ingénieurs du son' },
-    ],
-  },
-  {
-    domain: 'Audiovisuel',
-    specialties: [
-      { id: 'clipmaker', label: 'Clipmaker' },
-      { id: 'video_editor', label: 'Monteurs' },
-      { id: 'photographer', label: 'Photographes' },
-      { id: 'graphic_designer', label: 'Graphistes' },
-    ],
-  },
-  {
-    domain: 'Promotion et marketing',
-    specialties: [
-      { id: 'radio_curator', label: 'Programmateurs de radio/playlist' },
-      { id: 'community_manager', label: 'Community manager' },
-      { id: 'media', label: 'Médias' },
-    ],
-  },
-  {
-    domain: 'Distribution',
-    specialties: [
-      { id: 'distributor', label: 'Distributeurs de musique' },
-    ],
-  },
-  {
-    domain: 'Droits',
-    specialties: [
-      { id: 'music_lawyer', label: 'Avocats spécialisés' },
-    ],
-  },
-  {
-    domain: 'Formation',
-    specialties: [
-      { id: 'vocal_coach', label: 'Coach vocal' },
-      { id: 'music_workshop', label: 'Ateliers et cours de musique' },
-    ],
-  },
-];
-
-const PROVIDER_SPECIALTIES = [
-  { id: 'studio', label: 'Studio' },
-  { id: 'beatmaker', label: 'Beatmaker' },
-  { id: 'engineer', label: 'Ingénieur du son' },
-  { id: 'clipmaker', label: 'Clipmaker' },
-  { id: 'video_editor', label: 'Monteur' },
-  { id: 'photographer', label: 'Photographe' },
-  { id: 'graphic_designer', label: 'Graphiste' },
-  { id: 'radio_curator', label: 'Programmateur radio/playlist' },
-  { id: 'community_manager', label: 'Community manager' },
-  { id: 'media', label: 'Médias' },
-  { id: 'distributor', label: 'Distributeur' },
-  { id: 'music_lawyer', label: 'Avocat spécialisé' },
-  { id: 'vocal_coach', label: 'Coach vocal' },
-  { id: 'music_workshop', label: 'Atelier/cours de musique' },
+const PARTNER_SUBCATEGORIES = [
+  { id: 'label', label: 'Label / Maison de disque' },
+  { id: 'manager', label: 'Manager / Directeur artistique' },
 ];
 
 const PartnerProfileSettings = () => {
@@ -93,10 +38,23 @@ const PartnerProfileSettings = () => {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [filesToUpload, setFilesToUpload] = useState<{ [key: string]: File }>({});
-  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
+
+  // Configuration des tabs pour mobile
+  const tabs = [
+    { id: 'profil', label: 'Profil', icon: <User className="w-4 h-4" /> },
+    { id: 'activite', label: 'Activité', icon: <Music className="w-4 h-4" /> },
+    { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+  ];
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isDeletingVideo, setIsDeletingVideo] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropperConfig, setCropperConfig] = useState<{
+    file: File;
+    type: 'profile' | 'gallery';
+    index?: number;
+  } | null>(null);
 
   // Ajout pour upload photo de profil depuis le header
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -127,10 +85,10 @@ const PartnerProfileSettings = () => {
           .single();
         if (error) throw error;
         setFormData(userData);
-        // Préselectionner le domaine si subCategory déjà choisi
-        if (userData.subcategory) {
-          const found = PROVIDER_DOMAINS.find(d => d.specialties.some(s => s.id === userData.subcategory));
-          if (found) setSelectedDomain(found.domain);
+        // Préselectionner la sous-catégorie si déjà choisi
+        if (userData.subCategory) {
+          const found = PARTNER_SUBCATEGORIES.find(s => s.id === userData.subCategory);
+          if (found) setSelectedSubCategory(userData.subCategory);
         }
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -156,21 +114,56 @@ const PartnerProfileSettings = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const key = galleryIndex !== undefined ? `gallery_${galleryIndex}` : 'profile';
-    setFilesToUpload(prev => ({ ...prev, [key]: file }));
+    
+    // Ouvrir le cropper
+    setCropperConfig({
+      file,
+      type: galleryIndex !== undefined ? 'gallery' : 'profile',
+      index: galleryIndex
+    });
+    setShowCropper(true);
+    
+    // Reset l'input
+    e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    if (!cropperConfig) return;
+    
+    // Créer un nouveau fichier avec le blob recadré
+    const croppedFile = new File([croppedBlob], cropperConfig.file.name, {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+    
+    const key = cropperConfig.type === 'gallery' && cropperConfig.index !== undefined 
+      ? `gallery_${cropperConfig.index}` 
+      : 'profile';
+    
+    setFilesToUpload(prev => ({ ...prev, [key]: croppedFile }));
+    
     // Preview
     const reader = new FileReader();
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string;
-      if (galleryIndex !== undefined) {
+      if (cropperConfig.type === 'gallery' && cropperConfig.index !== undefined) {
         const newGallery = [...(formData.galleryimages || [])];
-        newGallery[galleryIndex] = imageUrl;
+        newGallery[cropperConfig.index] = imageUrl;
         setFormData((prev: any) => ({ ...prev, galleryimages: newGallery }));
       } else {
         setFormData((prev: any) => ({ ...prev, profilepicture: imageUrl }));
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedFile);
+    
+    // Fermer le cropper
+    setShowCropper(false);
+    setCropperConfig(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperConfig(null);
   };
 
   const handleSocialLinkChange = (index: number, value: string) => {
@@ -189,9 +182,9 @@ const PartnerProfileSettings = () => {
     setFormData((prev: any) => ({ ...prev, social_links: newLinks }));
   };
 
-  const handleSpecialtySelect = (domain: string, subId: string) => {
-    setSelectedDomain(domain);
-    setFormData((prev: any) => ({ ...prev, subcategory: subId }));
+  const handleSubCategorySelect = (subId: string) => {
+    setFormData((prev: any) => ({ ...prev, subCategory: subId }));
+    setSelectedSubCategory(subId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -200,28 +193,58 @@ const PartnerProfileSettings = () => {
     setIsSaving(true);
     try {
       const formUpdates = { ...formData };
+      console.log('[UPLOAD] Starting upload process...');
+      console.log('[UPLOAD] Files to upload:', Object.keys(filesToUpload));
+      
       // Upload files
       for (const key in filesToUpload) {
         const file = filesToUpload[key];
+        console.log(`[UPLOAD] Processing file: ${key}`, file);
+        
         const isGalleryUpload = key.startsWith('gallery');
-        const bucket = isGalleryUpload ? 'gallery' : 'avatars';
+        // Utiliser le bucket 'avatars' pour tout (plus simple)
+        const bucket = 'avatars';
+        
+        // Sanitize filename to remove spaces and special characters
+        const sanitizedFileName = file.name
+          .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+          .replace(/_+/g, '_') // Replace multiple underscores with single
+          .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+        
         const filePath = isGalleryUpload 
-          ? `gallery_0/${formData.id}/${file.name}`
-          : `${formData.id}/${Date.now()}_${file.name}`;
+          ? `gallery/${formData.id}/${Date.now()}_${sanitizedFileName}`
+          : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        
+        console.log(`[UPLOAD] Uploading to bucket: ${bucket}, path: ${filePath}`);
+        
         const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
             cacheControl: '3600',
             upsert: true,
         });
-        if (uploadError) throw new Error(`Erreur d'upload (${key}): ${uploadError.message}`);
+        
+        if (uploadError) {
+          console.error(`[UPLOAD] Upload error for ${key}:`, uploadError);
+          throw new Error(`Erreur d'upload (${key}): ${uploadError.message}`);
+        }
+        
+        console.log(`[UPLOAD] Upload successful for ${key}`);
+        
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+        console.log(`[UPLOAD] Public URL for ${key}:`, publicUrl);
+        
         if (isGalleryUpload) {
           const index = parseInt(key.split('_')[1]);
           if (!formUpdates.galleryimages) formUpdates.galleryimages = [];
           formUpdates.galleryimages[index] = publicUrl;
+          console.log(`[UPLOAD] Updated galleryimages[${index}] with URL`);
         } else {
           formUpdates.profilepicture = publicUrl;
+          console.log('[UPLOAD] Updated profilepicture with URL');
         }
       }
+      
+      console.log('[UPLOAD] All files uploaded, updating database...');
+      
       // Clean up data for submission
       const { id, createdat, email, role, verified, disabled, ...updateData } = formUpdates;
       // Update the user profile in the DB
@@ -231,7 +254,14 @@ const PartnerProfileSettings = () => {
         .eq('id', id)
         .select()
         .single();
-      if (updateError) throw updateError;
+        
+      if (updateError) {
+        console.error('[UPLOAD] Database update error:', updateError);
+        throw updateError;
+      }
+      
+      console.log('[UPLOAD] Database updated successfully');
+      
       setFormData(updatedUser);
       localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
       window.dispatchEvent(new Event('auth-change'));
@@ -346,7 +376,7 @@ const PartnerProfileSettings = () => {
         {/* Partie haute sur fond gris */}
         <div className="flex flex-col items-center pt-10 pb-6 md:pt-16 md:pb-8 relative">
           <div className="relative group">
-            <img src={formData.profilepicture || '/placeholder.svg'} alt="Avatar" className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-blue-100 shadow" />
+            <img src={getImageUrlWithCacheBust(formData.profilepicture)} alt="Avatar" className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-blue-100 shadow" />
             <button type="button" onClick={handleProfilePicClick} className="absolute bottom-2 right-2 bg-white rounded-full p-1 shadow group-hover:scale-110 transition-transform border border-gray-200">
               <Pencil className="w-5 h-5 text-blue-600" />
             </button>
@@ -361,11 +391,17 @@ const PartnerProfileSettings = () => {
         </div>
         {/* Toggle onglets */}
         <div className="flex justify-center mt-2 mb-4 md:mt-4 md:mb-8">
-          <ToggleGroup type="single" value={activeTab} onValueChange={v => v && setActiveTab(v as any)} className="bg-white rounded-full shadow p-1 md:p-2">
-            <ToggleGroupItem value="profil" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Profil</ToggleGroupItem>
-            <ToggleGroupItem value="activite" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Activité</ToggleGroupItem>
-            <ToggleGroupItem value="messages" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Messages</ToggleGroupItem>
-          </ToggleGroup>
+          {/* Version mobile */}
+          <MobileTabs activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
+          
+          {/* Version desktop */}
+          <div className="hidden md:block">
+            <ToggleGroup type="single" value={activeTab} onValueChange={v => v && setActiveTab(v as any)} className="bg-white rounded-full shadow p-1 md:p-2">
+              <ToggleGroupItem value="profil" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Profil</ToggleGroupItem>
+              <ToggleGroupItem value="activite" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Activité</ToggleGroupItem>
+              <ToggleGroupItem value="messages" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Messages</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </div>
         {/* Contenu des onglets */}
         <div className="container mx-auto px-2 md:px-0 max-w-2xl md:max-w-3xl lg:max-w-4xl mt-2">
@@ -442,13 +478,13 @@ const PartnerProfileSettings = () => {
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl flex flex-col p-6 md:p-10 gap-8 md:gap-10 mt-2">
               {/* Prestation (dropdown) */}
               <div>
-                <Label htmlFor="subCategory" className="md:text-lg">Prestation</Label>
-                <Select value={formData.subcategory || ''} onValueChange={val => setFormData((prev: any) => ({ ...prev, subcategory: val }))}>
+                                  <Label htmlFor="subCategory" className="md:text-lg">Type d'organisation</Label>
+                <Select value={selectedSubCategory || ''} onValueChange={handleSubCategorySelect}>
                   <SelectTrigger id="subCategory" className="md:h-12 md:text-lg">
-                    <SelectValue placeholder="Choisissez votre prestation" />
+                    <SelectValue placeholder="Choisissez votre type d'organisation" />
                   </SelectTrigger>
                   <SelectContent>
-                    {PROVIDER_SPECIALTIES.map(opt => (
+                    {PARTNER_SUBCATEGORIES.map(opt => (
                       <SelectItem key={opt.id} value={opt.id} className="md:text-lg">{opt.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -519,12 +555,29 @@ const PartnerProfileSettings = () => {
             </form>
           )}
           {activeTab === 'messages' && (
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-16 text-center text-gray-400 font-medium mt-2 md:text-lg">
-              Aucun message pour le moment.
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mt-2">
+              <div className="mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Mes Conversations</h2>
+                <p className="text-gray-600">Historique de toutes vos conversations</p>
+              </div>
+              <ConversationList />
             </div>
           )}
         </div>
       </div>
+      
+      {/* Image Cropper Modal */}
+      {showCropper && cropperConfig && (
+        <ImageCropper
+          imageFile={cropperConfig.file}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          title={cropperConfig.type === 'profile' 
+            ? 'Recadrer votre photo de profil' 
+            : `Recadrer l'image ${cropperConfig.index !== undefined ? cropperConfig.index + 1 : ''} de la galerie`
+          }
+        />
+      )}
     </>
   );
 };
