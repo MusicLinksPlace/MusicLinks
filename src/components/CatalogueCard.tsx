@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
 import { MUSIC_STYLES } from '@/lib/constants';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
+import OptimizedImage from '@/components/ui/OptimizedImage';
 
 interface User {
   id: string;
@@ -50,10 +51,11 @@ const CatalogueCard: React.FC<CatalogueCardProps> = ({ user }) => {
   return (
     <div className="bg-white rounded-3xl shadow-md overflow-hidden w-48 sm:w-56 flex-shrink-0 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       <Link to={`/profile/${user.id}`} className="block h-48 sm:h-52 p-4">
-        <img 
-          src={getImageUrlWithCacheBust(user.profilepicture)} 
-          alt={user.name} 
-          className="w-full h-full object-cover rounded-2xl" 
+        <OptimizedImage
+          src={getImageUrlWithCacheBust(user.profilepicture)}
+          alt={user.name}
+          className="w-full h-full object-cover rounded-2xl"
+          fallback="/placeholder.svg"
         />
       </Link>
       <div className="p-3">

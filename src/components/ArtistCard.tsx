@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Star, Play } from 'lucide-react';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
+import OptimizedImage from '@/components/ui/OptimizedImage';
 
 interface User {
   id: string;
@@ -47,11 +48,12 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
   return (
     <div className="relative flex flex-col w-[260px] sm:w-[270px] md:w-[300px] flex-shrink-0">
       {/* Image 16/9 */}
-      <div className="relative aspect-video overflow-hidden rounded-t-xl">
-        <img 
-          src={user.coverImage || user.profilepicture || '/placeholder.svg'} 
-          alt={user.name} 
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+      <div className="relative aspect-video overflow-hidden rounded-t-xl group">
+        <OptimizedImage
+          src={user.coverImage || user.profilepicture || '/placeholder.svg'}
+          alt={user.name}
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          fallback="/placeholder.svg"
         />
         {user.isVideo && (
           <div className="absolute inset-0 flex items-center justify-center">

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
+import OptimizedImage from '@/components/ui/OptimizedImage';
 
 interface Partner {
   id: string;
@@ -22,10 +23,11 @@ const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
     >
       {/* Image de fond */}
       {partner.profilepicture ? (
-        <img
+        <OptimizedImage
           src={getImageUrlWithCacheBust(partner.profilepicture)}
           alt={partner.name}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          fallback="/placeholder.svg"
         />
       ) : (
         <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-200 to-indigo-200">
