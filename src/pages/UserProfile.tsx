@@ -26,6 +26,9 @@ import { Badge } from '@/components/ui/badge';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
 import ContactButton from '@/components/ContactButton';
+import ModernLoader, { ModernSkeleton } from '@/components/ui/ModernLoader';
+import OptimizedImage from '@/components/ui/OptimizedImage';
+import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
 
 // Composant de galerie moderne pour desktop/mobile
 const ModernGallery = ({ video, images }: { video?: string, images?: string[] }) => {
@@ -58,10 +61,11 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
                 Votre navigateur ne supporte pas la vidéo.
               </video>
             ) : (
-              <img 
-                src={slides[current].url} 
-                alt="media" 
+              <OptimizedImage
+                src={slides[current].url}
+                alt="media"
                 className="w-full h-full object-cover"
+                fallback="/placeholder.svg"
               />
             )}
             
@@ -102,7 +106,12 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
                     <Play className="w-5 h-5 text-gray-600" />
                   </div>
                 ) : (
-                  <img src={slide.url} alt="miniature" className="w-full h-full object-cover" />
+                  <OptimizedImage
+                    src={slide.url}
+                    alt="miniature"
+                    className="w-full h-full object-cover"
+                    fallback="/placeholder.svg"
+                  />
                 )}
               </button>
             ))}
@@ -112,7 +121,12 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
         {/* Image du bas qui span toute la largeur */}
         {slides.length > 4 && (
           <div className="mt-4 aspect-[3/1] bg-gray-900 rounded-2xl overflow-hidden relative">
-            <img src={slides[4].url} alt="media" className="w-full h-full object-cover" />
+            <OptimizedImage
+              src={slides[4].url}
+              alt="media"
+              className="w-full h-full object-cover"
+              fallback="/placeholder.svg"
+            />
             {/* Boutons de navigation */}
             <div className="absolute bottom-4 right-4 flex gap-2">
               <button className="bg-white/90 text-gray-800 px-4 py-2 rounded-full text-sm font-medium">
@@ -142,10 +156,11 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
             Votre navigateur ne supporte pas la vidéo.
           </video>
         ) : (
-          <img 
-            src={slides[current].url} 
-            alt="media" 
+          <OptimizedImage
+            src={slides[current].url}
+            alt="media"
             className="w-full h-full object-cover"
+            fallback="/placeholder.svg"
           />
         )}
         
@@ -627,8 +642,22 @@ const UserProfile = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <div className="flex justify-center items-center h-96">
-          <div className="text-lg">Chargement du profil...</div>
+        <div className="flex flex-col items-center justify-center py-20">
+          <ModernLoader size="lg" text="Chargement du profil..." />
+          <div className="mt-8 max-w-4xl mx-auto px-4 w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Gallery skeleton */}
+              <div className="lg:col-span-2">
+                <ModernSkeleton lines={1} height="h-96" className="rounded-2xl" />
+              </div>
+              {/* Profile info skeleton */}
+              <div className="space-y-6">
+                <ModernSkeleton lines={3} height="h-4" />
+                <ModernSkeleton lines={1} height="h-32" className="rounded-xl" />
+                <ModernSkeleton lines={2} height="h-4" />
+              </div>
+            </div>
+          </div>
         </div>
         <Footer />
       </div>
@@ -656,11 +685,12 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <Header />
-      
-      {/* Version Mobile */}
-      <div className="md:hidden">
+    <PageTransition>
+      <div className="bg-gray-50 min-h-screen">
+        <Header />
+        
+        {/* Version Mobile */}
+        <div className="md:hidden">
         {/* Galerie mobile en haut */}
         <MobileGallery video={user.galleryVideo} images={user.galleryimages} />
         
@@ -849,6 +879,7 @@ const UserProfile = () => {
       
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

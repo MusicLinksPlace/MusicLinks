@@ -12,6 +12,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { useLocation } from 'react-router-dom';
 import PartnerCard from '@/components/PartnerCard';
+import ModernLoader, { ModernSkeleton } from '@/components/ui/ModernLoader';
+import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
 
 interface User {
   id: string;
@@ -166,49 +168,72 @@ const PartnersPage = () => {
   const managers = filteredPartners.filter(p => ['manager', 'directeur artistique'].includes(p.subCategory || ''));
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque4.png')" }}>
-          <div className="absolute inset-0 bg-black/40"></div>
-          <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
-            <div className="text-center">
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
-                Nos <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Partenaires Stratégiques</span>
-              </h1>
-              <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-200">
-                Les piliers de l'industrie qui nous font confiance.
-              </p>
+    <PageTransition>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        <main className="flex-1">
+          <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque4.png')" }}>
+            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
+              <StaggeredAnimation delay={200}>
+                <div className="text-center">
+                  <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+                    Nos <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Partenaires Stratégiques</span>
+                  </h1>
+                  <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-200">
+                    Les piliers de l'industrie qui nous font confiance.
+                  </p>
+                </div>
+              </StaggeredAnimation>
+              <StaggeredAnimation delay={400}>
+                <FilterBar
+                  onFilterChange={setFilters}
+                  onReset={handleResetFilters}
+                  filters={filters}
+                />
+              </StaggeredAnimation>
             </div>
-            <FilterBar
-              onFilterChange={setFilters}
-              onReset={handleResetFilters}
-              filters={filters}
-            />
           </div>
-        </div>
 
         <div className="w-full py-12 md:py-16">
           {loading ? (
-            <div className="text-center text-gray-500 text-lg">Chargement des partenaires...</div>
+            <div className="flex flex-col items-center justify-center py-20">
+              <ModernLoader size="lg" text="Chargement des partenaires..." />
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl shadow-sm p-6 animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+                    <ModernSkeleton lines={3} height="h-4" className="mb-4" />
+                    <ModernSkeleton lines={1} height="h-32" className="rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : (
             <div className="space-y-16">
               {filters.selectedSubCategory === 'all' ? (
                 <>
                   {labels.length > 0 && (
-                    <HorizontalCarousel title="Maisons de disque & labels" users={labels} userRole="partner" />
+                    <StaggeredAnimation delay={600}>
+                      <HorizontalCarousel title="Maisons de disque & labels" users={labels} userRole="partner" />
+                    </StaggeredAnimation>
                   )}
                   {managers.length > 0 && (
-                    <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} userRole="partner" />
+                    <StaggeredAnimation delay={800}>
+                      <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} userRole="partner" />
+                    </StaggeredAnimation>
                   )}
                 </>
               ) : filters.selectedSubCategory === 'label' ? (
                 labels.length > 0 && (
-                  <HorizontalCarousel title="Maisons de disque & labels" users={labels} userRole="partner" />
+                  <StaggeredAnimation delay={600}>
+                    <HorizontalCarousel title="Maisons de disque & labels" users={labels} userRole="partner" />
+                  </StaggeredAnimation>
                 )
               ) : filters.selectedSubCategory === 'manager' ? (
                 managers.length > 0 && (
-                  <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} userRole="partner" />
+                  <StaggeredAnimation delay={600}>
+                    <HorizontalCarousel title="Managers & directeurs artistiques" users={managers} userRole="partner" />
+                  </StaggeredAnimation>
                 )
               ) : null}
               
@@ -225,6 +250,7 @@ const PartnersPage = () => {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 

@@ -12,6 +12,9 @@ import { LocationFilter } from '@/components/ui/LocationFilter';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
+import ModernLoader, { ModernSkeleton } from '@/components/ui/ModernLoader';
+import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
+import OptimizedImage from '@/components/ui/OptimizedImage';
 
 interface User {
   id: string;
@@ -323,22 +326,25 @@ const ProvidersPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
-      {/* Header image section */}
-      <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque3.png')" }}>
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
-              Trouvez les meilleurs <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Prestataires</span>
-            </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-200">
-              Des professionnels qualifiés pour donner vie à vos projets musicaux.
-            </p>
+    <PageTransition>
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header />
+        {/* Header image section */}
+        <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque3.png')" }}>
+          <div className="absolute inset-0 bg-black/40"></div>
+          <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
+            <StaggeredAnimation delay={200}>
+              <div className="text-center mb-12">
+                <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+                  Trouvez les meilleurs <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Prestataires</span>
+                </h1>
+                <p className="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-200">
+                  Des professionnels qualifiés pour donner vie à vos projets musicaux.
+                </p>
+              </div>
+            </StaggeredAnimation>
           </div>
         </div>
-      </div>
       <main className="flex-1 max-w-7xl mx-auto w-full flex gap-8 px-4 py-12 md:py-16">
         {/* Filtres à gauche, masqués sur mobile */}
         <aside className="w-full max-w-xs pr-4 self-start hidden md:block">
@@ -505,7 +511,17 @@ const ProvidersPage = () => {
             </div>
           )}
           {loading ? (
-            <div className="text-center text-gray-500 text-lg">Chargement des prestataires...</div>
+            <div className="flex flex-col items-center justify-center py-20">
+              <ModernLoader size="lg" text="Chargement des prestataires..." />
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto px-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="bg-white rounded-2xl shadow-sm p-6 animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+                    <ModernSkeleton lines={3} height="h-4" className="mb-4" />
+                    <ModernSkeleton lines={1} height="h-32" className="rounded-xl" />
+                  </div>
+                ))}
+              </div>
+            </div>
           ) : filteredProviders.length > 0 ? (
             <>
               {/* Version mobile : card image en haut, détails dessous */}
@@ -513,7 +529,12 @@ const ProvidersPage = () => {
                 {filteredProviders.map(user => (
                   <div key={user.id} className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col">
                     <div className="w-full aspect-[4/3] bg-neutral-100 flex items-center justify-center overflow-hidden">
-                      <img src={user.profilepicture || '/placeholder.svg'} alt={user.name} className="object-cover w-full h-full" />
+                      <OptimizedImage
+                        src={user.profilepicture || '/placeholder.svg'}
+                        alt={user.name}
+                        className="object-cover w-full h-full"
+                        fallback="/placeholder.svg"
+                      />
                     </div>
                     <div className="flex flex-col gap-1 px-5 pt-4 pb-5">
                       <div className="text-xl font-extrabold text-neutral-900 mb-1 leading-tight">{user.name}</div>
@@ -537,7 +558,12 @@ const ProvidersPage = () => {
                   <div key={user.id} className="flex flex-row items-center bg-transparent py-5 px-0 w-full gap-0 md:gap-4 md:min-h-[180px]">
                     {/* Image */}
                     <div className="flex-shrink-0 w-[100px] h-[100px] md:w-[220px] md:h-[160px] overflow-hidden rounded-l-2xl bg-neutral-100 flex items-center justify-center">
-                      <img src={user.profilepicture || '/placeholder.svg'} alt={user.name} className="object-cover w-full h-full" />
+                      <OptimizedImage
+                        src={user.profilepicture || '/placeholder.svg'}
+                        alt={user.name}
+                        className="object-cover w-full h-full"
+                        fallback="/placeholder.svg"
+                      />
                     </div>
                     {/* Infos cliquables */}
                     <a href={`/profile/${user.id}`} className="flex-1 flex flex-col justify-center px-2 md:px-4 cursor-pointer group min-w-0">
@@ -570,6 +596,7 @@ const ProvidersPage = () => {
       </main>
       <Footer />
     </div>
+    </PageTransition>
   );
 };
 
