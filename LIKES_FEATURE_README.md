@@ -3,8 +3,8 @@
 ## 🎯 Vue d'ensemble
 
 La fonctionnalité de likes permet aux utilisateurs de :
-- **Liker** les profils d'autres utilisateurs
-- **Voir** leurs profils likés dans leur espace personnel
+- **Liker** les profils d'autres utilisateurs (cœur rouge)
+- **Voir** leurs profils likés dans leur espace personnel (onglet "Likes")
 - **Afficher** discrètement le nombre de likes reçus sur leur profil
 - **Gérer** leurs favoris avec pagination
 
@@ -59,101 +59,111 @@ CREATE INDEX "UserLikes_toUserId_createdAt_idx" ON "UserLikes"("toUserId", "crea
 - **Animation** lors du toggle
 - **Badge** avec le nombre de likes reçus
 
-## 🔧 Utilisation technique
+### Onglet "Likes" dans le profil
+- **Visible uniquement** si l'utilisateur regarde son propre profil
+- **Liste des profils likés** avec photos et informations
+- **Bouton unlike** sur chaque profil
+- **Pagination** pour les gros volumes
 
-### Hook `useLikes`
-```typescript
-const { 
-  isLiked, 
-  toggleLike, 
-  likeCount, 
-  loading, 
-  getLikedProfiles 
-} = useLikes(targetUserId);
-```
+## 🔧 Installation
 
-### Composants disponibles
-- `LikedProfiles` - Liste des profils likés
-- `UsersWhoLiked` - Liste des utilisateurs qui ont liké (optionnel)
-
-## 📱 Fonctionnalités
-
-### ✅ Implémentées
-- [x] Like/unlike des profils
-- [x] Affichage discret du nombre de likes
-- [x] Liste des profils likés dans les paramètres
-- [x] Optimisations de performance
-- [x] Pagination des résultats
-- [x] Badges visuels
-- [x] Animations et transitions
-
-### 🔮 Futures améliorations possibles
-- [ ] Notifications de nouveaux likes
-- [ ] Statistiques de likes (admin)
-- [ ] Export des favoris
-- [ ] Partage de listes de favoris
-- [ ] Filtres par catégorie dans les favoris
-
-## 🚀 Installation
-
-### 1. Exécuter les requêtes SQL
+### 1. Exécuter le script SQL
 ```bash
 # Dans Supabase SQL Editor
-# Exécuter le contenu de optimize_likes_performance.sql
+# Copier et exécuter le contenu de likes_setup.sql
 ```
 
-### 2. Vérifier les politiques RLS
-```sql
--- Politiques déjà configurées dans create_user_likes_table.sql
--- Vérifier qu'elles sont actives
-```
+### 2. Vérifier les composants
+- ✅ `src/hooks/use-likes.ts` - Hook pour gérer les likes
+- ✅ `src/components/profile/LikedProfiles.tsx` - Composant d'affichage
+- ✅ `src/components/profile/UsersWhoLiked.tsx` - Composant pour voir qui a liké
+- ✅ `src/pages/UserProfile.tsx` - Intégration dans les profils
 
-### 3. Tester la fonctionnalité
-- Liker un profil
-- Vérifier l'affichage du compteur
-- Consulter la liste des favoris
+## 🚀 Utilisation
+
+### Pour liker un profil
+1. Aller sur le profil d'un autre utilisateur
+2. Cliquer sur le bouton cœur dans l'en-tête
+3. Le cœur devient rouge et le compteur s'incrémente
+
+### Pour voir ses profils likés
+1. Aller sur son propre profil
+2. Cliquer sur l'onglet "Likes"
+3. Voir la liste de tous les profils likés
+4. Cliquer sur le cœur rouge pour unlike
+
+### Pour voir qui a liké son profil
+1. Aller sur son propre profil
+2. Voir le badge rouge sur le bouton like
+3. Le nombre indique le total de likes reçus
 
 ## 🔒 Sécurité
 
 ### Politiques RLS
-- **Lecture** : Utilisateurs peuvent voir leurs propres likes et le compteur public
-- **Écriture** : Utilisateurs peuvent créer/supprimer leurs propres likes
-- **Suppression** : Cascade automatique si un utilisateur est supprimé
+- **Lecture** : Utilisateurs peuvent voir leurs propres likes et likes reçus
+- **Écriture** : Utilisateurs peuvent créer leurs propres likes
+- **Suppression** : Utilisateurs peuvent supprimer leurs propres likes
+- **Prévention** : Impossible de se liker soi-même
 
 ### Validation
-- **Unicité** : Un utilisateur ne peut liker qu'une fois le même profil
-- **Authentification** : Vérification de l'utilisateur connecté
-- **Autorisation** : Contrôle des permissions via RLS
+- **Unique constraint** : Un utilisateur ne peut liker qu'une fois le même profil
+- **Cascade delete** : Suppression automatique si un utilisateur est supprimé
+- **Authentification** : Seuls les utilisateurs connectés peuvent liker
 
 ## 📊 Métriques
 
+### Compteurs automatiques
+- **likeCount** : Nombre de likes reçus par utilisateur
+- **Mise à jour en temps réel** via triggers
+- **Optimisé** pour éviter les requêtes COUNT
+
+### Statistiques
+- **Profils les plus likés** : Tri par likeCount
+- **Activité récente** : Tri par createdAt
+- **Engagement** : Métrique de popularité
+
+## 🎯 Fonctionnalités avancées
+
+### Pagination
+- **20 profils par page** par défaut
+- **Chargement progressif** pour les gros volumes
+- **Optimisé** pour les performances
+
+### Notifications (futur)
+- **Like reçu** : Notification en temps réel
+- **Nouveau profil** : Suggestions basées sur les likes
+- **Engagement** : Rappels pour interagir
+
+### Analytics (futur)
+- **Top profils** : Classement par likes
+- **Tendances** : Évolution des likes dans le temps
+- **Recommandations** : Algorithmes de suggestion
+
+## 🔧 Maintenance
+
+### Nettoyage automatique
+- **Cascade delete** : Suppression automatique des likes orphelins
+- **Index maintenance** : Optimisation automatique des requêtes
+- **Monitoring** : Surveillance des performances
+
+### Backups
+- **Sauvegarde** : Likes inclus dans les backups automatiques
+- **Restauration** : Procédure de restauration documentée
+- **Migration** : Scripts de migration pour les évolutions
+
+## 📝 Notes techniques
+
 ### Performance
-- **Requêtes optimisées** : Utilisation d'index et de fonctions SQL
-- **Cache** : Compteur mis à jour automatiquement
-- **Pagination** : Chargement progressif des résultats
+- **Index optimisés** pour les requêtes fréquentes
+- **Triggers** pour maintenir les compteurs
+- **Pagination** pour éviter les surcharges
 
-### Utilisation
-- **Compteur de likes** : Mis à jour en temps réel
-- **Liste des favoris** : Pagination de 20 éléments par page
-- **Interface responsive** : Mobile et desktop
+### Scalabilité
+- **Architecture** prête pour de gros volumes
+- **Cache** possible pour les compteurs
+- **CDN** pour les images de profil
 
-## 🐛 Dépannage
-
-### Problèmes courants
-1. **Compteur incorrect** : Vérifier les triggers SQL
-2. **Likes non sauvegardés** : Vérifier les politiques RLS
-3. **Performance lente** : Vérifier les index
-
-### Logs utiles
-```typescript
-// Dans le hook useLikes
-console.error('Erreur lors du chargement des likes:', err);
-console.error('Erreur lors de l\'ajout du like:', err);
-```
-
-## 📝 Notes de développement
-
-- **Hook centralisé** : Toute la logique dans `useLikes`
-- **Composants réutilisables** : `LikedProfiles`, `UsersWhoLiked`
-- **Optimisations automatiques** : Triggers SQL pour le compteur
-- **Interface cohérente** : Design uniforme sur mobile et desktop 
+### Compatibilité
+- **Mobile** : Interface responsive
+- **Desktop** : Interface optimisée
+- **Accessibilité** : Support des lecteurs d'écran 
