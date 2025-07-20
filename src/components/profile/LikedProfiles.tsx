@@ -13,11 +13,9 @@ interface LikedProfile {
   profilepicture?: string;
   location?: string;
   role?: string;
-  subcategory?: string;
   subCategory?: string;
   musicStyle?: string;
-  rating?: number;
-  reviewCount?: number;
+  likeCount?: number;
   likedAt: string;
 }
 
@@ -144,7 +142,7 @@ const LikedProfiles: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {likedProfiles.map((profile) => {
           const musicStyleLabel = profile.musicStyle ? CATEGORY_TRANSLATIONS[profile.musicStyle] : null;
-          const subCategoryLabel = profile.subcategory || profile.subCategory;
+          const subCategoryLabel = profile.subCategory;
           
           return (
             <div
@@ -204,14 +202,14 @@ const LikedProfiles: React.FC = () => {
                   )}
 
                   {/* Note */}
-                  {profile.rating && (
+                  {profile.likeCount && profile.likeCount > 0 && (
                     <div className="flex items-center gap-1 mb-2">
-                      <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                      <Heart className="w-4 h-4 text-red-400 fill-current" />
                       <span className="text-sm font-medium text-gray-900">
-                        {profile.rating.toFixed(1)}
+                        {profile.likeCount}
                       </span>
                       <span className="text-sm text-gray-500">
-                        ({profile.reviewCount || 0} avis)
+                        like{profile.likeCount > 1 ? 's' : ''}
                       </span>
                     </div>
                   )}

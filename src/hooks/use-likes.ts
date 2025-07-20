@@ -172,48 +172,33 @@ export const useLikes = (targetUserId?: string) => {
       const currentUser = getCurrentUser();
       if (!currentUser) return [];
 
-      // Utiliser la fonction SQL optimisée si disponible, sinon fallback
+      // Requête directe sans RPC - seulement les colonnes qui existent
       const { data: likedProfiles, error } = await supabase
-        .rpc('get_liked_profiles', {
-          user_id: currentUser.id,
-          page_size: pageSize,
-          page_number: page
-        });
+        .from('UserLikes')
+        .select(`
+          toUserId,
+          createdAt,
+          toUser:User!UserLikes_toUserId_fkey (
+            id,
+            name,
+            profilepicture,
+            location,
+            role,
+            subCategory,
+            musicStyle,
+            likeCount
+          )
+        `)
+        .eq('fromUserId', currentUser.id)
+        .order('createdAt', { ascending: false })
+        .range((page - 1) * pageSize, page * pageSize - 1);
 
-      if (error) {
-        // Fallback vers la requête originale
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('UserLikes')
-          .select(`
-            toUserId,
-            createdAt,
-            toUser:User!UserLikes_toUserId_fkey (
-              id,
-              name,
-              profilepicture,
-              location,
-              role,
-              subcategory,
-              subCategory,
-              musicStyle,
-              rating,
-              reviewCount,
-              likeCount
-            )
-          `)
-          .eq('fromUserId', currentUser.id)
-          .order('createdAt', { ascending: false })
-          .range((page - 1) * pageSize, page * pageSize - 1);
+      if (error) throw error;
 
-        if (fallbackError) throw fallbackError;
-
-        return fallbackData?.map(item => ({
-          ...item.toUser,
-          likedAt: item.createdAt
-        })) || [];
-      }
-
-      return likedProfiles || [];
+      return likedProfiles?.map(item => ({
+        ...item.toUser,
+        likedAt: item.createdAt
+      })) || [];
     } catch (err: any) {
       console.error('Erreur lors de la récupération des profils likés:', err);
       return [];
@@ -224,14 +209,30 @@ export const useLikes = (targetUserId?: string) => {
   const getUsersWhoLiked = async (targetUserId: string, page = 1, pageSize = 20) => {
     try {
       const { data, error } = await supabase
-        .rpc('get_users_who_liked', {
-          target_user_id: targetUserId,
-          page_size: pageSize,
-          page_number: page
-        });
+        .from('UserLikes')
+        .select(`
+          fromUserId,
+          createdAt,
+          fromUser:User!UserLikes_fromUserId_fkey (
+            id,
+            name,
+            profilepicture,
+            location,
+            role,
+            subCategory,
+            musicStyle
+          )
+        `)
+        .eq('toUserId', targetUserId)
+        .order('createdAt', { ascending: false })
+        .range((page - 1) * pageSize, page * pageSize - 1);
 
       if (error) throw error;
-      return data || [];
+      
+      return data?.map(item => ({
+        ...item.fromUser,
+        likedAt: item.createdAt
+      })) || [];
     } catch (err: any) {
       console.error('Erreur lors de la récupération des utilisateurs qui ont liké:', err);
       return [];

@@ -10,6 +10,7 @@ const TABS = [
   { label: 'Profil', value: 'profil' },
   { label: 'Activité', value: 'activite' },
   { label: 'Messages', value: 'messages' },
+  { label: 'Likes', value: 'likes' },
 ];
 
 export default function AccountTabs({ activeTab, setActiveTab, children }: AccountTabsProps) {

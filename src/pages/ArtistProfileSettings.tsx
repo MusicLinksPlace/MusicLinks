@@ -74,7 +74,7 @@ const ArtistProfileSettings = () => {
     index?: number;
   } | null>(null);
   const [formData, setFormData] = useState<UserProfileData | null>(null);
-  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
+  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages' | 'likes'>('profil');
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isDeletingVideo, setIsDeletingVideo] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<any[]>([]);
@@ -84,7 +84,8 @@ const ArtistProfileSettings = () => {
   const tabs = [
     { id: 'profil', label: 'Profil', icon: <User className="w-4 h-4" /> },
     { id: 'activite', label: 'Activité', icon: <Music className="w-4 h-4" /> },
-    { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+    { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'likes', label: 'Likes', icon: <Heart className="w-4 h-4" /> }
   ];
 
   // Ajout pour upload photo de profil depuis le header
@@ -698,6 +699,7 @@ const ArtistProfileSettings = () => {
               <ToggleGroupItem value="profil" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Profil</ToggleGroupItem>
               <ToggleGroupItem value="activite" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Activité</ToggleGroupItem>
               <ToggleGroupItem value="messages" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Messages</ToggleGroupItem>
+              <ToggleGroupItem value="likes" className="px-5 py-2 md:px-8 md:py-3 text-base md:text-lg font-semibold data-[state=on]:bg-blue-600 data-[state=on]:text-white rounded-full">Likes</ToggleGroupItem>
             </ToggleGroup>
           </div>
         </div>
@@ -950,6 +952,15 @@ const ArtistProfileSettings = () => {
                 <p className="text-gray-600">Historique de toutes vos conversations</p>
               </div>
               <ConversationList />
+            </div>
+          )}
+          {activeTab === 'likes' && (
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mt-2">
+              <div className="mb-6">
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Mes Likes</h2>
+                <p className="text-gray-600">Profils que vous avez likés</p>
+              </div>
+              <LikedProfiles />
             </div>
           )}
         </div>

@@ -74,7 +74,7 @@ const ProviderProfileSettings = () => {
     index?: number;
   } | null>(null);
   const [formData, setFormData] = useState<UserProfileData | null>(null);
-  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
+  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages' | 'likes'>('profil');
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isDeletingVideo, setIsDeletingVideo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +83,8 @@ const ProviderProfileSettings = () => {
   const tabs = [
     { id: 'profil', label: 'Profil', icon: <User className="w-4 h-4" /> },
     { id: 'activite', label: 'Activité', icon: <Music className="w-4 h-4" /> },
-    { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
+    { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'likes', label: 'Likes', icon: <Heart className="w-4 h-4" /> }
   ];
 
   // Ajout pour upload photo de profil depuis le header
@@ -512,7 +513,7 @@ const ProviderProfileSettings = () => {
           
           {/* Version desktop */}
           <div className="hidden md:block">
-            <AccountTabs activeTab={activeTab} setActiveTab={(tab) => setActiveTab(tab as 'profil' | 'activite' | 'messages')}>
+            <AccountTabs activeTab={activeTab} setActiveTab={(tab) => setActiveTab(tab as 'profil' | 'activite' | 'messages' | 'likes')}>
               {activeTab === 'profil' && (
                 <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl flex flex-col p-6 md:p-10 gap-8 md:gap-10 mt-2">
                   {/* Name */}
@@ -758,6 +759,15 @@ const ProviderProfileSettings = () => {
               {activeTab === 'messages' && (
                 <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mt-2">
                   <ConversationList />
+                </div>
+              )}
+              {activeTab === 'likes' && (
+                <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mt-2">
+                  <div className="mb-6">
+                    <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Mes Likes</h2>
+                    <p className="text-gray-600">Profils que vous avez likés</p>
+                  </div>
+                  <LikedProfiles />
                 </div>
               )}
             </AccountTabs>
