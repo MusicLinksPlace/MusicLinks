@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
@@ -364,64 +364,137 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
   );
 };
 
-// Galerie mobile style Mariages.net
+// Galerie mobile avec photos d'abord, puis vidéos, scroll horizontal
 const MobileGallery = ({ video, images }: { video?: string, images?: string[] }) => {
   const [current, setCurrent] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
+  // Photos d'abord, puis vidéos
   const slides = [
-    ...(video ? [{ type: 'video', url: video }] : []),
-    ...(images ? images.map(url => ({ type: 'image', url })) : [])
+    ...(images ? images.map(url => ({ type: 'image', url })) : []),
+    ...(video ? [{ type: 'video', url: video }] : [])
   ];
   
   if (slides.length === 0) return null;
 
-  const nextSlide = () => setCurrent((current + 1) % slides.length);
-  const prevSlide = () => setCurrent((current - 1 + slides.length) % slides.length);
+  const nextSlide = () => {
+    const newCurrent = (current + 1) % slides.length;
+    setCurrent(newCurrent);
+    if (scrollContainerRef.current) {
+      const slideWidth = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollTo({
+        left: newCurrent * slideWidth,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const prevSlide = () => {
+    const newCurrent = (current - 1 + slides.length) % slides.length;
+    setCurrent(newCurrent);
+    if (scrollContainerRef.current) {
+      const slideWidth = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollTo({
+        left: newCurrent * slideWidth,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const goToSlide = (index: number) => {
+    if (index < 0 || index >= slides.length) return;
+    setCurrent(index);
+    if (scrollContainerRef.current) {
+      const slideWidth = scrollContainerRef.current.offsetWidth;
+      scrollContainerRef.current.scrollTo({
+        left: index * slideWidth,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // Écouter le scroll pour mettre à jour current
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const slideWidth = scrollContainerRef.current.offsetWidth;
+      const scrollLeft = scrollContainerRef.current.scrollLeft;
+      const newCurrent = Math.round(scrollLeft / slideWidth);
+      
+      if (newCurrent !== current && newCurrent >= 0 && newCurrent < slides.length) {
+        setCurrent(newCurrent);
+      }
+    }
+  };
 
   return (
     <div className="md:hidden relative">
-      {/* Image/Vidéo principale plein écran */}
-      <div className="relative w-full bg-white rounded-2xl overflow-hidden">
-        {slides[current].type === 'video' ? (
-          <div className="w-full flex items-center justify-center bg-white">
-            <VideoPlayer
-              videoUrl={slides[current].url}
-              poster={images && images[0]}
-              className="w-full max-w-full"
-            />
-          </div>
-        ) : (
-          <div className="w-full aspect-square flex items-center justify-center">
-            <img 
-              src={slides[current].url} 
-              alt="media" 
-              className="w-full h-full object-contain object-center"
-            />
-          </div>
-        )}
+      {/* Container principal FIXE comme Instagram */}
+      <div className="relative w-full h-[400px] bg-black overflow-hidden">
+        {/* Container de scroll horizontal */}
+        <div 
+          ref={scrollContainerRef}
+          className="flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+          onScroll={handleScroll}
+        >
+          {slides.map((slide, index) => (
+            <div 
+              key={index}
+              className="flex-shrink-0 w-full h-full snap-center"
+            >
+              {slide.type === 'video' ? (
+                // Vidéo avec bandes noires sur les côtés
+                <div className="w-full h-full bg-black flex items-center justify-center">
+                  <VideoPlayer
+                    videoUrl={slide.url}
+                    poster={images && images[0]}
+                    className="w-full h-full object-contain"
+                    showControls={true}
+                  />
+                </div>
+              ) : (
+                // Image avec object-cover pour remplir tout l'espace
+                <div className="w-full h-full">
+                  <img 
+                    src={slide.url} 
+                    alt="media" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* Navigation */}
         {slides.length > 1 && (
           <>
             <button 
               onClick={prevSlide}
-              className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all z-10"
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-all z-10 backdrop-blur-sm"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button 
               onClick={nextSlide}
-              className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all z-10"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-all z-10 backdrop-blur-sm"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
           </>
         )}
 
-        {/* Indicateur de position */}
+        {/* Indicateurs de points en bas */}
         {slides.length > 1 && (
-          <div className="absolute bottom-4 right-4 bg-gray-800/80 text-white px-3 py-1 rounded-full text-sm">
-            {current + 1} / {slides.length}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {slides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goToSlide(i)}
+                className={`w-2 h-2 rounded-full transition-all ${
+                  i === current ? 'bg-white' : 'bg-white/50'
+                }`}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -552,15 +625,14 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
 
 // Onglets modernes et élégants
 const ModernTabs = ({ activeTab, setActiveTab, isOwnProfile }: any) => {
-  const baseTabs = [
+  // SUPPRIMER COMPLÈTEMENT L'ONGLET LIKES - IL NE DOIT JAMAIS APPARAÎTRE
+  const allTabs = [
     { id: 'informations', label: 'Informations' },
     { id: 'services', label: 'Services' },
     { id: 'avis', label: 'Avis' }
   ];
 
-  const allTabs = isOwnProfile 
-    ? [...baseTabs, { id: 'likes', label: 'Likes' }]
-    : baseTabs;
+  console.log('ModernTabs debug:', { isOwnProfile, allTabs });
 
   return (
     <div className="border-b border-gray-100 bg-white sticky top-0 z-10">
@@ -727,7 +799,7 @@ const UserProfile = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'informations' | 'services' | 'avis' | 'likes'>('informations');
+  const [activeTab, setActiveTab] = useState<'informations' | 'services' | 'avis'>('informations');
   const [rating, setRating] = useState<number | null>(null);
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -743,6 +815,23 @@ const UserProfile = () => {
 
   // Vérifier si l'utilisateur regarde son propre profil
   const isOwnProfile = currentUser && user && currentUser.id === user.id;
+  
+  // Debug: afficher les valeurs pour comprendre le problème
+  console.log('Debug isOwnProfile:', {
+    currentUserId: currentUser?.id,
+    profileUserId: user?.id,
+    isOwnProfile: isOwnProfile
+  });
+
+  // Rediriger vers informations si on essaie d'accéder à likes sur le profil d'un autre
+  useEffect(() => {
+    // SUPPRIMÉ - L'ONGLET LIKES N'EXISTE PLUS
+  }, [activeTab, isOwnProfile]);
+
+  // Forcer l'onglet informations si ce n'est pas notre profil
+  useEffect(() => {
+    // SUPPRIMÉ - L'ONGLET LIKES N'EXISTE PLUS
+  }, [isOwnProfile, activeTab]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -947,13 +1036,7 @@ const UserProfile = () => {
                   <ModernReviewsSection reviews={reviews} rating={rating} reviewCount={reviewCount} />
                 )}
 
-                {activeTab === 'likes' && isOwnProfile && (
-                  <LikedProfiles />
-                )}
-
-            {activeTab === 'likes' && isOwnProfile && (
-              <LikedProfiles />
-            )}
+            {/* SUPPRIMÉ - L'ONGLET LIKES N'EXISTE PLUS */}
           </div>
         </div>
       </div>
@@ -974,7 +1057,7 @@ const UserProfile = () => {
             {/* Colonne droite : Onglets et contenu */}
             <div className="md:col-span-1 bg-white">
               {/* Onglets */}
-              <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={user.id === userId} />
+              <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={isOwnProfile} />
               
               {/* Contenu */}
               <div className="p-6 bg-white">
@@ -1066,9 +1149,7 @@ const UserProfile = () => {
                   <ModernReviewsSection reviews={reviews} rating={rating} reviewCount={reviewCount} />
                 )}
 
-                {activeTab === 'likes' && isOwnProfile && (
-                  <LikedProfiles />
-                )}
+                {/* SUPPRIMÉ - L'ONGLET LIKES N'EXISTE PLUS */}
               </div>
             </div>
           </div>
