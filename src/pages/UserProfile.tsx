@@ -38,6 +38,7 @@ import VideoThumbnail from '@/components/ui/VideoThumbnail';
 import VideoPlayer from '@/components/ui/VideoPlayer';
 import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
 import ServicesSection from '@/components/profile/ServicesSection';
+import LikedProfiles from '@/components/profile/LikedProfiles';
 
 // Composant de galerie moderne et fluide
 const ModernGallery = ({ video, images }: { video?: string, images?: string[] }) => {
@@ -550,17 +551,21 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
 
 
 // Onglets modernes et élégants
-const ModernTabs = ({ activeTab, setActiveTab }: any) => {
-  const tabs = [
+const ModernTabs = ({ activeTab, setActiveTab, isOwnProfile }: any) => {
+  const baseTabs = [
     { id: 'informations', label: 'Informations' },
     { id: 'services', label: 'Services' },
     { id: 'avis', label: 'Avis' }
   ];
 
+  const allTabs = isOwnProfile 
+    ? [...baseTabs, { id: 'likes', label: 'Likes' }]
+    : baseTabs;
+
   return (
     <div className="border-b border-gray-100 bg-white sticky top-0 z-10">
       <div className="flex overflow-x-auto scrollbar-hide">
-        {tabs.map((tab) => (
+        {allTabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -722,10 +727,22 @@ const UserProfile = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'informations' | 'services' | 'avis'>('informations');
+  const [activeTab, setActiveTab] = useState<'informations' | 'services' | 'avis' | 'likes'>('informations');
   const [rating, setRating] = useState<number | null>(null);
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Récupérer l'utilisateur connecté
+  useEffect(() => {
+    const storedUser = localStorage.getItem('musiclinks_user');
+    if (storedUser) {
+      setCurrentUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Vérifier si l'utilisateur regarde son propre profil
+  const isOwnProfile = currentUser && user && currentUser.id === user.id;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -837,7 +854,8 @@ const UserProfile = () => {
         
         {/* Onglets mobile */}
         <div className="bg-white">
-          <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+          {/* Onglets */}
+          <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={isOwnProfile} />
           
           {/* Contenu mobile */}
           <div className="p-6 pb-8 bg-white">
@@ -925,8 +943,16 @@ const UserProfile = () => {
               />
             )}
 
-            {activeTab === 'avis' && (
-              <ModernReviewsSection reviews={reviews} rating={rating} reviewCount={reviewCount} />
+                            {activeTab === 'avis' && (
+                  <ModernReviewsSection reviews={reviews} rating={rating} reviewCount={reviewCount} />
+                )}
+
+                {activeTab === 'likes' && isOwnProfile && (
+                  <LikedProfiles />
+                )}
+
+            {activeTab === 'likes' && isOwnProfile && (
+              <LikedProfiles />
             )}
           </div>
         </div>
@@ -948,7 +974,7 @@ const UserProfile = () => {
             {/* Colonne droite : Onglets et contenu */}
             <div className="md:col-span-1 bg-white">
               {/* Onglets */}
-              <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+              <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={user.id === userId} />
               
               {/* Contenu */}
               <div className="p-6 bg-white">
@@ -1038,6 +1064,10 @@ const UserProfile = () => {
 
                 {activeTab === 'avis' && (
                   <ModernReviewsSection reviews={reviews} rating={rating} reviewCount={reviewCount} />
+                )}
+
+                {activeTab === 'likes' && isOwnProfile && (
+                  <LikedProfiles />
                 )}
               </div>
             </div>

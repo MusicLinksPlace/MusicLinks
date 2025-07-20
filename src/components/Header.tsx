@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight, Camera, Megaphone, GraduationCap, Gavel, MessageCircle } from 'lucide-react';
+import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight, Camera, Megaphone, GraduationCap, Gavel, MessageCircle, ChevronLeft } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 import { providerGroupsConfig } from '../pages/Providers';
 import { Dialog, DialogTrigger, DialogContent } from '@/components/ui/dialog';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
@@ -105,19 +105,21 @@ const navIcons = {
 };
 
 const Header = () => {
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+  const [currentSubMenu, setCurrentSubMenu] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
+  const [showSocialDialog, setShowSocialDialog] = useState(false);
+  const [displayedMenu, setDisplayedMenu] = useState<string | null>(null);
+  const [menuTimeout, setMenuTimeout] = useState<NodeJS.Timeout | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
-  const [displayedMenu, setDisplayedMenu] = useState<string | null>(null);
+  const [drawerStep, setDrawerStep] = useState<'main' | 'providers'>('main');
   const closeMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const openMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
-  const [drawerStep, setDrawerStep] = useState<'main' | 'providers'>('main');
-  const [showSocialDialog, setShowSocialDialog] = useState(false);
 
   // Détecter si on est sur une page profil
   const isProfilePage = location.pathname.startsWith('/profile/');
@@ -125,7 +127,7 @@ const Header = () => {
   // Hook pour gérer le scroll sur les pages profil
   useEffect(() => {
     if (!isProfilePage) {
-      setIsHeaderVisible(true);
+      setIsScrolled(false);
       return;
     }
 
@@ -133,20 +135,18 @@ const Header = () => {
       const currentScrollY = window.scrollY;
       
       // Si on scrolle vers le bas (plus de 100px), masquer le header
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsHeaderVisible(false);
+      if (currentScrollY > 100) {
+        setIsScrolled(true);
       } 
       // Si on scrolle vers le haut ou on est en haut, afficher le header
-      else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
-        setIsHeaderVisible(true);
+      else {
+        setIsScrolled(false);
       }
-      
-      setLastScrollY(currentScrollY);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY, isProfilePage]);
+  }, [isProfilePage]);
 
   // Nettoyage des timeouts lors du démontage du composant
   useEffect(() => {
@@ -196,26 +196,90 @@ const Header = () => {
   }, [isMobileMenuOpen]);
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    // Clear local storage and notify UI
-    localStorage.removeItem('musiclinks_user');
-    window.dispatchEvent(new Event('auth-change'));
-
-    if (error) {
-      toast({
-        title: "Erreur de déconnexion",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem('musiclinks_user');
+      setCurrentUser(null);
       toast({
         title: "Déconnexion réussie",
-        description: "À bientôt !",
-        duration: 3000,
+        description: "Vous avez été déconnecté avec succès.",
       });
       navigate('/');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de la déconnexion.",
+        variant: "destructive",
+      });
     }
+  };
+
+  // Données des sous-menus
+  const subMenus = {
+    artists: {
+      title: "Artistes",
+      icon: Mic,
+      color: "text-blue-600",
+      items: [
+        { label: "Tous les artistes", link: "/artists" },
+        { label: "Artistes à Paris", link: "/artists?location=Paris" },
+        { label: "Artistes à Lyon", link: "/artists?location=Lyon" },
+        { label: "Artistes à Marseille", link: "/artists?location=Marseille" },
+        { label: "Partout en France", link: "/artists?location=all" }
+      ]
+    },
+    providers: {
+      title: "Prestataires",
+      icon: Headphones,
+      color: "text-green-600",
+      items: [
+        { label: "Tous les prestataires", link: "/providers" },
+        { label: "Visuel", link: "/providers?category=visuel" },
+        { label: "Distribution", link: "/providers?category=distribution" },
+        { label: "Formation", link: "/providers?category=formation" },
+        { label: "Juridique", link: "/providers?category=juridique" },
+        { label: "Marketing", link: "/providers?category=marketing" }
+      ]
+    },
+    partners: {
+      title: "Partenaires",
+      icon: Users,
+      color: "text-purple-600",
+      items: [
+        { label: "Tous les partenaires", link: "/partners" },
+        { label: "Labels", link: "/partners?category=label" },
+        { label: "Managers", link: "/partners?category=manager" },
+        { label: "Directeurs artistiques", link: "/partners?category=director" }
+      ]
+    }
+  };
+
+  // Fonction pour ouvrir un sous-menu
+  const openSubMenu = (menuType: string) => {
+    setCurrentSubMenu(subMenus[menuType as keyof typeof subMenus]);
+    setIsSubMenuOpen(true);
+    setIsMobileMenuOpen(false); // Fermer le drawer principal
+  };
+
+  // Fonction pour fermer tous les menus
+  const closeAllMenus = () => {
+    setIsMobileMenuOpen(false);
+    setIsSubMenuOpen(false);
+    setCurrentSubMenu(null);
+  };
+
+  // Fonction pour retourner au menu principal
+  const goBackToMainMenu = () => {
+    setIsSubMenuOpen(false);
+    setCurrentSubMenu(null);
+    setIsMobileMenuOpen(true); // Rouvrir le drawer principal
+  };
+
+  // Fonction pour naviguer et fermer les menus
+  const navigateAndClose = (link: string) => {
+    navigate(link);
+    closeAllMenus();
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -266,7 +330,7 @@ const Header = () => {
     <>
       {/* Header Desktop */}
       <header className={`${isProfilePage ? 'fixed' : 'sticky'} top-0 z-50 bg-white border-b border-gray-100 shadow-sm hidden md:block transition-transform duration-300 ${
-        isProfilePage && !isHeaderVisible ? '-translate-y-full' : 'translate-y-0'
+        isProfilePage && isScrolled ? '-translate-y-full' : 'translate-y-0'
       }`} style={isProfilePage ? { position: 'fixed', top: 0, left: 0, right: 0 } : {}}>
         <div className="flex items-center justify-between w-full px-8 h-20">
           {/* Logo à gauche */}
@@ -504,7 +568,7 @@ const Header = () => {
 
       {/* Header Mobile */}
       <header className={`${isProfilePage ? 'fixed' : 'sticky'} top-0 z-50 bg-white border-b border-gray-200 shadow-sm md:hidden transition-transform duration-300 ${
-        isProfilePage && !isHeaderVisible ? '-translate-y-full' : 'translate-y-0'
+        isProfilePage && isScrolled ? '-translate-y-full' : 'translate-y-0'
       }`} style={isProfilePage ? { position: 'fixed', top: 0, left: 0, right: 0 } : {}}>
         <div className="w-full px-4 flex items-center h-16 justify-between">
           {/* Logo */}
@@ -529,169 +593,205 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Menu mobile déroulant */}
-        {isMobileMenuOpen && (
-          <div className="mobile-menu absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-            <div className="px-4 py-6 space-y-4">
-              {/* Navigation principale */}
-              <div className="space-y-2">
-                {megaMenu.map((item) => (
+        {/* Menu mobile drawer principal */}
+        <Drawer open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <DrawerContent className="h-[95vh] top-0 mt-0 transition-none">
+            <DrawerHeader className="text-left">
+              <DrawerTitle className="text-2xl font-bold">Menu</DrawerTitle>
+            </DrawerHeader>
+            <div className="px-4 overflow-y-auto">
+              <div className="space-y-6">
+                {/* Section Artistes */}
+                <div>
                   <button
-                    key={item.type}
+                    onClick={() => openSubMenu('artists')}
+                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                  >
+                    <span className="text-base font-medium">Artistes</span>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Section Prestataires */}
+                <div>
+                  <button
+                    onClick={() => openSubMenu('providers')}
+                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                  >
+                    <span className="text-base font-medium">Prestataires</span>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Section Partenaires */}
+                <div>
+                  <button
+                    onClick={() => openSubMenu('partners')}
+                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                  >
+                    <span className="text-base font-medium">Partenaires</span>
+                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
+
+                {/* Séparateur */}
+                <div className="border-t border-gray-200 my-4"></div>
+
+                {/* Liens supplémentaires */}
+                <div className="space-y-2">
+                  <Link 
+                    to="/Project" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <Camera className="w-5 h-5" />
+                    <span>Projets</span>
+                  </Link>
+                  <Link 
+                    to="/how-it-works" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <GraduationCap className="w-5 h-5" />
+                    <span>Comment ça marche</span>
+                  </Link>
+                  <Link 
+                    to="/about" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span>Qui sommes-nous ?</span>
+                  </Link>
+                  <button
                     onClick={() => {
-                      navigate(item.link);
+                      setShowSocialDialog(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                      isActive(item.link) 
-                        ? 'bg-blue-50 text-blue-700 font-semibold' 
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-xl">{navIcons[item.type]}</span>
-                      <span className="text-base font-medium">
-                        {item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}
-                      </span>
-                    </div>
+                    <Megaphone className="w-5 h-5" />
+                    <span>Suivez-nous</span>
                   </button>
-                ))}
-              </div>
+                </div>
 
-              {/* Séparateur */}
-              <div className="border-t border-gray-200 my-4"></div>
+                {/* Séparateur */}
+                <div className="border-t border-gray-200 my-4"></div>
 
-              {/* Actions utilisateur */}
-              <div className="space-y-2">
-                {currentUser ? (
-                  <>
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg border-2 border-white">
-                        <span className="text-white font-bold text-base uppercase tracking-wider">
-                          {currentUser.name?.[0] || 'U'}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{currentUser.name}</div>
-                        <div className="text-sm text-gray-500">Connecté</div>
-                      </div>
-                    </div>
-                    
-                    <Link 
-                      to="/mon-compte" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Mon profil</span>
-                    </Link>
-                    
-                    <Link 
-                      to="/Project" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <Camera className="w-5 h-5" />
-                      <span>Mes projets</span>
-                    </Link>
-                    
-                    <button
-                      onClick={() => {
-                        handleChatClick();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span>Messages</span>
-                    </button>
-                    
-                    {currentUser.isAdmin && (
+                {/* Actions utilisateur - en bas */}
+                <div className="space-y-2">
+                  {currentUser ? (
+                    <>
                       <Link 
-                        to="/admin/users" 
+                        to="/mon-compte" 
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                       >
-                        <Gavel className="w-5 h-5" />
-                        <span>Administration</span>
+                        <User className="w-5 h-5" />
+                        <span>Mon profil</span>
                       </Link>
-                    )}
-                    
-                    <button
-                      onClick={() => {
-                        handleSignOut();
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full text-left"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      <span>Déconnexion</span>
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link 
-                      to="/login" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                    >
-                      <User className="w-5 h-5" />
-                      <span>Connexion</span>
-                    </Link>
-                    <Link 
-                      to="/signup" 
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <span>S'inscrire</span>
-                    </Link>
-                  </>
-                )}
-              </div>
-
-              {/* Séparateur */}
-              <div className="border-t border-gray-200 my-4"></div>
-
-              {/* Liens supplémentaires */}
-              <div className="space-y-2">
-                <Link 
-                  to="/Project" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <Camera className="w-5 h-5" />
-                  <span>Projets</span>
-                </Link>
-                <Link 
-                  to="/how-it-works" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <GraduationCap className="w-5 h-5" />
-                  <span>Comment ça marche</span>
-                </Link>
-                <Link 
-                  to="/about" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <Users className="w-5 h-5" />
-                  <span>Qui sommes-nous ?</span>
-                </Link>
-                <button
-                  onClick={() => {
-                    setShowSocialDialog(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
-                >
-                  <Megaphone className="w-5 h-5" />
-                  <span>Suivez-nous</span>
-                </button>
+                      
+                      <button
+                        onClick={() => {
+                          handleChatClick();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        <span>Messages</span>
+                      </button>
+                      
+                      {currentUser.isAdmin && (
+                        <Link 
+                          to="/admin/users" 
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                        >
+                          <Gavel className="w-5 h-5" />
+                          <span>Administration</span>
+                        </Link>
+                      )}
+                      
+                      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                          <span className="text-white font-bold text-sm uppercase">
+                            {currentUser.name?.[0] || 'U'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-gray-900 text-sm">{currentUser.name}</div>
+                          <div className="text-xs text-gray-500">Connecté</div>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full text-left"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        <span>Déconnexion</span>
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link 
+                        to="/login" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <User className="w-5 h-5" />
+                        <span>Connexion</span>
+                      </Link>
+                      <Link 
+                        to="/signup" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      >
+                        <span>S'inscrire</span>
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          </DrawerContent>
+        </Drawer>
+
+        {/* Drawer sous-menu */}
+        <Drawer open={isSubMenuOpen} onOpenChange={setIsSubMenuOpen}>
+          <DrawerContent className="h-[95vh] top-0 mt-0 transition-none">
+            <DrawerHeader className="text-left">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={goBackToMainMenu}
+                  className="p-1 rounded-lg hover:bg-gray-100"
+                >
+                  <ChevronLeft className="w-6 h-6 text-gray-600" />
+                </button>
+                {currentSubMenu && (
+                  <DrawerTitle className="text-xl font-bold">{currentSubMenu.title}</DrawerTitle>
+                )}
+              </div>
+            </DrawerHeader>
+            <div className="px-4 overflow-y-auto">
+              <div className="space-y-2">
+                {currentSubMenu?.items.map((item: any, index: number) => (
+                  <button
+                    key={index}
+                    onClick={() => navigateAndClose(item.link)}
+                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
       </header>
 
 
