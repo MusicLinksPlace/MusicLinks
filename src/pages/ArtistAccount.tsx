@@ -1,34 +1,28 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
-import { Loader2, Upload, Trash2, PlusCircle } from 'lucide-react';
+import AccountTabs from '@/components/profile/AccountTabs';
+import ConversationList from '@/components/profile/ConversationList';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { LocationFilter } from '@/components/ui/LocationFilter';
+import ImageCropper from '@/components/ui/ImageCropper';
+import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { MUSIC_STYLES } from '@/lib/constants';
 import UserProfileHeader from '@/components/profile/UserProfileHeader';
 import UserAboutSection from '@/components/profile/UserAboutSection';
 import UserTags from '@/components/profile/UserTags';
 import SocialLinks from '@/components/profile/SocialLinks';
 import UserPortfolio from '@/components/profile/UserPortfolio';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { LocationFilter } from '@/components/ui/LocationFilter';
-import AccountTabs from '@/components/profile/AccountTabs';
-import ConversationList from '@/components/profile/ConversationList';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
-import ImageCropper from '@/components/ui/ImageCropper';
 
 interface UserProfileData {
   id: string;
@@ -58,15 +52,15 @@ const ArtistAccount = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isLocationOpen, setIsLocationOpen] = useState(false);
-  const [formData, setFormData] = useState<Partial<UserProfileData>>({});
-  const [filesToUpload, setFilesToUpload] = useState<{ [key: string]: File }>({});
-  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
   const [showCropper, setShowCropper] = useState(false);
   const [cropperConfig, setCropperConfig] = useState<{
     file: File;
     type: 'profile' | 'gallery';
     index?: number;
   } | null>(null);
+  const [formData, setFormData] = useState<UserProfileData | null>(null);
+  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -121,100 +115,48 @@ const ArtistAccount = () => {
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.id) return;
+    console.log('[SUBMIT] Form submitted');
+    console.log('[SUBMIT] formData.id:', formData?.id);
+    
+    if (!formData?.id) {
+      console.log('[SUBMIT] No formData.id, returning');
+      return;
+    }
+    
     setIsSaving(true);
     try {
       const formUpdates = { ...formData };
-      console.log('[UPLOAD] Starting upload process...');
-      console.log('[UPLOAD] Files to upload:', Object.keys(filesToUpload));
-      
-      // Upload files
-      for (const key in filesToUpload) {
-        const file = filesToUpload[key];
-        console.log(`[UPLOAD] Processing file: ${key}`, file);
-        
-        let bucket: string;
-        let filePath: string;
-        
-        // Déterminer le bucket selon le type de fichier
-        if (key === 'galleryVideo_file') {
-          bucket = 'user-videos';
-          const fileExt = file.name.split('.').pop();
-          filePath = `video_${formData.id}_${Date.now()}.${fileExt}`;
-        } else {
-          bucket = 'avatars';
-          const isGalleryUpload = key.startsWith('gallery_file_');
-          
-          // Sanitize filename to remove spaces and special characters
-          const sanitizedFileName = file.name
-            .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
-            .replace(/_+/g, '_') // Replace multiple underscores with single
-            .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
-          
-          filePath = isGalleryUpload 
-            ? `gallery/${formData.id}/${Date.now()}_${sanitizedFileName}`
-            : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
-        }
-        
-        console.log(`[UPLOAD] Uploading to bucket: ${bucket}, path: ${filePath}`);
-        
-        const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: true,
-        });
-        
-        if (uploadError) {
-          console.error(`[UPLOAD] Upload error for ${key}:`, uploadError);
-          throw new Error(`Erreur d'upload (${key}): ${uploadError.message}`);
-        }
-        
-        console.log(`[UPLOAD] Upload successful for ${key}`);
-        
-        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
-        console.log(`[UPLOAD] Public URL for ${key}:`, publicUrl);
-        
-        // Mettre à jour les données selon le type de fichier
-        if (key === 'galleryVideo_file') {
-          formUpdates.galleryVideo = publicUrl;
-          console.log('[UPLOAD] Updated galleryVideo with URL:', publicUrl);
-          console.log('[UPLOAD] formUpdates.galleryVideo after update:', formUpdates.galleryVideo);
-        } else if (key.startsWith('gallery_file_')) {
-          const index = parseInt(key.split('_')[2]);
-          if (!formUpdates.galleryimages) formUpdates.galleryimages = [];
-          formUpdates.galleryimages[index] = publicUrl;
-          console.log(`[UPLOAD] Updated galleryimages[${index}] with URL`);
-        } else {
-          formUpdates.profilepicture = publicUrl;
-          console.log('[UPLOAD] Updated profilepicture with URL');
-        }
-      }
-      
-      console.log('[UPLOAD] All files uploaded, updating database...');
+      console.log('[SUBMIT] Starting form update...');
       
       // Clean up data for submission - garder galleryVideo
       const { id, createdat, email, role, verified, disabled, ...updateData } = formUpdates;
-      console.log('[UPLOAD] Data to update in DB:', updateData);
-      console.log('[UPLOAD] galleryVideo in updateData:', updateData.galleryVideo);
+      console.log('[SUBMIT] Data to update in DB:', updateData);
+      console.log('[SUBMIT] galleryVideo in updateData:', updateData.galleryVideo);
       
       // Update the user profile in the DB
+      console.log('[DB UPDATE] Starting database update...');
+      console.log('[DB UPDATE] User ID:', id);
+      console.log('[DB UPDATE] Update data:', updateData);
+      
       const { data: updatedUser, error: updateError } = await supabase
         .from('User')
         .update(updateData)
         .eq('id', id)
         .select()
         .single();
-        
+
       if (updateError) {
-        console.error('[UPLOAD] Database update error:', updateError);
+        console.error('[DB UPDATE] Database update error:', updateError);
         throw updateError;
       }
       
-      console.log('[UPLOAD] Database updated successfully');
+      console.log('[DB UPDATE] Database updated successfully');
+      console.log('[DB UPDATE] Updated user data:', updatedUser);
+      console.log('[DB UPDATE] galleryVideo in updated user:', updatedUser?.galleryVideo);
       
       setFormData(updatedUser);
       localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
       window.dispatchEvent(new Event('auth-change'));
-      setFilesToUpload({});
       toast({ title: "Profil mis à jour !", description: "Vos modifications ont été enregistrées." });
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -225,18 +167,18 @@ const ArtistAccount = () => {
   };
 
   const handleSocialLinkChange = (index: number, value: string) => {
-    const newLinks = [...(formData.social_links || [])];
+    const newLinks = [...(formData?.social_links || [])];
     newLinks[index] = value;
     setFormData(prev => ({ ...prev, social_links: newLinks }));
   };
 
   const addSocialLink = () => {
-    const newLinks = [...(formData.social_links || []), ''];
+    const newLinks = [...(formData?.social_links || []), ''];
     setFormData(prev => ({ ...prev, social_links: newLinks }));
   };
 
   const removeSocialLink = (index: number) => {
-    const newLinks = formData.social_links?.filter((_, i) => i !== index);
+    const newLinks = formData?.social_links?.filter((_, i) => i !== index);
     setFormData(prev => ({ ...prev, social_links: newLinks }));
   };
 
@@ -255,21 +197,17 @@ const ArtistAccount = () => {
     // Si c'est une vidéo, utiliser le bucket user-videos
     if (file.type.startsWith('video/')) {
       console.log('[FILE CHANGE] Video detected, setting galleryVideo_file');
-      setFilesToUpload(prev => {
-        const newFiles = { ...prev, galleryVideo_file: file };
-        console.log('[FILE CHANGE] Updated filesToUpload:', Object.keys(newFiles));
-        return newFiles;
-      });
+      setFormData(prev => ({ ...prev, galleryVideo_file: file }));
       return;
     }
 
     // Pour les images, utiliser le bucket avatars
     if (galleryIndex !== undefined) {
       console.log('[FILE CHANGE] Gallery image detected, setting gallery_file_' + galleryIndex);
-      setFilesToUpload(prev => ({ ...prev, [`gallery_file_${galleryIndex}`]: file }));
+      setFormData(prev => ({ ...prev, [`gallery_file_${galleryIndex}`]: file }));
     } else {
       console.log('[FILE CHANGE] Profile picture detected');
-      setFilesToUpload(prev => ({ ...prev, profilepicture_file: file }));
+      setFormData(prev => ({ ...prev, profilepicture_file: file }));
     }
   };
 
@@ -291,7 +229,7 @@ const ArtistAccount = () => {
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string;
       if (cropperConfig.type === 'gallery' && cropperConfig.index !== undefined) {
-        const newGallery = [...(formData.galleryimages || [])];
+        const newGallery = [...(formData?.galleryimages || [])];
         newGallery[cropperConfig.index] = imageUrl;
         setFormData((prev: any) => ({ ...prev, galleryimages: newGallery }));
       } else {
@@ -319,7 +257,7 @@ const ArtistAccount = () => {
           .replace(/_+/g, '_')
           .replace(/^_|_$/g, '');
         
-        const filePath = `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        const filePath = `${formData?.id}/${Date.now()}_${sanitizedFileName}`;
         
         console.log(`[UPLOAD PROFILE] Uploading to bucket: ${bucket}, path: ${filePath}`);
         
@@ -342,7 +280,7 @@ const ArtistAccount = () => {
         const { data: updatedUser, error: updateError } = await supabase
           .from('User')
           .update({ profilepicture: publicUrl })
-          .eq('id', formData.id)
+          .eq('id', formData?.id)
           .select()
           .single();
           
@@ -367,7 +305,7 @@ const ArtistAccount = () => {
       }
     } else {
       // Pour les images de galerie, ajouter au filesToUpload pour sauvegarde lors du submit
-      setFilesToUpload(prev => ({ ...prev, [key]: croppedFile }));
+      setFormData(prev => ({ ...prev, [key]: croppedFile }));
     }
   };
 
@@ -376,19 +314,118 @@ const ArtistAccount = () => {
     setCropperConfig(null);
   };
 
+  const handleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    console.log('[VIDEO CHANGE] File selected:', file);
+    console.log('[VIDEO CHANGE] File type:', file?.type);
+    console.log('[VIDEO CHANGE] File name:', file?.name);
+    console.log('[VIDEO CHANGE] File size:', file?.size);
+    console.log('[VIDEO CHANGE] User ID:', formData?.id);
+    
+    if (!file) {
+      console.log('[VIDEO CHANGE] No file selected');
+      return;
+    }
+
+    if (!file.type.startsWith('video/')) {
+      console.log('[VIDEO CHANGE] Not a video file');
+      toast({ title: "Erreur", description: "Veuillez sélectionner un fichier vidéo", variant: "destructive" });
+      return;
+    }
+
+    if (!formData?.id) {
+      console.log('[VIDEO CHANGE] No user ID available');
+      toast({ title: "Erreur", description: "ID utilisateur non disponible", variant: "destructive" });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      console.log('[VIDEO UPLOAD] Starting video upload...');
+      
+      // Utiliser le bucket 'user-videos'
+      const bucket = 'user-videos';
+      
+      // Créer le nom de fichier
+      const fileExt = file.name.split('.').pop();
+      const filePath = `video_${formData?.id}_${Date.now()}.${fileExt}`;
+      
+      console.log(`[VIDEO UPLOAD] Uploading to bucket: ${bucket}, path: ${filePath}`);
+      console.log(`[VIDEO UPLOAD] File size: ${file.size} bytes`);
+      
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+      });
+      
+      if (uploadError) {
+        console.error('[VIDEO UPLOAD] Upload error:', uploadError);
+        throw new Error(`Erreur d'upload: ${uploadError.message}`);
+      }
+      
+      console.log('[VIDEO UPLOAD] Upload to bucket successful');
+      
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      console.log('[VIDEO UPLOAD] Public URL:', publicUrl);
+      
+      // Mettre à jour la base de données
+      console.log('[VIDEO DB UPDATE] Starting database update...');
+      console.log('[VIDEO DB UPDATE] User ID:', formData?.id);
+      console.log('[VIDEO DB UPDATE] Video URL to save:', publicUrl);
+      
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('User')
+        .update({ galleryVideo: publicUrl })
+        .eq('id', formData?.id)
+        .select()
+        .single();
+        
+      if (updateError) {
+        console.error('[VIDEO DB UPDATE] Database update error:', updateError);
+        throw updateError;
+      }
+      
+      console.log('[VIDEO DB UPDATE] Database updated successfully');
+      console.log('[VIDEO DB UPDATE] Updated user data:', updatedUser);
+      console.log('[VIDEO DB UPDATE] galleryVideo in updated user:', updatedUser?.galleryVideo);
+      
+      // Vérifier que la mise à jour a bien eu lieu
+      if (updatedUser?.galleryVideo !== publicUrl) {
+        console.error('[VIDEO DB UPDATE] galleryVideo not properly updated!');
+        console.error('[VIDEO DB UPDATE] Expected:', publicUrl);
+        console.error('[VIDEO DB UPDATE] Got:', updatedUser?.galleryVideo);
+        throw new Error('La mise à jour de la base de données a échoué');
+      }
+      
+      console.log('[VIDEO DB UPDATE] Video URL successfully saved to database');
+      
+      // Mettre à jour le state et le localStorage
+      setFormData(updatedUser);
+      localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('auth-change'));
+      
+      toast({ title: "Vidéo mise à jour !", description: "Votre vidéo a été sauvegardée." });
+    } catch (error: any) {
+      console.error("[VIDEO UPLOAD] Error uploading video:", error);
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const locationTrigger = (
      <Button 
         type="button"
         variant="outline" 
         className="w-full justify-start text-left font-normal"
     >
-        {formData.location || "Sélectionnez votre localisation"}
+        {formData?.location || "Sélectionnez votre localisation"}
     </Button>
   );
 
   const locationContent = (
     <LocationFilter 
-        selectedLocation={formData.location || null}
+        selectedLocation={formData?.location || null}
         onLocationChange={handleLocationSelect}
     />
   );
@@ -513,7 +550,7 @@ const ArtistAccount = () => {
                   </div>
                   {/* Gallery Images */}
                   <div className="space-y-2">
-                    <Label>Images de la galerie (utilisées dans le carrousel)</Label>
+                    <Label>Images de présentation</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {[0, 1, 2, 3].map(index => (
                         <div key={index} className="space-y-2">
@@ -550,37 +587,44 @@ const ArtistAccount = () => {
                         name="galleryVideo_file" 
                         type="file" 
                         accept="video/*"
-                        onChange={handleFileChange} 
+                        onChange={handleVideoChange} 
                         className="max-w-xs"
+                        disabled={isSaving}
                       />
                     </div>
                     <p className="text-sm text-gray-500">Ajoutez une vidéo de présentation pour votre profil</p>
+                    {isSaving && (
+                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Upload en cours...
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* --- Social Links --- */}
                 {(formData.social_links && formData.social_links.length > 0) && (
-                  <div className="space-y-4">
-                    <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
                     {formData.social_links.map((link, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <Input 
-                          value={link || ''} 
-                          onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                          placeholder="https://soundcloud.com/artiste"
-                        />
-                        <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
-                          <Trash2 className="h-4 w-4 text-red-500"/>
-                        </Button>
-                      </div>
-                    ))}
-                    {formData.social_links.length < 5 && (
-                      <Button variant="outline" size="sm" onClick={addSocialLink} type="button">
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Ajouter un lien
+                    <div key={index} className="flex items-center gap-2">
+                      <Input 
+                        value={link || ''} 
+                        onChange={(e) => handleSocialLinkChange(index, e.target.value)}
+                        placeholder="https://soundcloud.com/artiste"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
+                        <Trash2 className="h-4 w-4 text-red-500"/>
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  ))}
+                    {formData.social_links.length < 5 && (
+                    <Button variant="outline" size="sm" onClick={addSocialLink} type="button">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Ajouter un lien
+                    </Button>
+                  )}
+                </div>
                 )}
 
                 <div className="mt-4 flex justify-end">
