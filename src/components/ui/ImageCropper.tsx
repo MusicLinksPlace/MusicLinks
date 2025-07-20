@@ -22,6 +22,7 @@ export default function ImageCropper({
   const [isProcessing, setIsProcessing] = useState(false);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [aspectRatio, setAspectRatio] = useState<'square' | 'card' | 'free'>('square');
 
   const imageUrl = URL.createObjectURL(imageFile);
 
@@ -98,6 +99,19 @@ export default function ImageCropper({
       alert('Erreur lors du recadrage de l\'image');
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const getAspectRatio = () => {
+    switch (aspectRatio) {
+      case 'square':
+        return 1;
+      case 'card':
+        return 16 / 9; // Ratio pour les cartes
+      case 'free':
+        return undefined;
+      default:
+        return 1;
     }
   };
 
@@ -181,7 +195,7 @@ export default function ImageCropper({
                 crop={crop}
                 zoom={zoom}
                 rotation={rotation}
-                aspect={1}
+                aspect={getAspectRatio()}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={handleCropComplete}
@@ -211,11 +225,52 @@ export default function ImageCropper({
               </p>
             </div>
 
+            {/* Sélecteur de ratio */}
+            <div className="mt-4 flex justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAspectRatio('square')}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  aspectRatio === 'square'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Carré (Profil)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAspectRatio('card')}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  aspectRatio === 'card'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Carte (16:9)
+              </button>
+              <button
+                type="button"
+                onClick={() => setAspectRatio('free')}
+                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  aspectRatio === 'free'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Libre
+              </button>
+            </div>
+
             {/* Preview */}
             {croppedAreaPixels && (
               <div className="mt-6 text-center">
                 <h3 className="text-sm font-medium text-gray-900 mb-3">Aperçu</h3>
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 mx-auto">
+                <div className={`overflow-hidden border-2 border-gray-200 mx-auto ${
+                  aspectRatio === 'square' ? 'w-16 h-16 rounded-full' : 
+                  aspectRatio === 'card' ? 'w-24 h-14 rounded-lg' : 
+                  'w-20 h-16 rounded-lg'
+                }`}>
                   <img
                     src={imageUrl}
                     alt="Preview"

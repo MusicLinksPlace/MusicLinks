@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import { 
   MessageCircle, 
   Play, 
+  PlayCircle,
   Heart, 
   Share2, 
   Star, 
@@ -19,194 +20,346 @@ import {
   Phone,
   Mail,
   ExternalLink,
-  Users
+  Users,
+  X,
+  Image,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
 import ContactButton from '@/components/ContactButton';
+import ShareProfile from '@/components/ui/ShareProfile';
+import { useLikes } from '@/hooks/use-likes';
 import ModernLoader, { ModernSkeleton } from '@/components/ui/ModernLoader';
 import OptimizedImage from '@/components/ui/OptimizedImage';
+import VideoThumbnail from '@/components/ui/VideoThumbnail';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
+import ServicesSection from '@/components/profile/ServicesSection';
 
-// Composant de galerie moderne pour desktop/mobile
+// Composant de galerie moderne et fluide
 const ModernGallery = ({ video, images }: { video?: string, images?: string[] }) => {
   const [current, setCurrent] = useState(0);
+  const [showCarousel, setShowCarousel] = useState(false);
+  const [showVideoModal, setShowVideoModal] = useState(false);
   
-  const slides = [
-    ...(video ? [{ type: 'video', url: video }] : []),
-    ...(images ? images.map(url => ({ type: 'image', url })) : [])
-  ];
+  // Seulement les images dans la galerie
+  const imageSlides = images ? images.map(url => ({ type: 'image', url })) : [];
   
-  if (slides.length === 0) return null;
+  if (imageSlides.length === 0 && !video) return null;
 
-  const nextSlide = () => setCurrent((current + 1) % slides.length);
-  const prevSlide = () => setCurrent((current - 1 + slides.length) % slides.length);
+  const nextSlide = () => setCurrent((current + 1) % imageSlides.length);
+  const prevSlide = () => setCurrent((current - 1 + imageSlides.length) % imageSlides.length);
 
-  // Desktop: grille de photos comme dans l'exemple
-  if (slides.length > 1) {
-    return (
+  // Gestion du scroll du body quand le modal est ouvert
+  useEffect(() => {
+    if (showCarousel || showVideoModal) {
+      document.body.style.overflow = 'hidden';
+      // Scroll automatique vers le haut quand on ouvre le modal
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showCarousel, showVideoModal]);
+
+  return (
+    <>
+      {/* Desktop: galerie fluide avec grille responsive */}
       <div className="hidden md:block">
         <div className="grid grid-cols-3 gap-4">
-          {/* Photo principale - plus grande */}
-          <div className="col-span-2 aspect-[4/3] bg-gray-900 rounded-2xl overflow-hidden relative">
-            {slides[current].type === 'video' ? (
-              <video 
-                controls 
-                poster={images && images[0]} 
-                className="w-full h-full object-cover"
-              >
-                <source src={slides[current].url} />
-                Votre navigateur ne supporte pas la vidéo.
-              </video>
-            ) : (
+          {/* Grande image à gauche */}
+          <div 
+            className="col-span-2 aspect-square bg-white rounded-2xl overflow-hidden relative cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 group"
+            onClick={() => setShowCarousel(true)}
+          >
+            <div className="w-full h-full flex items-center justify-center">
               <OptimizedImage
-                src={slides[current].url}
+                src={imageSlides[current]?.url}
                 alt="media"
-                className="w-full h-full object-cover"
-                fallback="/placeholder.svg"
+                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
               />
-            )}
-            
-            {/* Overlay pour vidéo */}
-            {slides[current].type === 'video' && (
-              <div className="absolute bottom-4 left-4 bg-white/90 rounded-full p-2">
-                <Play className="w-6 h-6 text-gray-800" />
-              </div>
-            )}
-
-            {/* Navigation */}
-            <button 
-              onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 transition-all"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 transition-all"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            </div>
           </div>
 
-          {/* Miniatures en colonne */}
+          {/* Deux petites images à droite */}
           <div className="space-y-4">
-            {slides.slice(0, 3).map((slide, i) => (
-              <button
+            {imageSlides.slice(0, 2).map((slide, i) => (
+              <div
                 key={i}
-                onClick={() => setCurrent(i)}
-                className={`w-full aspect-[4/3] rounded-2xl overflow-hidden border-2 transition-all ${
-                  i === current ? 'border-gray-800' : 'border-transparent'
-                }`}
+                className="w-full aspect-square bg-white rounded-2xl overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 group"
+                onClick={() => setShowCarousel(true)}
               >
-                {slide.type === 'video' ? (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <Play className="w-5 h-5 text-gray-600" />
-                  </div>
-                ) : (
-                  <OptimizedImage
-                    src={slide.url}
-                    alt="miniature"
-                    className="w-full h-full object-cover"
-                    fallback="/placeholder.svg"
-                  />
-                )}
-              </button>
+                <div className="w-full h-full flex items-center justify-center">
+                                          <OptimizedImage
+                          src={slide.url}
+                          alt="miniature"
+                          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+                          fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
+                        />
+                </div>
+              </div>
             ))}
           </div>
         </div>
         
-        {/* Image du bas qui span toute la largeur */}
-        {slides.length > 4 && (
-          <div className="mt-4 aspect-[3/1] bg-gray-900 rounded-2xl overflow-hidden relative">
+        {/* Section "Autres contenus" - UI moderne */}
+        {(imageSlides.length > 2 || video) && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium text-gray-600 mb-4">Autres contenus</h3>
+            
+            <div className="flex gap-3">
+              {/* Bouton "Voir toutes les images" */}
+              {imageSlides.length > 2 && (
+                <button 
+                  onClick={() => setShowCarousel(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 hover:scale-105 shadow-sm"
+                >
+                  <Image className="w-4 h-4" />
+                  <span className="text-sm font-medium">Voir toutes les images</span>
+                </button>
+              )}
+
+              {/* Bouton "Voir les vidéos" */}
+              {video && (
+                <button 
+                  onClick={() => setShowVideoModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:from-violet-600 hover:to-purple-700 font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  <span className="text-sm">Voir les vidéos</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Mobile: galerie fluide */}
+      <div className="md:hidden">
+        <div 
+          className="relative aspect-square bg-white rounded-2xl overflow-hidden cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 group"
+          onClick={() => setShowCarousel(true)}
+        >
+          <div className="w-full h-full flex items-center justify-center">
             <OptimizedImage
-              src={slides[4].url}
+              src={imageSlides[current]?.url}
               alt="media"
-              className="w-full h-full object-cover"
-              fallback="/placeholder.svg"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+              fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
             />
-            {/* Boutons de navigation */}
-            <div className="absolute bottom-4 right-4 flex gap-2">
-              <button className="bg-white/90 text-gray-800 px-4 py-2 rounded-full text-sm font-medium">
-                Voir Vidéos {slides.filter(s => s.type === 'video').length}
+          </div>
+
+          {/* Navigation mobile */}
+          {imageSlides.length > 1 && (
+            <>
+              <button 
+                onClick={prevSlide}
+                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all z-10"
+              >
+                <ChevronLeft className="w-5 h-5" />
               </button>
-              <button className="bg-white/90 text-gray-800 px-4 py-2 rounded-full text-sm font-medium">
-                Voir Photos {slides.filter(s => s.type === 'image').length}
+              <button 
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all z-10"
+              >
+                <ChevronRight className="w-5 h-5" />
               </button>
+            </>
+          )}
+
+          {/* Indicateurs mobile */}
+          {imageSlides.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+              {imageSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrent(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    i === current ? 'bg-violet-500' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Section "Autres contenus" mobile */}
+        {(imageSlides.length > 2 || video) && (
+          <div className="mt-6">
+            <h3 className="text-sm font-medium text-gray-600 mb-3">Autres contenus</h3>
+            
+            <div className="flex flex-col gap-2">
+              {imageSlides.length > 2 && (
+                <button 
+                  onClick={() => setShowCarousel(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                >
+                  <Image className="w-4 h-4" />
+                  <span className="text-sm font-medium">Voir toutes les images</span>
+                </button>
+              )}
+
+              {video && (
+                <button 
+                  onClick={() => setShowVideoModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:from-violet-600 hover:to-purple-700 font-medium transition-all duration-200 hover:scale-105 shadow-lg"
+                >
+                  <PlayCircle className="w-4 h-4" />
+                  <span className="text-sm">Voir les vidéos</span>
+                </button>
+              )}
             </div>
           </div>
         )}
       </div>
-    );
-  }
-
-  // Mobile: slider simple
-  return (
-    <div className="md:hidden">
-      <div className="relative aspect-[4/3] bg-gray-900 rounded-2xl overflow-hidden">
-        {slides[current].type === 'video' ? (
-          <video 
-            controls 
-            poster={images && images[0]} 
-            className="w-full h-full object-cover"
+      
+      {/* Carrousel Modal - IDENTIQUE POUR IMAGES ET VIDÉOS */}
+      {showCarousel && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-[9999] flex items-start justify-center pt-20 p-4 animate-in fade-in duration-300"
+          onClick={() => setShowCarousel(false)}
+        >
+          <div 
+            className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
           >
-            <source src={slides[current].url} />
-            Votre navigateur ne supporte pas la vidéo.
-          </video>
-        ) : (
-          <OptimizedImage
-            src={slides[current].url}
-            alt="media"
-            className="w-full h-full object-cover"
-            fallback="/placeholder.svg"
-          />
-        )}
-        
-        {/* Overlay pour vidéo */}
-        {slides[current].type === 'video' && (
-          <div className="absolute inset-0 bg-black/20 flex items-center justify-center pointer-events-none">
-            <div className="bg-white/90 rounded-full p-4">
-              <Play className="w-8 h-8 text-gray-800" />
+            {/* Bouton fermer en haut */}
+            <div className="absolute top-4 right-4 z-20">
+              <button 
+                onClick={() => setShowCarousel(false)}
+                className="bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Contenu principal - RESPECTE LES FORMATS */}
+            <div className="relative bg-white rounded-t-2xl overflow-hidden p-6">
+              <div className="w-full max-w-lg mx-auto flex items-center justify-center">
+                <OptimizedImage
+                  src={imageSlides[current]?.url}
+                  alt="media"
+                  className="max-w-full max-h-[50vh] object-contain object-center"
+                  fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
+                />
+              </div>
+
+              {/* Navigation */}
+              {imageSlides.length > 1 && (
+                <>
+                  <button 
+                    onClick={prevSlide}
+                    className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all z-20"
+                  >
+                    <ChevronLeft className="w-6 h-6 text-gray-800" />
+                  </button>
+                  <button 
+                    onClick={nextSlide}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-lg rounded-full p-3 transition-all z-20"
+                  >
+                    <ChevronRight className="w-6 h-6 text-gray-800" />
+                  </button>
+                </>
+              )}
+
+              {/* Indicateur de position */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-10">
+                {current + 1} / {imageSlides.length}
+              </div>
+            </div>
+
+            {/* Miniatures en bas - BOÎTES CARRÉES */}
+            {imageSlides.length > 1 && (
+              <div className="p-4 rounded-b-2xl">
+                <div className="flex gap-3 justify-center">
+                  {imageSlides.map((slide, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrent(i)}
+                      className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 bg-white shadow-sm ${
+                        i === current ? 'border-gray-300' : 'border-gray-200'
+                      }`}
+                    >
+                      <div className="w-full h-full flex items-center justify-center">
+                        <OptimizedImage
+                          src={slide.url}
+                          alt="miniature"
+                          className="w-full h-full object-contain object-center"
+                          fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
+                        />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal Vidéo - PETIT ET EN HAUT */}
+      {showVideoModal && video && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-[9999] flex items-start justify-center pt-20 p-4 animate-in fade-in duration-300"
+          onClick={() => setShowVideoModal(false)}
+        >
+          <div 
+            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Bouton fermer en haut */}
+            <div className="absolute top-2 right-2 z-20">
+              <button 
+                onClick={() => setShowVideoModal(false)}
+                className="bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70 transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Vidéo principale - PETITE ET COMPACTE */}
+            <div className="relative bg-white rounded-t-2xl overflow-hidden p-3">
+              <div className="w-full flex items-center justify-center">
+                <VideoPlayer
+                  videoUrl={video}
+                  className="w-full max-w-full"
+                  showControls={true}
+                />
+              </div>
+
+              {/* Indicateur de position */}
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 text-white px-2 py-0.5 rounded-full text-xs z-10">
+                1 / 1
+              </div>
+            </div>
+
+            {/* Miniatures en bas - PETITES */}
+            <div className="p-3 rounded-b-2xl">
+              <div className="flex gap-2 justify-center">
+                <button
+                  className="w-12 h-12 rounded-lg overflow-hidden border-2 border-gray-300 transition-all flex-shrink-0 bg-white shadow-sm"
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    <VideoThumbnail
+                      videoUrl={video}
+                      className="w-full h-full"
+                      showPlayButton={true}
+                    />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Navigation mobile */}
-        {slides.length > 1 && (
-          <>
-            <button 
-              onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 transition-all"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button 
-              onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow-lg rounded-full p-2 transition-all"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </>
-        )}
-
-        {/* Indicateurs mobile */}
-        {slides.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-            {slides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  i === current ? 'bg-white' : 'bg-white/50'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -227,28 +380,22 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
   return (
     <div className="md:hidden relative">
       {/* Image/Vidéo principale plein écran */}
-      <div className="relative w-full aspect-[4/3] bg-gray-900">
+      <div className="relative w-full bg-white rounded-2xl overflow-hidden">
         {slides[current].type === 'video' ? (
-          <video 
-            controls 
-            poster={images && images[0]} 
-            className="w-full h-full object-cover"
-          >
-            <source src={slides[current].url} />
-            Votre navigateur ne supporte pas la vidéo.
-          </video>
+          <div className="w-full flex items-center justify-center bg-white">
+            <VideoPlayer
+              videoUrl={slides[current].url}
+              poster={images && images[0]}
+              className="w-full max-w-full"
+            />
+          </div>
         ) : (
-          <img 
-            src={slides[current].url} 
-            alt="media" 
-            className="w-full h-full object-cover"
-          />
-        )}
-        
-        {/* Overlay pour vidéo */}
-        {slides[current].type === 'video' && (
-          <div className="absolute bottom-4 left-4 bg-white/90 rounded-full p-2">
-            <Play className="w-6 h-6 text-gray-800" />
+          <div className="w-full aspect-square flex items-center justify-center">
+            <img 
+              src={slides[current].url} 
+              alt="media" 
+              className="w-full h-full object-contain object-center"
+            />
           </div>
         )}
 
@@ -257,13 +404,13 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
           <>
             <button 
               onClick={prevSlide}
-              className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all"
+              className="absolute left-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all z-10"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button 
               onClick={nextSlide}
-              className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all"
+              className="absolute right-6 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all z-10"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -281,110 +428,118 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
   );
 };
 
-// En-tête de profil moderne sans banner bleu
+// En-tête de profil moderne et sobre
 const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
-  const [isFavorite, setIsFavorite] = useState(false);
-  
+  const { isLiked, toggleLike, loading: likeLoading, likeCount } = useLikes(user?.id);
+
+  // Calcul de la date d'inscription
+  const getMemberSince = (createdAt?: string) => {
+    if (!createdAt) return '';
+    const date = new Date(createdAt);
+    const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+    return `Membre depuis ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
   return (
-    <div className="relative">
-      {/* Navigation mobile */}
-      <div className="md:hidden absolute top-4 left-4 right-4 flex justify-between items-center z-10">
+    <div className="bg-white border-b border-gray-100">
+      {/* Navigation et actions */}
+      <div className="flex items-center justify-between p-4 md:p-6">
         <button 
           onClick={() => window.history.back()}
-          className="bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
+        
         <div className="flex gap-2">
           <button 
-            onClick={() => setIsFavorite(!isFavorite)}
-            className="bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all"
+            onClick={() => toggleLike(user.id)}
+            disabled={likeLoading}
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50 relative"
           >
-            <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+            <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+            {likeCount > 0 && (
+              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                {likeCount > 99 ? '99+' : likeCount}
+              </div>
+            )}
           </button>
-          <button className="bg-black/30 text-white p-2 rounded-full hover:bg-black/50 transition-all">
-            <Share2 className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* Contenu principal - design moderne */}
-      <div className="bg-white px-6 pt-6 pb-8">
-        {/* Photo de profil et infos de base */}
-        <div className="flex items-start gap-6 mb-8">
-          <img 
-            src={getImageUrlWithCacheBust(user.profilepicture)} 
-            alt={user.name} 
-            className="w-24 h-24 rounded-2xl object-cover border border-gray-200"
+          <ShareProfile
+            userId={user.id}
+            userName={user.name}
+            variant="ghost"
+            size="sm"
+            className="p-2 rounded-full hover:bg-gray-100"
           />
-          
-          <div className="flex-1">
-            {/* Nom et note */}
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  {user.name}
-                </h1>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    {[1,2,3,4,5].map((star) => (
-                      <Star 
-                        key={star} 
-                        className={`w-5 h-5 ${
-                          star <= (rating || 0) ? 'text-gray-900 fill-current' : 'text-gray-300'
-                        }`} 
-                      />
-                    ))}
-                    <span className="font-semibold text-lg ml-1">
-                      {typeof rating === 'number' ? rating.toFixed(1) : '—'}
-                    </span>
-                    <span className="text-gray-600">Excellent</span>
+        </div>
+      </div>
+
+      {/* Carte profil compacte */}
+      <div className="px-4 md:px-6 pb-6">
+        <div className="bg-white rounded-2xl p-6 md:p-8 border border-gray-100 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            {/* Photo de profil */}
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <img 
+                  src={getImageUrlWithCacheBust(user.profilepicture)} 
+                  alt={user.name}
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                />
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white"></div>
+              </div>
+            </div>
+
+            {/* Informations principales */}
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  {/* Nom et note */}
+                  <div className="flex items-center gap-3 mb-2">
+                    <h1 className="text-2xl md:text-3xl font-light text-gray-900 truncate">{user.name}</h1>
+                    {rating && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-amber-50 rounded-full border border-amber-200">
+                        <Star className="w-3 h-3 text-amber-400 fill-current" />
+                        <span className="text-sm font-medium text-amber-700">{rating.toFixed(1)}</span>
+                        <span className="text-xs text-amber-600">({reviewCount || 0})</span>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-gray-900 font-medium">
-                    {reviewCount} avis
-                  </span>
+
+                  {/* Localisation et membre depuis */}
+                  <div className="flex items-center gap-4 text-sm text-gray-600 mb-4">
+                    {user.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>{user.location}</span>
+                      </div>
+                    )}
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-4 h-4" />
+                      <span>{getMemberSince(user.createdat)}</span>
+                    </div>
+                  </div>
+
+                  {/* Tarif */}
+                  {user.price && (
+                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-4">
+                      <Euro className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-700">À partir de {user.price}€</span>
+                    </div>
+                  )}
                 </div>
-              </div>
-              
-              {/* Boutons d'action */}
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => setIsFavorite(!isFavorite)}
-                  className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-all"
-                >
-                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-                </button>
-                <button className="p-2 rounded-full border border-gray-200 hover:bg-gray-50 transition-all">
-                  <Share2 className="w-5 h-5 text-gray-600" />
-                </button>
+
+                {/* Bouton de contact */}
+                <div className="flex-shrink-0">
+                  <ContactButton 
+                    userId={user.id} 
+                    userName={user.name} 
+                    size="lg"
+                    className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                  />
+                </div>
               </div>
             </div>
-
-            {/* Localisation */}
-            {user.location && (
-              <div className="flex items-center gap-2 text-gray-600 mb-4">
-                <MapPin className="w-4 h-4" />
-                <span className="text-lg">{user.location}</span>
-              </div>
-            )}
-
-            {/* Tarif */}
-            {user.price && (
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center gap-1 text-xl font-semibold text-gray-900">
-                  <Euro className="w-5 h-5" />
-                  Tarif à partir de {user.price}€
-                </div>
-              </div>
-            )}
-
-            {/* Bouton de contact */}
-            <ContactButton 
-              userId={user.id} 
-              userName={user.name} 
-              size="lg"
-              className="bg-gray-900 hover:bg-gray-800 text-white font-semibold px-8"
-            />
           </div>
         </div>
       </div>
@@ -392,91 +547,36 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
   );
 };
 
-// En-tête mobile style Mariages.net
-const MobileProfileHeader = ({ user, rating, reviewCount }: any) => {
-  const [isFavorite, setIsFavorite] = useState(false);
-  
-  return (
-    <div className="md:hidden bg-white">
-      {/* Section nom et note */}
-      <div className="px-4 py-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-3">
-          {user.name}
-        </h1>
-        
-        {/* Note et avis */}
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex items-center gap-1">
-            {[1,2,3,4,5].map((star) => (
-              <Star 
-                key={star} 
-                className={`w-5 h-5 ${
-                  star <= (rating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                }`} 
-              />
-            ))}
-            <span className="font-semibold text-lg ml-1">
-              {typeof rating === 'number' ? rating.toFixed(1) : '—'}
-            </span>
-            <span className="text-gray-600">Excellent</span>
-          </div>
-          <span className="text-gray-900 font-medium">
-            {reviewCount} Avis
-          </span>
-        </div>
 
-        {/* Localisation */}
-        {user.location && (
-          <div className="flex items-center gap-2 text-gray-600 mb-3">
-            <MapPin className="w-4 h-4" />
-            <span className="text-base">{user.location}</span>
-          </div>
-        )}
 
-        {/* Tarif */}
-        {user.price && (
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex items-center gap-1 text-lg font-semibold text-gray-900">
-              <Euro className="w-4 h-4" />
-              Tarif à partir de {user.price}€
-            </div>
-          </div>
-        )}
-
-        {/* Bouton de contact */}
-        <ContactButton 
-          userId={user.id} 
-          userName={user.name} 
-          size="lg"
-          className="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold"
-        />
-      </div>
-    </div>
-  );
-};
-
-// Onglets modernes
+// Onglets modernes et élégants
 const ModernTabs = ({ activeTab, setActiveTab }: any) => {
   const tabs = [
     { id: 'informations', label: 'Informations' },
-    { id: 'faq', label: 'FAQ' },
+    { id: 'services', label: 'Services' },
     { id: 'avis', label: 'Avis' }
   ];
 
   return (
-    <div className="border-b border-gray-200 bg-white sticky top-0 z-10">
+    <div className="border-b border-gray-100 bg-white sticky top-0 z-10">
       <div className="flex overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 px-4 py-4 font-medium whitespace-nowrap border-b-2 transition-colors text-sm md:text-base ${
+            className={`flex-1 px-6 py-4 font-medium whitespace-nowrap border-b-2 transition-all duration-200 text-sm md:text-base relative group ${
               activeTab === tab.id
-                ? 'border-gray-900 text-gray-900 bg-gray-50'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                ? 'border-violet-500 text-violet-700 bg-violet-50/50'
+                : 'border-transparent text-gray-700 hover:text-gray-900 hover:bg-gray-50'
             }`}
           >
             {tab.label}
+            {activeTab === tab.id && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 to-purple-600"></div>
+            )}
+            <div className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gray-200 transition-all duration-200 ${
+              activeTab === tab.id ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'
+            }`}></div>
           </button>
         ))}
       </div>
@@ -484,50 +584,84 @@ const ModernTabs = ({ activeTab, setActiveTab }: any) => {
   );
 };
 
-// Section avis moderne style Airbnb
+// Section avis moderne et épurée
 const ModernReviewsSection = ({ reviews, rating, reviewCount }: any) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
   const distributionData = [5, 4, 3, 2, 1].map(stars => {
     const count = reviews.filter((r: any) => Math.floor(r.rating) === stars).length;
     const percentage = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
     return { stars, count, percentage };
   });
 
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoaded(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <div className="space-y-8">
-      {/* Résumé des notes - Design moderne style Airbnb */}
-      <div className="border border-gray-200 rounded-2xl p-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Note globale */}
+      {/* Résumé des notes - Design moderne et épuré */}
+      <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+        <div className="grid md:grid-cols-2 gap-8 items-center">
+          {/* Note globale - Impact visuel */}
           <div className="text-center">
-            <div className="text-5xl font-bold text-gray-900 mb-2">
+            <div 
+              className={`text-6xl font-bold mb-3 transition-all duration-700 ease-out ${
+                isLoaded 
+                  ? 'text-gray-900 scale-100 opacity-100' 
+                  : 'text-gray-300 scale-95 opacity-0'
+              }`}
+            >
               {typeof rating === 'number' ? rating.toFixed(1) : '—'}
             </div>
-            <div className="flex justify-center gap-1 mb-2">
+            
+            {/* Étoiles fines et modernes */}
+            <div className="flex justify-center gap-0.5 mb-3">
               {[1,2,3,4,5].map((star) => (
                 <Star 
                   key={star} 
-                  className={`w-6 h-6 ${
-                    star <= (rating || 0) ? 'text-gray-900 fill-current' : 'text-gray-300'
+                  className={`w-5 h-5 ${
+                    star <= (rating || 0) 
+                      ? 'text-amber-400 fill-current' 
+                      : 'text-gray-200'
                   }`} 
                 />
               ))}
             </div>
-            <p className="text-gray-600">{reviewCount} avis</p>
+            
+            {/* Nombre d'avis discret */}
+            <p className="text-xs font-light text-gray-500 tracking-wide">
+              {reviewCount} avis
+            </p>
           </div>
 
-          {/* Distribution des notes */}
-          <div className="space-y-3">
+          {/* Distribution des notes - Barres fines et élégantes */}
+          <div className="space-y-2.5">
             {distributionData.map((item) => (
               <div key={item.stars} className="flex items-center gap-3">
-                <span className="text-sm font-medium w-8 text-gray-900">{item.stars}</span>
-                <Star className="w-4 h-4 text-gray-900 fill-current" />
-                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                {/* Nombre d'étoiles aligné à gauche */}
+                <div className="flex items-center gap-1.5 w-12">
+                  <span className="text-sm font-medium text-gray-700">{item.stars}</span>
+                  <Star className="w-3.5 h-3.5 text-amber-400 fill-current" />
+                </div>
+                
+                {/* Barre de progression fine et élégante */}
+                <div className="flex-1 rounded-full h-1.5 overflow-hidden">
                   <div 
-                    className="bg-gray-900 h-2 rounded-full transition-all"
-                    style={{ width: `${item.percentage}%` }}
+                    className="bg-gradient-to-r from-amber-400 to-amber-500 h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{ 
+                      width: isLoaded ? `${item.percentage}%` : '0%',
+                      transform: isLoaded ? 'scaleX(1)' : 'scaleX(0)',
+                      transformOrigin: 'left'
+                    }}
                   />
                 </div>
-                <span className="text-sm text-gray-600 w-8">{item.count}</span>
+                
+                {/* Nombre d'avis */}
+                <span className="text-xs text-gray-500 w-6 text-right font-light">
+                  {item.count}
+                </span>
               </div>
             ))}
           </div>
@@ -535,40 +669,42 @@ const ModernReviewsSection = ({ reviews, rating, reviewCount }: any) => {
       </div>
 
       {/* Liste des avis - Design moderne */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {reviews.length === 0 ? (
-          <div className="text-center text-gray-500 py-12">
-            Pas encore d'avis pour ce profil.
+          <div className="text-center text-gray-400 py-16">
+            <div className="text-sm font-light">Pas encore d'avis pour ce profil.</div>
           </div>
         ) : (
           reviews.map((review: any) => (
-            <div key={review.id} className="border border-gray-200 rounded-2xl p-6">
+            <div key={review.id} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex gap-4">
                 <img 
-                  src={review.fromUserid?.profilepicture || '/placeholder.svg'} 
+                  src={review.fromUserid?.profilepicture || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'} 
                   alt={review.fromUserid?.name} 
-                  className="w-12 h-12 rounded-full object-cover"
+                  className="w-10 h-10 rounded-full object-cover"
                 />
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-semibold text-gray-900">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="font-medium text-gray-900 text-sm">
                       {review.fromUserid?.name}
                     </span>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-0.5">
                       {[1,2,3,4,5].map((star) => (
                         <Star 
                           key={star} 
-                          className={`w-4 h-4 ${
-                            star <= review.rating ? 'text-gray-900 fill-current' : 'text-gray-300'
+                          className={`w-3.5 h-3.5 ${
+                            star <= review.rating 
+                              ? 'text-amber-400 fill-current' 
+                              : 'text-gray-200'
                           }`} 
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-xs text-gray-400 font-light">
                       {new Date(review.createdat).toLocaleDateString('fr-FR')}
                     </span>
                   </div>
-                  <p className="text-gray-700">{review.comment}</p>
+                  <p className="text-gray-700 text-sm leading-relaxed">{review.comment}</p>
                 </div>
               </div>
             </div>
@@ -586,7 +722,7 @@ const UserProfile = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'informations' | 'faq' | 'avis'>('informations');
+  const [activeTab, setActiveTab] = useState<'informations' | 'services' | 'avis'>('informations');
   const [rating, setRating] = useState<number | null>(null);
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -640,7 +776,7 @@ const UserProfile = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="flex flex-col items-center justify-center py-20">
           <ModernLoader size="lg" text="Chargement du profil..." />
@@ -666,7 +802,7 @@ const UserProfile = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="text-center py-10 text-red-500">Erreur: {error}</div>
         <Footer />
@@ -676,7 +812,7 @@ const UserProfile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-white">
         <Header />
         <div className="text-center py-10">Utilisateur non trouvé.</div>
         <Footer />
@@ -686,51 +822,63 @@ const UserProfile = () => {
 
   return (
     <PageTransition>
-      <div className="bg-gray-50 min-h-screen">
+      <div className="bg-white min-h-screen">
         <Header />
+        {/* Espace pour compenser le header fixe sur les pages profil */}
+        <div className="h-20 md:h-20 bg-white"></div>
         
         {/* Version Mobile */}
-        <div className="md:hidden">
+        <div className="md:hidden bg-white">
         {/* Galerie mobile en haut */}
         <MobileGallery video={user.galleryVideo} images={user.galleryimages} />
         
-        {/* En-tête mobile */}
-        <MobileProfileHeader user={user} rating={rating} reviewCount={reviewCount} />
+        {/* En-tête mobile - utilise le même header que desktop */}
+        <ModernProfileHeader user={user} rating={rating} reviewCount={reviewCount} />
         
         {/* Onglets mobile */}
         <div className="bg-white">
           <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} />
           
           {/* Contenu mobile */}
-          <div className="p-6 pb-8">
+          <div className="p-6 pb-8 bg-white">
             {activeTab === 'informations' && (
               <div className="space-y-8">
                 {/* Description */}
                 {user.bio && (
                   <div>
-                    <h3 className="text-xl font-bold mb-4 text-gray-900">À propos</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                        <User className="w-4 h-4 text-violet-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">À propos</h3>
+                    </div>
                     <p className="text-gray-700 leading-relaxed text-base">{user.bio}</p>
                   </div>
                 )}
 
                 {/* Informations pratiques */}
                 <div>
-                  <h3 className="text-xl font-bold mb-4 text-gray-900">Informations</h3>
-                  <div className="space-y-4 text-gray-600">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-gray-500" />
-                      <span className="text-base">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Informations</h3>
+                  </div>
+                  <div className="space-y-3 text-gray-600">
+                    <div className="flex items-center gap-3 p-3 rounded-lg">
+                      <Calendar className="w-4 h-4 text-gray-500" />
+                      <span className="text-sm">
                         {(() => {
-                          const createdDate = new Date(user.created_at);
+                          const createdDate = new Date(user.createdat);
                           const now = new Date();
                           const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
                           
                           if (monthsDiff < 1) {
-                            return "Sur MusicLinks depuis moins d'un mois";
+                            return "Membre depuis moins d'un mois";
                           } else if (monthsDiff === 1) {
-                            return "Sur MusicLinks depuis 1 mois";
+                            return "Membre depuis 1 mois";
                           } else {
-                            return `Sur MusicLinks depuis ${monthsDiff} mois`;
+                            return `Membre depuis ${monthsDiff} mois`;
                           }
                         })()}
                       </span>
@@ -741,7 +889,12 @@ const UserProfile = () => {
                 {/* Réseaux sociaux */}
                 {user.social_links && user.social_links.length > 0 && (
                   <div>
-                    <h3 className="text-xl font-bold mb-4 text-gray-900">Réseaux sociaux</h3>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                        <ExternalLink className="w-4 h-4 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900">Réseaux sociaux</h3>
+                    </div>
                     <div className="flex flex-wrap gap-3">
                       {user.social_links.map((url: string, i: number) => (
                         <a 
@@ -749,12 +902,14 @@ const UserProfile = () => {
                           href={url} 
                           target="_blank" 
                           rel="noopener noreferrer"
-                          className="flex items-center gap-2 px-4 py-3 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200 font-medium text-sm transition-colors"
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium text-sm transition-all duration-200 hover:scale-105 border border-gray-200"
                         >
                           <ExternalLink className="w-4 h-4" />
                           {url.includes('linkedin') ? 'LinkedIn' : 
                            url.includes('youtube') ? 'YouTube' : 
-                           url.includes('instagram') ? 'Instagram' : 'Réseau'}
+                           url.includes('instagram') ? 'Instagram' : 
+                           url.includes('soundcloud') ? 'SoundCloud' :
+                           url.includes('spotify') ? 'Spotify' : 'Réseau'}
                         </a>
                       ))}
                     </div>
@@ -763,13 +918,11 @@ const UserProfile = () => {
               </div>
             )}
 
-            {activeTab === 'faq' && (
-              <div className="space-y-6">
-                <h3 className="text-xl font-bold text-gray-900">Questions fréquentes</h3>
-                <div className="text-gray-600 text-base">
-                  Aucune question fréquente n'a encore été configurée pour ce profil.
-                </div>
-              </div>
+            {activeTab === 'services' && (
+              <ServicesSection 
+                price={user.price} 
+                serviceDescription={user.serviceDescription} 
+              />
             )}
 
             {activeTab === 'avis' && (
@@ -786,47 +939,57 @@ const UserProfile = () => {
           <ModernProfileHeader user={user} rating={rating} reviewCount={reviewCount} />
           
           {/* Layout desktop : images à gauche, contenu à droite */}
-          <div className="md:grid md:grid-cols-3 md:gap-8">
+          <div className="md:grid md:grid-cols-3 md:gap-8 bg-white">
             {/* Colonne gauche : Galerie */}
-            <div className="md:col-span-2 p-6">
+            <div className="md:col-span-2 p-6 bg-white">
               <ModernGallery video={user.galleryVideo} images={user.galleryimages} />
             </div>
             
             {/* Colonne droite : Onglets et contenu */}
-            <div className="md:col-span-1">
+            <div className="md:col-span-1 bg-white">
               {/* Onglets */}
               <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} />
               
               {/* Contenu */}
-              <div className="p-6">
+              <div className="p-6 bg-white">
                 {activeTab === 'informations' && (
-                  <div className="space-y-8">
+                  <div className="space-y-6">
                     {/* Description */}
                     {user.bio && (
                       <div>
-                        <h3 className="text-xl font-bold mb-4">À propos</h3>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                            <User className="w-4 h-4 text-violet-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">À propos</h3>
+                        </div>
                         <p className="text-gray-700 leading-relaxed">{user.bio}</p>
                       </div>
                     )}
 
                     {/* Informations pratiques */}
                     <div>
-                      <h3 className="text-xl font-bold mb-4">Informations</h3>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900">Informations</h3>
+                      </div>
                       <div className="space-y-3 text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>
+                        <div className="flex items-center gap-3 p-3 rounded-lg">
+                          <Calendar className="w-4 h-4 text-gray-500" />
+                          <span className="text-sm">
                             {(() => {
-                              const createdDate = new Date(user.created_at);
+                              const createdDate = new Date(user.createdat);
                               const now = new Date();
                               const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
                               
                               if (monthsDiff < 1) {
-                                return "Sur MusicLinks depuis moins d'un mois";
+                                return "Membre depuis moins d'un mois";
                               } else if (monthsDiff === 1) {
-                                return "Sur MusicLinks depuis 1 mois";
+                                return "Membre depuis 1 mois";
                               } else {
-                                return `Sur MusicLinks depuis ${monthsDiff} mois`;
+                                return `Membre depuis ${monthsDiff} mois`;
                               }
                             })()}
                           </span>
@@ -837,7 +1000,12 @@ const UserProfile = () => {
                     {/* Réseaux sociaux */}
                     {user.social_links && user.social_links.length > 0 && (
                       <div>
-                        <h3 className="text-xl font-bold mb-4">Réseaux sociaux</h3>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                            <ExternalLink className="w-4 h-4 text-green-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900">Réseaux sociaux</h3>
+                        </div>
                         <div className="flex gap-3">
                           {user.social_links.map((url: string, i: number) => (
                             <a 
@@ -845,12 +1013,14 @@ const UserProfile = () => {
                               href={url} 
                               target="_blank" 
                               rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-gray-700 hover:bg-gray-200 font-medium text-sm"
+                              className="flex items-center gap-2 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-100 font-medium text-sm transition-all duration-200 hover:scale-105 border border-gray-200"
                             >
                               <ExternalLink className="w-4 h-4" />
                               {url.includes('linkedin') ? 'LinkedIn' : 
                                url.includes('youtube') ? 'YouTube' : 
-                               url.includes('instagram') ? 'Instagram' : 'Réseau'}
+                               url.includes('instagram') ? 'Instagram' : 
+                               url.includes('soundcloud') ? 'SoundCloud' :
+                               url.includes('spotify') ? 'Spotify' : 'Réseau'}
                             </a>
                           ))}
                         </div>
@@ -859,13 +1029,11 @@ const UserProfile = () => {
                   </div>
                 )}
 
-                {activeTab === 'faq' && (
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold">Questions fréquentes</h3>
-                    <div className="text-gray-600">
-                      Aucune question fréquente n'a encore été configurée pour ce profil.
-                    </div>
-                  </div>
+                {activeTab === 'services' && (
+                  <ServicesSection 
+                    price={user.price} 
+                    serviceDescription={user.serviceDescription} 
+                  />
                 )}
 
                 {activeTab === 'avis' && (
@@ -878,7 +1046,7 @@ const UserProfile = () => {
       </div>
       
       <Footer />
-    </div>
+      </div>
     </PageTransition>
   );
 };

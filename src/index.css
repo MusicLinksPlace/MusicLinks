@@ -24,7 +24,7 @@
     --ml-gray-medium: #6b7280;
 
     /* Shadcn UI system adapted to MusicLinks palette - CORRECTED HSL VALUES */
-    --background: 210 16.7% 98%;      /* #f9fafb */
+    --background: 0 0% 100%;            /* #ffffff - BLANC */
     --foreground: 0 0% 20.8%;          /* #353535 */
 
     --card: 0 0% 100%;                 /* #ffffff */
@@ -110,17 +110,17 @@
   }
 
   html {
-    background-color: #f9fafb;
+    background-color: white;
   }
 
   body {
     font-family: 'Inter', 'Poppins', Arial, Helvetica, sans-serif;
-    @apply bg-background text-foreground;
-    background-color: #f9fafb;
+    @apply text-foreground;
+    background-color: white;
   }
 
   #root {
-    background-color: #f9fafb;
+    background-color: white;
     min-height: 100vh;
   }
 

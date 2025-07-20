@@ -12,6 +12,7 @@ interface Partner {
   profilepicture?: string | null;
   musicStyle?: string;
   rating?: number;
+  price?: number;
 }
 
 const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
@@ -27,7 +28,7 @@ const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
           src={getImageUrlWithCacheBust(partner.profilepicture)}
           alt={partner.name}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          fallback="/placeholder.svg"
+          fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
         />
       ) : (
         <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-200 to-indigo-200">
@@ -47,6 +48,12 @@ const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
             </span>
           )}
         </div>
+        {partner.price && (
+          <div className="flex items-center gap-1 mt-2">
+            <img src="/money.png" alt="Prix" className="w-3 h-3 brightness-0 invert" />
+            <span className="text-white/80 text-xs">À partir de {partner.price}€</span>
+          </div>
+        )}
       </div>
     </Link>
   );

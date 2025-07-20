@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
-import { Loader2, Trash2, PlusCircle, Mail, Pencil, User, Music, MessageSquare } from 'lucide-react';
+import { Loader2, Trash2, PlusCircle, Mail, Pencil, User, Music, MessageSquare, Video, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +19,9 @@ import { MUSIC_STYLES } from '@/lib/constants';
 import AccountTabs from '@/components/profile/AccountTabs';
 import ConversationList from '@/components/profile/ConversationList';
 import ImageCropper from '@/components/ui/ImageCropper';
+import MultiMediaUpload from '@/components/ui/MultiMediaUpload';
 import MobileTabs from '@/components/ui/MobileTabs';
+import LikedProfiles from '@/components/profile/LikedProfiles';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 const PROVIDER_DOMAINS = [
@@ -88,6 +90,27 @@ const PROVIDER_SPECIALTIES = [
   { id: 'danseur', label: 'Chorégraphe' },
 ];
 
+interface UserProfileData {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  subCategory?: string | null;
+  location?: string | null;
+  bio?: string | null;
+  profilepicture?: string | null;
+  galleryimages?: string[] | null;
+  galleryVideo?: string | null;
+  portfolio_url?: string | null;
+  social_links?: (string | null)[] | null;
+  createdat: string;
+  musicStyle?: string | null;
+  verified: number;
+  disabled: number;
+  price?: number | null;
+  serviceDescription?: string | null;
+}
+
 const ProviderProfileSettings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -97,13 +120,15 @@ const ProviderProfileSettings = () => {
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [filesToUpload, setFilesToUpload] = useState<{ [key: string]: File }>({});
+  const [mediaFiles, setMediaFiles] = useState<any[]>([]);
   const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
+  const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'likes' | 'messages'>('profil');
 
   // Configuration des tabs pour mobile
   const tabs = [
     { id: 'profil', label: 'Profil', icon: <User className="w-4 h-4" /> },
     { id: 'activite', label: 'Activité', icon: <Music className="w-4 h-4" /> },
+    { id: 'likes', label: 'Favoris', icon: <Heart className="w-4 h-4" /> },
     { id: 'messages', label: 'Messages', icon: <MessageSquare className="w-4 h-4" /> }
   ];
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
@@ -173,20 +198,22 @@ const ProviderProfileSettings = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // Ouvrir le cropper
-    setCropperConfig({
-      file,
-      type: galleryIndex !== undefined ? 'gallery' : 'profile',
-      index: galleryIndex
-    });
-    setShowCropper(true);
-    
-    // Reset l'input
-    e.target.value = '';
+
+    // Si c'est une vidéo, utiliser le bucket user-videos
+    if (file.type.startsWith('video/')) {
+      setFilesToUpload(prev => ({ ...prev, galleryVideo_file: file }));
+      return;
+    }
+
+    // Pour les images, utiliser le bucket avatars
+    if (galleryIndex !== undefined) {
+      setFilesToUpload(prev => ({ ...prev, [`gallery_file_${galleryIndex}`]: file }));
+    } else {
+      setFilesToUpload(prev => ({ ...prev, profilepicture_file: file }));
+    }
   };
 
-  const handleCropComplete = (croppedBlob: Blob) => {
+  const handleCropComplete = async (croppedBlob: Blob) => {
     if (!cropperConfig) return;
     
     // Créer un nouveau fichier avec le blob recadré
@@ -195,29 +222,78 @@ const ProviderProfileSettings = () => {
       lastModified: Date.now(),
     });
     
-    const key = cropperConfig.type === 'gallery' && cropperConfig.index !== undefined 
-      ? `gallery_${cropperConfig.index}` 
-      : 'profile';
-    
-    setFilesToUpload(prev => ({ ...prev, [key]: croppedFile }));
-    
-    // Preview
+    // Preview immédiat
     const reader = new FileReader();
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string;
-      if (cropperConfig.type === 'gallery' && cropperConfig.index !== undefined) {
-        const newGallery = [...(formData.galleryimages || [])];
-        newGallery[cropperConfig.index] = imageUrl;
-        setFormData((prev: any) => ({ ...prev, galleryimages: newGallery }));
-      } else {
-        setFormData((prev: any) => ({ ...prev, profilepicture: imageUrl }));
-      }
+      setFormData((prev: any) => ({ ...prev, profilepicture: imageUrl }));
     };
     reader.readAsDataURL(croppedFile);
     
     // Fermer le cropper
     setShowCropper(false);
     setCropperConfig(null);
+    
+    // Sauvegarder immédiatement la photo de profil
+    setIsSaving(true);
+    try {
+      console.log('[UPLOAD PROFILE] Starting immediate profile picture upload...');
+      
+      // Utiliser le bucket 'avatars'
+      const bucket = 'avatars';
+      
+      // Sanitize filename
+      const sanitizedFileName = croppedFile.name
+        .replace(/[^a-zA-Z0-9.-]/g, '_')
+        .replace(/_+/g, '_')
+        .replace(/^_|_$/g, '');
+      
+      const filePath = `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+      
+      console.log(`[UPLOAD PROFILE] Uploading to bucket: ${bucket}, path: ${filePath}`);
+      
+      const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, croppedFile, {
+          cacheControl: '3600',
+          upsert: true,
+      });
+      
+      if (uploadError) {
+        console.error('[UPLOAD PROFILE] Upload error:', uploadError);
+        throw new Error(`Erreur d'upload: ${uploadError.message}`);
+      }
+      
+      console.log('[UPLOAD PROFILE] Upload successful');
+      
+      const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      console.log('[UPLOAD PROFILE] Public URL:', publicUrl);
+      
+      // Mettre à jour la base de données
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('User')
+        .update({ profilepicture: publicUrl })
+        .eq('id', formData.id)
+        .select()
+        .single();
+        
+      if (updateError) {
+        console.error('[UPLOAD PROFILE] Database update error:', updateError);
+        throw updateError;
+      }
+      
+      console.log('[UPLOAD PROFILE] Database updated successfully');
+      
+      // Mettre à jour le state et le localStorage
+      setFormData(updatedUser);
+      localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
+      window.dispatchEvent(new Event('auth-change'));
+      
+      toast({ title: "Photo de profil mise à jour !", description: "Votre nouvelle photo a été sauvegardée." });
+    } catch (error: any) {
+      console.error("Error updating profile picture:", error);
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCropCancel = () => {
@@ -260,19 +336,28 @@ const ProviderProfileSettings = () => {
         const file = filesToUpload[key];
         console.log(`[UPLOAD] Processing file: ${key}`, file);
         
-        const isGalleryUpload = key.startsWith('gallery');
-        // Utiliser le bucket 'avatars' pour tout (plus simple)
-        const bucket = 'avatars';
+        let bucket: string;
+        let filePath: string;
         
-        // Sanitize filename to remove spaces and special characters
-        const sanitizedFileName = file.name
-          .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
-          .replace(/_+/g, '_') // Replace multiple underscores with single
-          .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
-        
-        const filePath = isGalleryUpload 
-          ? `gallery/${formData.id}/${Date.now()}_${sanitizedFileName}`
-          : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        // Déterminer le bucket selon le type de fichier
+        if (key === 'galleryVideo_file') {
+          bucket = 'user-videos';
+          const fileExt = file.name.split('.').pop();
+          filePath = `video_${formData.id}_${Date.now()}.${fileExt}`;
+        } else {
+          bucket = 'avatars';
+          const isGalleryUpload = key.startsWith('gallery_file_');
+          
+          // Sanitize filename to remove spaces and special characters
+          const sanitizedFileName = file.name
+            .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+            .replace(/_+/g, '_') // Replace multiple underscores with single
+            .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+          
+          filePath = isGalleryUpload 
+            ? `${formData.id}/${Date.now()}_${sanitizedFileName}`
+            : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        }
         
         console.log(`[UPLOAD] Uploading to bucket: ${bucket}, path: ${filePath}`);
         
@@ -291,8 +376,13 @@ const ProviderProfileSettings = () => {
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
         console.log(`[UPLOAD] Public URL for ${key}:`, publicUrl);
         
-        if (isGalleryUpload) {
-          const index = parseInt(key.split('_')[1]);
+        // Mettre à jour les données selon le type de fichier
+        if (key === 'galleryVideo_file') {
+          formUpdates.galleryVideo = publicUrl;
+          console.log('[UPLOAD] Updated galleryVideo with URL:', publicUrl);
+          console.log('[UPLOAD] formUpdates.galleryVideo after update:', formUpdates.galleryVideo);
+        } else if (key.startsWith('gallery_file_')) {
+          const index = parseInt(key.split('_')[2]);
           if (!formUpdates.galleryimages) formUpdates.galleryimages = [];
           formUpdates.galleryimages[index] = publicUrl;
           console.log(`[UPLOAD] Updated galleryimages[${index}] with URL`);
@@ -304,8 +394,11 @@ const ProviderProfileSettings = () => {
       
       console.log('[UPLOAD] All files uploaded, updating database...');
       
-      // Clean up data for submission
+      // Clean up data for submission - garder galleryVideo
       const { id, createdat, email, role, verified, disabled, ...updateData } = formUpdates;
+      console.log('[UPLOAD] Data to update in DB:', updateData);
+      console.log('[UPLOAD] galleryVideo in updateData:', updateData.galleryVideo);
+      
       // Update the user profile in the DB
       const { data: updatedUser, error: updateError } = await supabase
         .from('User')
@@ -362,6 +455,10 @@ const ProviderProfileSettings = () => {
     );
   }
   const months = getMonthDiff(formData.createdat);
+
+  const handleMediaFilesChange = (files: any[]) => {
+    setMediaFiles(files);
+  };
 
   const handleGalleryVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -435,7 +532,7 @@ const ProviderProfileSettings = () => {
         {/* Partie haute sur fond gris */}
         <div className="flex flex-col items-center pt-10 pb-6 md:pt-16 md:pb-8 relative">
           <div className="relative group">
-            <img src={getImageUrlWithCacheBust(formData.profilepicture)} alt="Avatar" className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-blue-100 shadow" />
+            <img src={getImageUrlWithCacheBust(formData.profilepicture)} alt="Avatar" className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow" />
             <button type="button" onClick={handleProfilePicClick} className="absolute bottom-2 right-2 bg-white rounded-full p-1 shadow group-hover:scale-110 transition-transform border border-gray-200">
               <Pencil className="w-5 h-5 text-blue-600" />
             </button>
@@ -494,31 +591,66 @@ const ProviderProfileSettings = () => {
                   <Label htmlFor="bio" className="md:text-lg">Biographie</Label>
                   <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre activité..." rows={5} className="md:text-lg md:h-32"/>
                 </div>
-                {/* Réseaux sociaux */}
+                {/* Prix */}
                 <div>
-                  <Label className="md:text-lg">Réseaux Sociaux</Label>
-                  {formData.social_links?.map((link: string, index: number) => (
-                    <div key={index} className="flex items-center gap-2 mt-2">
-                      <Input 
-                        value={link || ''} 
-                        onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                        placeholder="https://soundcloud.com/prestataire"
-                        className="md:h-12 md:text-lg"
-                      />
-                      <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
-                        <Trash2 className="h-4 w-4 text-red-500"/>
-                      </Button>
-                    </div>
-                  ))}
-                  {(!formData.social_links || formData.social_links.length < 5) && (
-                    <div className="mt-2">
-                      <Button variant="outline" size="sm" onClick={addSocialLink} type="button" className="md:h-12 md:text-lg">
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        Ajouter un lien
-                      </Button>
-                    </div>
-                  )}
+                  <Label htmlFor="price" className="md:text-lg">Prix (à partir de)</Label>
+                  <div className="flex items-center gap-2">
+                    <Input 
+                      id="price" 
+                      name="price" 
+                      type="number" 
+                      min="0" 
+                      step="100"
+                      value={formData.price || ''} 
+                      onChange={handleInputChange} 
+                      placeholder="0" 
+                      className="md:h-12 md:text-lg"
+                    />
+                    <span className="text-gray-600 font-medium md:text-lg">€</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-1">Indiquez votre tarif de base pour vos prestations</p>
                 </div>
+                {/* Description du service */}
+                <div>
+                  <Label htmlFor="serviceDescription" className="md:text-lg">Description du service proposé</Label>
+                  <Textarea 
+                    id="serviceDescription" 
+                    name="serviceDescription" 
+                    value={formData.serviceDescription || ''} 
+                    onChange={handleInputChange} 
+                    placeholder="Décrivez en détail les services que vous proposez, vos conditions, votre approche..." 
+                    rows={4} 
+                    className="md:text-lg md:h-28"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">Précisez ce que vous offrez et comment vous travaillez</p>
+                </div>
+                {/* Réseaux sociaux */}
+                {(formData.social_links && formData.social_links.length > 0) && (
+                  <div>
+                    <Label className="md:text-lg">Réseaux Sociaux</Label>
+                    {formData.social_links.map((link: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2 mt-2">
+                        <Input 
+                          value={link || ''} 
+                          onChange={(e) => handleSocialLinkChange(index, e.target.value)}
+                          placeholder="https://soundcloud.com/prestataire"
+                          className="md:h-12 md:text-lg"
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
+                          <Trash2 className="h-4 w-4 text-red-500"/>
+                        </Button>
+                      </div>
+                    ))}
+                    {formData.social_links.length < 5 && (
+                      <div className="mt-2">
+                        <Button variant="outline" size="sm" onClick={addSocialLink} type="button" className="md:h-12 md:text-lg">
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          Ajouter un lien
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="mt-4 flex justify-end">
                   <Button type="submit" disabled={isSaving} className="md:h-12 md:text-lg md:px-8">
                     {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
@@ -568,17 +700,26 @@ const ProviderProfileSettings = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
                     {[0, 1, 2, 3].map(index => (
                       <div key={index} className="space-y-2">
-                        <img src={formData.galleryimages?.[index] || '/placeholder.svg'} alt={`Gallery image ${index + 1}`} className="w-full h-24 md:h-32 rounded-md object-cover bg-gray-200"/>
+                        <img src={formData.galleryimages?.[index] || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'} alt={`Gallery image ${index + 1}`} className="w-full h-24 md:h-32 rounded-md object-cover bg-gray-200"/>
                         <Input id={`gallery_file_${index}`} name={`gallery_file_${index}`} type="file" onChange={(e) => handleFileChange(e, index)} className="text-sm md:h-10 md:text-base"/>
                       </div>
                     ))}
                   </div>
                 </div>
-                {/* Vidéo galerie */}
+                {/* Médias (vidéos, audio, images) */}
                 <div className="mt-6">
-                  <Label className="md:text-lg">Vidéo de présentation (optionnelle)</Label>
+                  <Label className="md:text-lg">Médias de présentation</Label>
+                  <p className="text-sm text-gray-600 mt-1 mb-3">
+                    Ajoutez des vidéos, fichiers audio ou images pour enrichir votre profil
+                  </p>
+                  
+                  {/* Vidéo existante */}
                   {formData.galleryVideo && (
-                    <div className="mt-2">
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Video className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm font-medium">Vidéo actuelle</span>
+                      </div>
                       <video controls controlsList="nodownload" className="w-full max-w-md rounded-lg shadow">
                         <source src={formData.galleryVideo} type="video/mp4" />
                         Votre navigateur ne supporte pas la lecture vidéo.
@@ -596,8 +737,15 @@ const ProviderProfileSettings = () => {
                       </Button>
                     </div>
                   )}
-                  <Input id="galleryVideo" name="galleryVideo" type="file" accept="video/mp4,video/webm,video/quicktime" onChange={handleGalleryVideoChange} className="mt-2 text-sm md:h-10 md:text-base"/>
-                  {isUploadingVideo && <div className="text-blue-600 mt-2">Upload en cours... Veuillez attendre la fin de l'upload avant d'enregistrer.</div>}
+
+                  {/* Upload de nouveaux médias */}
+                  <MultiMediaUpload
+                    onFilesChange={handleMediaFilesChange}
+                    maxFiles={5}
+                    acceptedTypes={['video/*', 'audio/*', 'image/*']}
+                    className="mt-4"
+                    userId={formData.id}
+                  />
                 </div>
                 <div className="mt-4 flex justify-end">
                   <Button type="submit" disabled={isSaving || isUploadingVideo} className="md:h-12 md:text-lg md:px-8">
@@ -606,6 +754,11 @@ const ProviderProfileSettings = () => {
                   </Button>
                 </div>
               </form>
+            )}
+            {activeTab === 'likes' && (
+              <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mt-2">
+                <LikedProfiles />
+              </div>
             )}
             {activeTab === 'messages' && (
               <div className="bg-white rounded-2xl shadow-xl p-6 md:p-10 mt-2">
@@ -649,31 +802,62 @@ const ProviderProfileSettings = () => {
                 <Label htmlFor="bio" className="text-base">Biographie</Label>
                 <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre activité..." rows={4} className="text-base"/>
               </div>
-              {/* Réseaux sociaux */}
+              {/* Vidéo */}
               <div>
-                <Label className="text-base">Réseaux Sociaux</Label>
-                {formData.social_links?.map((link: string, index: number) => (
-                  <div key={index} className="flex items-center gap-2 mt-2">
-                    <Input 
-                      value={link || ''} 
-                      onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                      placeholder="https://soundcloud.com/prestataire"
-                      className="h-12 text-base"
-                    />
-                    <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
-                      <Trash2 className="h-4 w-4 text-red-500"/>
-                    </Button>
-                  </div>
-                ))}
-                {(!formData.social_links || formData.social_links.length < 5) && (
-                  <div className="mt-2">
-                    <Button variant="outline" size="sm" onClick={addSocialLink} type="button" className="h-12 text-base">
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Ajouter un lien
-                    </Button>
-                  </div>
-                )}
+                <Label className="text-base">Vidéo de présentation</Label>
+                <div className="flex items-center gap-4">
+                  {formData.galleryVideo ? (
+                    <div className="flex items-center gap-2">
+                      <video 
+                        src={formData.galleryVideo} 
+                        className="w-24 h-16 object-cover rounded bg-gray-200"
+                        controls
+                      />
+                      <span className="text-sm text-gray-600">Vidéo actuelle</span>
+                    </div>
+                  ) : (
+                    <div className="w-24 h-16 bg-gray-200 rounded flex items-center justify-center">
+                      <span className="text-xs text-gray-500">Aucune vidéo</span>
+                    </div>
+                  )}
+                  <Input 
+                    id="galleryVideo_file" 
+                    name="galleryVideo_file" 
+                    type="file" 
+                    accept="video/*"
+                    onChange={handleFileChange} 
+                    className="text-xs h-8"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Ajoutez une vidéo de présentation</p>
               </div>
+              {/* Réseaux sociaux */}
+              {(formData.social_links && formData.social_links.length > 0) && (
+                <div>
+                  <Label className="text-base">Réseaux Sociaux</Label>
+                  {formData.social_links.map((link: string, index: number) => (
+                    <div key={index} className="flex items-center gap-2 mt-2">
+                      <Input 
+                        value={link || ''} 
+                        onChange={(e) => handleSocialLinkChange(index, e.target.value)}
+                        placeholder="https://soundcloud.com/prestataire"
+                        className="h-12 text-base"
+                      />
+                      <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
+                        <Trash2 className="h-4 w-4 text-red-500"/>
+                      </Button>
+                    </div>
+                  ))}
+                  {formData.social_links.length < 5 && (
+                    <div className="mt-2">
+                      <Button variant="outline" size="sm" onClick={addSocialLink} type="button" className="h-12 text-base">
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Ajouter un lien
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="mt-4 flex justify-end">
                 <Button type="submit" disabled={isSaving} className="h-12 text-base px-6">
                   {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
@@ -724,7 +908,7 @@ const ProviderProfileSettings = () => {
                 <div className="grid grid-cols-2 gap-3 mt-2">
                   {[0, 1, 2, 3].map(index => (
                     <div key={index} className="space-y-2">
-                      <img src={formData.galleryimages?.[index] || '/placeholder.svg'} alt={`Gallery image ${index + 1}`} className="w-full h-20 rounded-md object-cover bg-gray-200"/>
+                      <img src={formData.galleryimages?.[index] || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'} alt={`Gallery image ${index + 1}`} className="w-full h-20 rounded-md object-cover bg-gray-200"/>
                       <Input id={`gallery_file_${index}`} name={`gallery_file_${index}`} type="file" onChange={(e) => handleFileChange(e, index)} className="text-xs h-8"/>
                     </div>
                   ))}
@@ -763,6 +947,11 @@ const ProviderProfileSettings = () => {
             </form>
           )}
           
+          {activeTab === 'likes' && (
+            <div className="bg-white rounded-2xl shadow-xl p-6 mt-2 mx-4">
+              <LikedProfiles />
+            </div>
+          )}
           {activeTab === 'messages' && (
             <div className="bg-white rounded-2xl shadow-xl p-6 mt-2 mx-4">
               <div className="mb-4">
@@ -775,16 +964,13 @@ const ProviderProfileSettings = () => {
         </div>
       </div>
       
-      {/* Image Cropper Modal */}
-      {showCropper && cropperConfig && (
+      {/* Image Cropper Modal - Only for profile pictures */}
+      {showCropper && cropperConfig && cropperConfig.type === 'profile' && (
         <ImageCropper
           imageFile={cropperConfig.file}
           onCropComplete={handleCropComplete}
           onCancel={handleCropCancel}
-          title={cropperConfig.type === 'profile' 
-            ? 'Recadrer votre photo de profil' 
-            : `Recadrer l'image ${cropperConfig.index !== undefined ? cropperConfig.index + 1 : ''} de la galerie`
-          }
+          title="Recadrer votre photo de profil"
         />
       )}
     </>
