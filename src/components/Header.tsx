@@ -107,13 +107,58 @@ const navIcons = {
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [hoveredMenu, setHoveredMenu] = useState<string | null>(null);
+  const [displayedMenu, setDisplayedMenu] = useState<string | null>(null);
   const closeMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
+  const openMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const [drawerStep, setDrawerStep] = useState<'main' | 'providers'>('main');
   const [showSocialDialog, setShowSocialDialog] = useState(false);
+
+  // Détecter si on est sur une page profil
+  const isProfilePage = location.pathname.startsWith('/profile/');
+
+  // Hook pour gérer le scroll sur les pages profil
+  useEffect(() => {
+    if (!isProfilePage) {
+      setIsHeaderVisible(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Si on scrolle vers le bas (plus de 100px), masquer le header
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsHeaderVisible(false);
+      } 
+      // Si on scrolle vers le haut ou on est en haut, afficher le header
+      else if (currentScrollY < lastScrollY || currentScrollY <= 100) {
+        setIsHeaderVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY, isProfilePage]);
+
+  // Nettoyage des timeouts lors du démontage du composant
+  useEffect(() => {
+    return () => {
+      if (closeMenuTimeout.current) {
+        clearTimeout(closeMenuTimeout.current);
+      }
+      if (openMenuTimeout.current) {
+        clearTimeout(openMenuTimeout.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -176,16 +221,35 @@ const Header = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const handleMenuEnter = (type: string) => {
+    // Annuler le timeout de fermeture s'il existe
     if (closeMenuTimeout.current) {
       clearTimeout(closeMenuTimeout.current);
       closeMenuTimeout.current = null;
     }
+    
+    // Annuler le timeout d'ouverture précédent s'il existe
+    if (openMenuTimeout.current) {
+      clearTimeout(openMenuTimeout.current);
+    }
+    
     setHoveredMenu(type);
+    
+    // Délai de 0,5 secondes avant d'afficher le menu
+    openMenuTimeout.current = setTimeout(() => {
+      setDisplayedMenu(type);
+    }, 500);
   };
 
   const handleMenuLeave = () => {
+    // Annuler le timeout d'ouverture s'il existe
+    if (openMenuTimeout.current) {
+      clearTimeout(openMenuTimeout.current);
+      openMenuTimeout.current = null;
+    }
+    
     closeMenuTimeout.current = setTimeout(() => {
       setHoveredMenu(null);
+      setDisplayedMenu(null);
     }, 150);
   };
 
@@ -201,7 +265,9 @@ const Header = () => {
   return (
     <>
       {/* Header Desktop */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm hidden md:block">
+      <header className={`${isProfilePage ? 'fixed' : 'sticky'} top-0 z-50 bg-white border-b border-gray-100 shadow-sm hidden md:block transition-transform duration-300 ${
+        isProfilePage && !isHeaderVisible ? '-translate-y-full' : 'translate-y-0'
+      }`} style={isProfilePage ? { position: 'fixed', top: 0, left: 0, right: 0 } : {}}>
         <div className="flex items-center justify-between w-full px-8 h-20">
           {/* Logo à gauche */}
           <div className="flex items-center">
@@ -237,7 +303,7 @@ const Header = () => {
                       <span className="block absolute left-0 right-0 -bottom-1 h-1 rounded-full bg-blue-600" style={{ width: '80%', margin: '0 auto' }} />
                     )}
                     {/* Mega-menu déroulant ARTISTES */}
-                    {hoveredMenu === item.type && item.type === 'artists' && (
+                    {displayedMenu === item.type && item.type === 'artists' && (
                       <div
                         className="fixed left-0 right-0 top-[80px] z-40 w-full"
                         onMouseEnter={() => handleMenuEnter(item.type)}
@@ -272,7 +338,7 @@ const Header = () => {
                       </div>
                     )}
                     {/* Mega-menu déroulant PARTENAIRES */}
-                    {hoveredMenu === item.type && item.type === 'partners' && (
+                    {displayedMenu === item.type && item.type === 'partners' && (
                       <div
                         className="fixed left-0 right-0 top-[80px] z-40 w-full"
                         onMouseEnter={() => handleMenuEnter(item.type)}
@@ -306,7 +372,7 @@ const Header = () => {
                       </div>
                     )}
                     {/* Mega-menu déroulant PRESTATAIRES */}
-                    {hoveredMenu === item.type && item.type === 'providers' && (
+                    {displayedMenu === item.type && item.type === 'providers' && (
                       <div
                         className="fixed left-0 right-0 top-[80px] z-40 w-full"
                         onMouseEnter={() => handleMenuEnter(item.type)}
@@ -399,13 +465,11 @@ const Header = () => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2 px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-700">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage 
-                        src={getImageUrlWithCacheBust(currentUser.profilepicture)} 
-                        alt={currentUser.name} 
-                      />
-                      <AvatarFallback>{currentUser.name?.[0]}</AvatarFallback>
-                    </Avatar>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg border-2 border-white">
+                      <span className="text-white font-bold text-sm uppercase tracking-wider">
+                        {currentUser.name?.[0] || 'U'}
+                      </span>
+                    </div>
                     <span>{currentUser.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
@@ -439,7 +503,9 @@ const Header = () => {
       </header>
 
       {/* Header Mobile */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm md:hidden">
+      <header className={`${isProfilePage ? 'fixed' : 'sticky'} top-0 z-50 bg-white border-b border-gray-200 shadow-sm md:hidden transition-transform duration-300 ${
+        isProfilePage && !isHeaderVisible ? '-translate-y-full' : 'translate-y-0'
+      }`} style={isProfilePage ? { position: 'fixed', top: 0, left: 0, right: 0 } : {}}>
         <div className="w-full px-4 flex items-center h-16 justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center">
@@ -450,157 +516,229 @@ const Header = () => {
             />
           </Link>
 
-          {/* Menu burger */}
+          {/* Bouton menu mobile */}
           <button
-            onClick={() => setIsMobileMenuOpen(true)}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <Menu className="h-6 w-6 text-gray-700" />
+            {isMobileMenuOpen ? (
+              <X className="w-6 h-6 text-gray-700" />
+            ) : (
+              <Menu className="w-6 h-6 text-gray-700" />
+            )}
           </button>
         </div>
+
+        {/* Menu mobile déroulant */}
+        {isMobileMenuOpen && (
+          <div className="mobile-menu absolute top-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+            <div className="px-4 py-6 space-y-4">
+              {/* Navigation principale */}
+              <div className="space-y-2">
+                {megaMenu.map((item) => (
+                  <button
+                    key={item.type}
+                    onClick={() => {
+                      navigate(item.link);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                      isActive(item.link) 
+                        ? 'bg-blue-50 text-blue-700 font-semibold' 
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{navIcons[item.type]}</span>
+                      <span className="text-base font-medium">
+                        {item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Séparateur */}
+              <div className="border-t border-gray-200 my-4"></div>
+
+              {/* Actions utilisateur */}
+              <div className="space-y-2">
+                {currentUser ? (
+                  <>
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg border-2 border-white">
+                        <span className="text-white font-bold text-base uppercase tracking-wider">
+                          {currentUser.name?.[0] || 'U'}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{currentUser.name}</div>
+                        <div className="text-sm text-gray-500">Connecté</div>
+                      </div>
+                    </div>
+                    
+                    <Link 
+                      to="/mon-compte" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Mon profil</span>
+                    </Link>
+                    
+                    <Link 
+                      to="/Project" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <Camera className="w-5 h-5" />
+                      <span>Mes projets</span>
+                    </Link>
+                    
+                    <button
+                      onClick={() => {
+                        handleChatClick();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span>Messages</span>
+                    </button>
+                    
+                    {currentUser.isAdmin && (
+                      <Link 
+                        to="/admin/users" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <Gavel className="w-5 h-5" />
+                        <span>Administration</span>
+                      </Link>
+                    )}
+                    
+                    <button
+                      onClick={() => {
+                        handleSignOut();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full text-left"
+                    >
+                      <LogOut className="w-5 h-5" />
+                      <span>Déconnexion</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      to="/login" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Connexion</span>
+                    </Link>
+                    <Link 
+                      to="/signup" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <span>S'inscrire</span>
+                    </Link>
+                  </>
+                )}
+              </div>
+
+              {/* Séparateur */}
+              <div className="border-t border-gray-200 my-4"></div>
+
+              {/* Liens supplémentaires */}
+              <div className="space-y-2">
+                <Link 
+                  to="/Project" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <Camera className="w-5 h-5" />
+                  <span>Projets</span>
+                </Link>
+                <Link 
+                  to="/how-it-works" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <GraduationCap className="w-5 h-5" />
+                  <span>Comment ça marche</span>
+                </Link>
+                <Link 
+                  to="/about" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <Users className="w-5 h-5" />
+                  <span>Qui sommes-nous ?</span>
+                </Link>
+                <button
+                  onClick={() => {
+                    setShowSocialDialog(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
+                >
+                  <Megaphone className="w-5 h-5" />
+                  <span>Suivez-nous</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </header>
 
-      {/* Mobile Menu Drawer - double step */}
-      <div 
-        className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-      >
-        <div 
-          className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-          onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}
-        />
-        <div 
-          className={`absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-in-out mobile-menu flex flex-col ${
-            isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div className="p-6 pb-0 flex items-center justify-between">
-            {drawerStep === 'providers' ? (
-              <button onClick={() => setDrawerStep('main')} className="p-2 -ml-2 mr-2 rounded-lg hover:bg-gray-100 transition-colors">
-                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
-              </button>
-            ) : <span />}
-            <span className="text-lg font-bold flex-1 text-center">
-              {drawerStep === 'providers' ? 'Prestataires de services' : ''}
-            </span>
-            <button
-              onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              <X className="h-6 w-6 text-gray-700" />
-            </button>
-          </div>
-          {drawerStep === 'main' && (
-            <nav className="flex-grow pt-8 px-4">
-              <ul>
-                <li>
-                  <Link to="/artists" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-                    Artistes
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </Link>
-                </li>
-                <li>
-                  <button onClick={() => setDrawerStep('providers')} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-                    Prestataires de services
-                    <ChevronRight className="h-5 w-5 text-gray-400" />
-                  </button>
-                </li>
-                <li>
-                  <Link to="/partners" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-                    Partenaires stratégiques
-                  </Link>
-                </li>
-                <hr className="my-4 mx-4 border-gray-200" />
-                <li>
-                  <Link to="/Project" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-                    Projets
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/how-it-works" onClick={() => setIsMobileMenuOpen(false)} className="flex justify-between items-center w-full px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100">
-                    Comment ça marche
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/chat" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 text-lg font-medium text-gray-800 rounded-lg hover:bg-gray-100 relative">
-                    <span className="relative">
-                      <span className="text-2xl">💬</span>
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-                    </span>
-                    Messages
-                  </Link>
-                </li>
-              </ul>
-            </nav>
-          )}
-          {drawerStep === 'providers' && (
-            <nav className="flex-grow pt-6 px-4 overflow-y-auto">
-              <button onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); navigate('/providers'); }} className="w-full flex items-center justify-between px-4 py-3 mb-2 bg-transparent border-none shadow-none">
-                <span className="text-lg font-bold text-neutral-900">Voir tout</span>
-              </button>
-              {providerMegaMenu.map(cat => (
-                <div key={cat.title} className="mb-4">
-                  <div className="font-semibold text-blue-900 mb-2 text-base">{cat.title}</div>
-                  <ul className="space-y-1">
-                    {cat.sub.map(sub => {
-                      const group = providerGroupsConfig.find(g => g.title === cat.title);
-                      const section = group?.sections.find(s => s.title === sub);
-                      const subCat = section?.subCategories[0] || sub.toLowerCase();
-                      return (
-                        <li key={sub}>
-                          <button
-                            onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); navigate(`/providers?subCategory=${encodeURIComponent(subCat)}`); }}
-                            className="w-full text-left flex items-center gap-2 px-4 py-2 text-base text-neutral-800 rounded-lg hover:bg-gray-100"
-                          >
-                            {sub}
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ))}
-            </nav>
-          )}
-          <div className="p-6 border-t border-gray-200 mt-auto">
-            {currentUser ? (
-              <div className="space-y-4">
-                <Link to="/mon-compte" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
-                  <Button variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
-                    <User className="h-5 w-5" /> Mon compte
-                  </Button>
-                </Link>
-                <Button onClick={handleSignOut} variant="ghost" className="w-full justify-start text-base font-medium flex items-center gap-3">
-                  <LogOut className="h-5 w-5" /> Se déconnecter
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <Link to="/signup" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
-                  <Button variant="outline" className="w-full font-semibold text-base py-3">
-                    Connexion
-                  </Button>
-                </Link>
-                <Link to="/signup" state={{ from: location }} className="block" onClick={() => { setIsMobileMenuOpen(false); setDrawerStep('main'); }}>
-                  <Button className="w-full font-bold text-base py-3 bg-ml-blue hover:bg-ml-blue/90 text-white rounded-xl shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 transition-colors">
-                    S'inscrire
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
+
+      {/* Dialog Réseaux sociaux */}
       <Dialog open={showSocialDialog} onOpenChange={setShowSocialDialog}>
-        <DialogContent className="max-w-xs flex flex-col items-center gap-6 py-8">
-          <div className="text-lg font-bold text-blue-700 mb-2">Suivez-nous</div>
-          <div className="flex gap-8 items-center justify-center">
-            <button onClick={() => window.open('https://instagram.com/', '_blank')} className="hover:scale-110 transition-transform">
-              <img src="/social-media/instagram.png" alt="Instagram" className="w-14 h-14" />
-            </button>
-            <button onClick={() => window.open('https://tiktok.com/', '_blank')} className="hover:scale-110 transition-transform">
-              <img src="/social-media/tiktok.png" alt="TikTok" className="w-14 h-14" />
-            </button>
+        <DialogContent className="sm:max-w-md">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-4">Suivez-nous sur les réseaux sociaux</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <a
+                href="https://www.instagram.com/musiclinks.fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <img src="/social-media/instagram.png" alt="Instagram" className="w-6 h-6" />
+                <span className="font-medium">Instagram</span>
+              </a>
+              <a
+                href="https://www.linkedin.com/company/musiclinks-fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <img src="/social-media/linkedin.png" alt="LinkedIn" className="w-6 h-6" />
+                <span className="font-medium">LinkedIn</span>
+              </a>
+              <a
+                href="https://www.facebook.com/musiclinks.fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <img src="/social-media/facebook.png" alt="Facebook" className="w-6 h-6" />
+                <span className="font-medium">Facebook</span>
+              </a>
+              <a
+                href="https://www.youtube.com/@musiclinks-fr"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+              >
+                <img src="/social-media/youtube.png" alt="YouTube" className="w-6 h-6" />
+                <span className="font-medium">YouTube</span>
+              </a>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

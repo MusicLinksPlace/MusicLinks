@@ -34,7 +34,7 @@ const ContactButton: React.FC<ContactButtonProps> = ({
       onClick={handleContact}
       variant={variant}
       size={size}
-      className={`flex items-center gap-2 ${className}`}
+      className={`flex items-center gap-2 bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 hover:from-blue-700 hover:via-blue-800 hover:to-indigo-800 text-white font-bold shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border-0 backdrop-blur-sm ${className}`}
     >
       <MessageCircle className="h-4 w-4" />
       Contacter {userName}

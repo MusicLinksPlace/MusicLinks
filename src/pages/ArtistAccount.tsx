@@ -28,6 +28,7 @@ import { LocationFilter } from '@/components/ui/LocationFilter';
 import AccountTabs from '@/components/profile/AccountTabs';
 import ConversationList from '@/components/profile/ConversationList';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
+import ImageCropper from '@/components/ui/ImageCropper';
 
 interface UserProfileData {
   id: string;
@@ -45,6 +46,9 @@ interface UserProfileData {
   musicStyle?: string | null;
   verified: number;
   disabled: number;
+  price?: number | null;
+  serviceDescription?: string | null;
+  galleryVideo?: string | null;
 }
 
 const ArtistAccount = () => {
@@ -57,6 +61,12 @@ const ArtistAccount = () => {
   const [formData, setFormData] = useState<Partial<UserProfileData>>({});
   const [filesToUpload, setFilesToUpload] = useState<{ [key: string]: File }>({});
   const [activeTab, setActiveTab] = useState<'profil' | 'activite' | 'messages'>('profil');
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropperConfig, setCropperConfig] = useState<{
+    file: File;
+    type: 'profile' | 'gallery';
+    index?: number;
+  } | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -80,6 +90,8 @@ const ArtistAccount = () => {
           .single();
 
         if (error) throw error;
+        console.log('[LOAD] User data loaded:', userData);
+        console.log('[LOAD] galleryVideo from DB:', userData.galleryVideo);
         setFormData(userData);
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -121,19 +133,28 @@ const ArtistAccount = () => {
         const file = filesToUpload[key];
         console.log(`[UPLOAD] Processing file: ${key}`, file);
         
-        const isGalleryUpload = key.startsWith('gallery');
-        // Utiliser le bucket 'avatars' pour tout (plus simple)
-        const bucket = 'avatars';
+        let bucket: string;
+        let filePath: string;
         
-        // Sanitize filename to remove spaces and special characters
-        const sanitizedFileName = file.name
-          .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
-          .replace(/_+/g, '_') // Replace multiple underscores with single
-          .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
-        
-        const filePath = isGalleryUpload 
-          ? `gallery/${formData.id}/${Date.now()}_${sanitizedFileName}`
-          : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        // Déterminer le bucket selon le type de fichier
+        if (key === 'galleryVideo_file') {
+          bucket = 'user-videos';
+          const fileExt = file.name.split('.').pop();
+          filePath = `video_${formData.id}_${Date.now()}.${fileExt}`;
+        } else {
+          bucket = 'avatars';
+          const isGalleryUpload = key.startsWith('gallery_file_');
+          
+          // Sanitize filename to remove spaces and special characters
+          const sanitizedFileName = file.name
+            .replace(/[^a-zA-Z0-9.-]/g, '_') // Replace special chars with underscore
+            .replace(/_+/g, '_') // Replace multiple underscores with single
+            .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+          
+          filePath = isGalleryUpload 
+            ? `gallery/${formData.id}/${Date.now()}_${sanitizedFileName}`
+            : `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        }
         
         console.log(`[UPLOAD] Uploading to bucket: ${bucket}, path: ${filePath}`);
         
@@ -152,8 +173,13 @@ const ArtistAccount = () => {
         const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
         console.log(`[UPLOAD] Public URL for ${key}:`, publicUrl);
         
-        if (isGalleryUpload) {
-          const index = parseInt(key.split('_')[1]);
+        // Mettre à jour les données selon le type de fichier
+        if (key === 'galleryVideo_file') {
+          formUpdates.galleryVideo = publicUrl;
+          console.log('[UPLOAD] Updated galleryVideo with URL:', publicUrl);
+          console.log('[UPLOAD] formUpdates.galleryVideo after update:', formUpdates.galleryVideo);
+        } else if (key.startsWith('gallery_file_')) {
+          const index = parseInt(key.split('_')[2]);
           if (!formUpdates.galleryimages) formUpdates.galleryimages = [];
           formUpdates.galleryimages[index] = publicUrl;
           console.log(`[UPLOAD] Updated galleryimages[${index}] with URL`);
@@ -165,8 +191,11 @@ const ArtistAccount = () => {
       
       console.log('[UPLOAD] All files uploaded, updating database...');
       
-      // Clean up data for submission
+      // Clean up data for submission - garder galleryVideo
       const { id, createdat, email, role, verified, disabled, ...updateData } = formUpdates;
+      console.log('[UPLOAD] Data to update in DB:', updateData);
+      console.log('[UPLOAD] galleryVideo in updateData:', updateData.galleryVideo);
+      
       // Update the user profile in the DB
       const { data: updatedUser, error: updateError } = await supabase
         .from('User')
@@ -213,27 +242,138 @@ const ArtistAccount = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, galleryIndex?: number) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    const { name } = e.target;
-    // For gallery images, we create a unique key like 'gallery_0', 'gallery_1', etc.
-    const key = galleryIndex !== undefined ? `gallery_${galleryIndex}` : 'profile';
+    console.log('[FILE CHANGE] File selected:', file);
+    console.log('[FILE CHANGE] File type:', file?.type);
+    console.log('[FILE CHANGE] File name:', file?.name);
+    console.log('[FILE CHANGE] Gallery index:', galleryIndex);
     
-    setFilesToUpload(prev => ({ ...prev, [key]: file }));
+    if (!file) {
+      console.log('[FILE CHANGE] No file selected');
+      return;
+    }
 
-    // Optional: Preview the image locally before upload
+    // Si c'est une vidéo, utiliser le bucket user-videos
+    if (file.type.startsWith('video/')) {
+      console.log('[FILE CHANGE] Video detected, setting galleryVideo_file');
+      setFilesToUpload(prev => {
+        const newFiles = { ...prev, galleryVideo_file: file };
+        console.log('[FILE CHANGE] Updated filesToUpload:', Object.keys(newFiles));
+        return newFiles;
+      });
+      return;
+    }
+
+    // Pour les images, utiliser le bucket avatars
+    if (galleryIndex !== undefined) {
+      console.log('[FILE CHANGE] Gallery image detected, setting gallery_file_' + galleryIndex);
+      setFilesToUpload(prev => ({ ...prev, [`gallery_file_${galleryIndex}`]: file }));
+    } else {
+      console.log('[FILE CHANGE] Profile picture detected');
+      setFilesToUpload(prev => ({ ...prev, profilepicture_file: file }));
+    }
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    if (!cropperConfig) return;
+    
+    // Créer un nouveau fichier avec le blob recadré
+    const croppedFile = new File([croppedBlob], cropperConfig.file.name, {
+      type: 'image/jpeg',
+      lastModified: Date.now(),
+    });
+    
+    const key = cropperConfig.type === 'gallery' && cropperConfig.index !== undefined 
+      ? `gallery_${cropperConfig.index}` 
+      : 'profile';
+    
+    // Preview immédiat
     const reader = new FileReader();
     reader.onload = (event) => {
       const imageUrl = event.target?.result as string;
-      if (galleryIndex !== undefined) {
+      if (cropperConfig.type === 'gallery' && cropperConfig.index !== undefined) {
         const newGallery = [...(formData.galleryimages || [])];
-        newGallery[galleryIndex] = imageUrl;
-        setFormData(prev => ({ ...prev, galleryimages: newGallery }));
+        newGallery[cropperConfig.index] = imageUrl;
+        setFormData((prev: any) => ({ ...prev, galleryimages: newGallery }));
       } else {
-        setFormData(prev => ({ ...prev, profilepicture: imageUrl }));
+        setFormData((prev: any) => ({ ...prev, profilepicture: imageUrl }));
       }
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(croppedFile);
+    
+    // Fermer le cropper
+    setShowCropper(false);
+    setCropperConfig(null);
+    
+    // Si c'est une photo de profil, sauvegarder immédiatement
+    if (cropperConfig.type === 'profile') {
+      setIsSaving(true);
+      try {
+        console.log('[UPLOAD PROFILE] Starting immediate profile picture upload...');
+        
+        // Utiliser le bucket 'avatars'
+        const bucket = 'avatars';
+        
+        // Sanitize filename
+        const sanitizedFileName = croppedFile.name
+          .replace(/[^a-zA-Z0-9.-]/g, '_')
+          .replace(/_+/g, '_')
+          .replace(/^_|_$/g, '');
+        
+        const filePath = `${formData.id}/${Date.now()}_${sanitizedFileName}`;
+        
+        console.log(`[UPLOAD PROFILE] Uploading to bucket: ${bucket}, path: ${filePath}`);
+        
+        const { error: uploadError } = await supabase.storage.from(bucket).upload(filePath, croppedFile, {
+            cacheControl: '3600',
+            upsert: true,
+        });
+        
+        if (uploadError) {
+          console.error('[UPLOAD PROFILE] Upload error:', uploadError);
+          throw new Error(`Erreur d'upload: ${uploadError.message}`);
+        }
+        
+        console.log('[UPLOAD PROFILE] Upload successful');
+        
+        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(filePath);
+        console.log('[UPLOAD PROFILE] Public URL:', publicUrl);
+        
+        // Mettre à jour la base de données
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('User')
+          .update({ profilepicture: publicUrl })
+          .eq('id', formData.id)
+          .select()
+          .single();
+          
+        if (updateError) {
+          console.error('[UPLOAD PROFILE] Database update error:', updateError);
+          throw updateError;
+        }
+        
+        console.log('[UPLOAD PROFILE] Database updated successfully');
+        
+        // Mettre à jour le state et le localStorage
+        setFormData(updatedUser);
+        localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
+        window.dispatchEvent(new Event('auth-change'));
+        
+        toast({ title: "Photo de profil mise à jour !", description: "Votre nouvelle photo a été sauvegardée." });
+      } catch (error: any) {
+        console.error("Error updating profile picture:", error);
+        toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // Pour les images de galerie, ajouter au filesToUpload pour sauvegarde lors du submit
+      setFilesToUpload(prev => ({ ...prev, [key]: croppedFile }));
+    }
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropperConfig(null);
   };
 
   const locationTrigger = (
@@ -310,6 +450,35 @@ const ArtistAccount = () => {
                       <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre musique..." rows={5}/>
                   </div>
                    <div>
+                      <Label htmlFor="price">Prix (à partir de)</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="price" 
+                          name="price" 
+                          type="number" 
+                          min="0" 
+                          step="100"
+                          value={formData.price || ''} 
+                          onChange={handleInputChange} 
+                          placeholder="0" 
+                        />
+                        <span className="text-gray-600 font-medium">€</span>
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">Indiquez votre tarif de base pour vos prestations</p>
+                  </div>
+                   <div>
+                      <Label htmlFor="serviceDescription">Description du service proposé</Label>
+                      <Textarea 
+                        id="serviceDescription" 
+                        name="serviceDescription" 
+                        value={formData.serviceDescription || ''} 
+                        onChange={handleInputChange} 
+                        placeholder="Décrivez en détail les services que vous proposez, vos conditions, votre approche..." 
+                        rows={4} 
+                      />
+                      <p className="text-sm text-gray-500 mt-1">Précisez ce que vous offrez et comment vous travaillez</p>
+                  </div>
+                   <div>
                       <Label htmlFor="musicStyle">Style musical principal</Label>
                       <Select name="musicStyle" onValueChange={(value) => handleSelectChange('musicStyle', value)} value={formData.musicStyle || ''}>
                         <SelectTrigger><SelectValue placeholder="Sélectionnez votre style..." /></SelectTrigger>
@@ -356,28 +525,63 @@ const ArtistAccount = () => {
                   </div>
                 </div>
 
-                {/* --- Social Links --- */}
+                {/* --- Vidéo --- */}
                 <div className="space-y-4">
-                  <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
-                  {formData.social_links?.map((link, index) => (
-                    <div key={index} className="flex items-center gap-2">
+                  <h2 className="text-lg font-semibold border-b pb-2">Vidéo de présentation</h2>
+                  <div className="space-y-2">
+                    <Label>Vidéo (MP4, WebM, MOV)</Label>
+                    <div className="flex items-center gap-4">
+                      {formData.galleryVideo ? (
+                        <div className="flex items-center gap-2">
+                          <video 
+                            src={formData.galleryVideo} 
+                            className="w-32 h-20 object-cover rounded bg-gray-200"
+                            controls
+                          />
+                          <span className="text-sm text-gray-600">Vidéo actuelle</span>
+                        </div>
+                      ) : (
+                        <div className="w-32 h-20 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-sm text-gray-500">Aucune vidéo</span>
+                        </div>
+                      )}
                       <Input 
-                        value={link || ''} 
-                        onChange={(e) => handleSocialLinkChange(index, e.target.value)}
-                        placeholder="https://soundcloud.com/artiste"
+                        id="galleryVideo_file" 
+                        name="galleryVideo_file" 
+                        type="file" 
+                        accept="video/*"
+                        onChange={handleFileChange} 
+                        className="max-w-xs"
                       />
-                      <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
-                        <Trash2 className="h-4 w-4 text-red-500"/>
-                      </Button>
                     </div>
-                  ))}
-                  {(!formData.social_links || formData.social_links.length < 5) && (
-                    <Button variant="outline" size="sm" onClick={addSocialLink} type="button">
-                      <PlusCircle className="h-4 w-4 mr-2" />
-                      Ajouter un lien
-                    </Button>
-                  )}
+                    <p className="text-sm text-gray-500">Ajoutez une vidéo de présentation pour votre profil</p>
+                  </div>
                 </div>
+
+                {/* --- Social Links --- */}
+                {(formData.social_links && formData.social_links.length > 0) && (
+                  <div className="space-y-4">
+                    <h2 className="text-lg font-semibold border-b pb-2">Réseaux Sociaux</h2>
+                    {formData.social_links.map((link, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Input 
+                          value={link || ''} 
+                          onChange={(e) => handleSocialLinkChange(index, e.target.value)}
+                          placeholder="https://soundcloud.com/artiste"
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => removeSocialLink(index)} className="hover:bg-red-100">
+                          <Trash2 className="h-4 w-4 text-red-500"/>
+                        </Button>
+                      </div>
+                    ))}
+                    {formData.social_links.length < 5 && (
+                      <Button variant="outline" size="sm" onClick={addSocialLink} type="button">
+                        <PlusCircle className="h-4 w-4 mr-2" />
+                        Ajouter un lien
+                      </Button>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-4 flex justify-end">
                     <Button type="submit" disabled={isSaving}>
@@ -396,6 +600,16 @@ const ArtistAccount = () => {
           </AccountTabs>
         </div>
       </div>
+      
+      {/* Image Cropper Modal - Only for profile pictures */}
+      {showCropper && cropperConfig && cropperConfig.type === 'profile' && (
+        <ImageCropper
+          imageFile={cropperConfig.file}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCropCancel}
+          title="Recadrer votre photo de profil"
+        />
+      )}
     </>
   );
 };

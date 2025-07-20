@@ -38,8 +38,7 @@ const Footer = () => {
               className="h-12 w-auto mb-6"
             />
             <p className="text-gray-300 text-sm leading-relaxed mb-8 max-w-md">
-              MusicLinks connecte les artistes avec les meilleurs prestataires musicaux. 
-              Trouvez votre ingénieur son, clipmaker ou coach musical de confiance.
+              MusicLinks connecte les artistes avec les meilleurs prestataires et partenaires du secteur musical. Trouvez votre studio, clipmaker ou photographe de confiance et signez avec le label ou le manager qui fera décoller votre carrière.
             </p>
             {/* Contact button */}
             <a 

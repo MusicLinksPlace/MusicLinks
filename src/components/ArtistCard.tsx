@@ -50,10 +50,10 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
       {/* Image 16/9 */}
       <div className="relative aspect-video overflow-hidden rounded-t-xl group">
         <OptimizedImage
-          src={user.coverImage || user.profilepicture || '/placeholder.svg'}
+          src={user.coverImage || user.profilepicture || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'}
           alt={user.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          fallback="/placeholder.svg"
+          fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
         />
         {user.isVideo && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -83,22 +83,28 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
           </div>
         </div>
         {/* Description/tagline */}
-        <div className="mb-3">
+        <div className="mb-2">
           <span className="block text-xs text-gray-500 leading-snug line-clamp-2">
             {shortDescription}
           </span>
         </div>
+        {/* Prix discret */}
+        {user.price && (
+          <div className="mb-3">
+            <div className="flex items-center gap-1">
+              <img src="/money.png" alt="Prix" className="w-3 h-3" />
+              <span className="text-xs text-gray-500">À partir de {user.price}€</span>
+            </div>
+          </div>
+        )}
         <div className="flex-1" />
-        {/* Footer note/prix */}
+        {/* Footer note */}
         <div className="flex items-end justify-between mt-auto pt-2 pb-1">
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 text-yellow-400 fill-current" />
             <span className="font-bold text-sm text-gray-900">{typeof user.rating === 'number' ? user.rating.toFixed(1) : '—'}</span>
             <span className="text-xs text-gray-500">({user.reviewCount ?? 0})</span>
           </div>
-          {user.price && (
-            <span className="text-[15px] font-bold text-gray-900 whitespace-nowrap">À partir de {user.price} €</span>
-          )}
         </div>
       </div>
       <Link to={`/profile/${user.id}`} className="absolute inset-0 z-10" aria-label={`Voir le profil de ${user.name}`} />
