@@ -89,10 +89,10 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
   const EmptyState = () => (
     <div className="flex justify-center px-4 sm:px-6 lg:px-8">
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
           <Star className="w-8 h-8 text-gray-400" />
         </div>
-        <p className="text-gray-500 text-lg font-medium">Aucun profil mis en avant</p>
+        <p className="text-gray-300 text-lg font-medium">Aucun profil mis en avant</p>
         <p className="text-gray-400 text-sm mt-1">Revenez bientôt pour découvrir nos talents</p>
       </div>
     </div>
@@ -102,21 +102,21 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
   const ErrorState = () => (
     <div className="flex justify-center px-4 sm:px-6 lg:px-8">
       <div className="text-center py-12">
-        <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
           <Star className="w-8 h-8 text-red-400" />
         </div>
-        <p className="text-red-500 text-lg font-medium">Erreur de chargement</p>
+        <p className="text-red-400 text-lg font-medium">Erreur de chargement</p>
         <p className="text-gray-400 text-sm mt-1">{error}</p>
       </div>
     </div>
   );
 
   return (
-    <section className="py-16 md:py-20 bg-gray-50">
+    <section className="py-16 md:py-20 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-12 px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             {title}
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
@@ -138,14 +138,14 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
                   to={`/profile/${user.id}`}
                   className="flex-shrink-0 w-64 md:w-72 group"
                 >
-                  <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                  <div className="bg-gradient-to-br from-gray-700/80 to-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-600/50 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer hover:border-gray-500/50">
                     {/* Avatar with Star Badge */}
                     <div className="flex justify-center mb-4">
                       <div className="relative">
                         <img
                           src={getImageUrlWithCacheBust(user.profilepicture, '/lovable-uploads/logo2.png')}
                           alt={user.name}
-                          className="w-20 h-20 rounded-full object-cover border-4 border-white shadow group-hover:scale-105 transition-transform duration-300"
+                          className="w-20 h-20 rounded-full object-cover border-4 border-gray-600 shadow group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full p-1.5 shadow-lg">
                           <Star className="w-4 h-4 text-white fill-current" />
@@ -155,18 +155,18 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
                     
                     {/* User Info */}
                     <div className="text-center">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">
+                      <h3 className="text-lg font-semibold text-white mb-2 truncate">
                         {user.name}
                       </h3>
                       
                       {user.subCategory && (
-                        <p className="text-sm text-gray-600 mb-1 font-medium">
+                        <p className="text-sm text-gray-300 mb-1 font-medium">
                           {translateCategory(user.subCategory)}
                         </p>
                       )}
                       
                       {user.location && (
-                        <div className="flex items-center justify-center text-xs text-gray-500">
+                        <div className="flex items-center justify-center text-xs text-gray-400">
                           <MapPin className="w-3 h-3 mr-1" />
                           <span>{user.location}</span>
                         </div>
