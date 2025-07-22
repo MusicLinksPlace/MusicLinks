@@ -3,10 +3,14 @@ import React from 'react';
 interface ServicesSectionProps {
   price?: number | null;
   serviceDescription?: string | null;
+  userRole?: string;
 }
 
-const ServicesSection: React.FC<ServicesSectionProps> = ({ price, serviceDescription }) => {
-  if (!price && !serviceDescription) {
+const ServicesSection: React.FC<ServicesSectionProps> = ({ price, serviceDescription, userRole }) => {
+  // Pour les artistes, on ne montre pas la section des prix
+  const shouldShowPrice = userRole !== 'artist' && price;
+  
+  if (!shouldShowPrice && !serviceDescription) {
     return (
       <div className="space-y-4">
         <h3 className="text-xl font-bold text-gray-900">Services</h3>
@@ -21,13 +25,13 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ price, serviceDescrip
     <div className="space-y-6">
       <h3 className="text-xl font-bold text-gray-900">Services</h3>
       
-      {/* Prix */}
-      {price && (
+      {/* Prix - seulement pour les prestataires et partenaires */}
+      {shouldShowPrice && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-lg">
           <div className="flex items-center gap-3">
             <img src="/money.png" alt="Prix" className="w-6 h-6 object-contain" />
             <span className="text-gray-900 font-normal">
-              Tarif à partir de {price.toLocaleString('fr-FR')}€
+              Tarif à partir de {price!.toLocaleString('fr-FR')}€
             </span>
           </div>
         </div>

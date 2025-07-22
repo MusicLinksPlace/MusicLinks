@@ -594,13 +594,7 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
                     </div>
                   </div>
 
-                  {/* Tarif */}
-                  {user.price && (
-                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg mb-4">
-                      <Euro className="w-4 h-4 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-700">À partir de {user.price}€</span>
-                    </div>
-                  )}
+
                 </div>
 
                 {/* Bouton de contact */}
@@ -844,7 +838,7 @@ const UserProfile = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('User')
-          .select('*')
+          .select('*, role')
           .eq('id', userId)
           .single();
         if (error) throw error;
@@ -1029,6 +1023,7 @@ const UserProfile = () => {
               <ServicesSection 
                 price={user.price} 
                 serviceDescription={user.serviceDescription} 
+                userRole={user.role}
               />
             )}
 
@@ -1142,6 +1137,7 @@ const UserProfile = () => {
                   <ServicesSection 
                     price={user.price} 
                     serviceDescription={user.serviceDescription} 
+                    userRole={user.role}
                   />
                 )}
 

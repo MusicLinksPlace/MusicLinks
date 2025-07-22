@@ -83,12 +83,6 @@ const CatalogueCard: React.FC<CatalogueCardProps> = ({ user }) => {
             </Badge>
           )}
         </div>
-        {user.price && (
-          <div className="flex items-center gap-1 mt-2">
-            <img src="/money.png" alt="Prix" className="w-3 h-3" />
-            <span className="text-xs text-gray-500">À partir de {user.price}€</span>
-          </div>
-        )}
       </div>
     </div>
   );
