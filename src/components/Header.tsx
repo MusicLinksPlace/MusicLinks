@@ -815,31 +815,13 @@ const Header = () => {
                 <span className="font-medium">Instagram</span>
               </a>
               <a
-                href="https://www.linkedin.com/company/musiclinks-fr"
+                href="https://www.tiktok.com/@musiclinks.fr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
               >
-                <img src="/social-media/linkedin.png" alt="LinkedIn" className="w-6 h-6" />
-                <span className="font-medium">LinkedIn</span>
-              </a>
-              <a
-                href="https://www.facebook.com/musiclinks.fr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-              >
-                <img src="/social-media/facebook.png" alt="Facebook" className="w-6 h-6" />
-                <span className="font-medium">Facebook</span>
-              </a>
-              <a
-                href="https://www.youtube.com/@musiclinks-fr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-              >
-                <img src="/social-media/youtube.png" alt="YouTube" className="w-6 h-6" />
-                <span className="font-medium">YouTube</span>
+                <img src="/social-media/tiktok.png" alt="TikTok" className="w-6 h-6" />
+                <span className="font-medium">TikTok</span>
               </a>
             </div>
           </div>
