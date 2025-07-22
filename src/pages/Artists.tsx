@@ -380,28 +380,6 @@ const ArtistsPage = () => {
                   </div>
                 ))}
               </CollapsibleFilter>
-
-              {/* Filtre Prix */}
-              <CollapsibleFilter
-                title="Prix"
-                isOpen={isPriceOpen}
-                onToggle={() => setIsPriceOpen(!isPriceOpen)}
-              >
-                {PRICE_RANGES.map((range) => (
-                  <div key={range.value} className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      id={`price-${range.value}`}
-                      checked={filters.selectedPriceRanges.includes(range.value)}
-                      onChange={() => handlePriceRangeChange(range.value)}
-                      className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
-                    />
-                    <label htmlFor={`price-${range.value}`} className="text-neutral-800 cursor-pointer text-base font-medium">
-                      {range.label}
-                    </label>
-                  </div>
-                ))}
-              </CollapsibleFilter>
             </aside>
 
             {/* Résultats à droite */}
@@ -489,39 +467,6 @@ const ArtistsPage = () => {
                         </div>
                       )}
                     </div>
-
-                    {/* Prix */}
-                    <div className="border border-neutral-200 rounded-xl overflow-hidden">
-                      <button
-                        onClick={() => setIsMobilePriceOpen(!isMobilePriceOpen)}
-                        className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-neutral-50 transition-colors"
-                      >
-                        <span className="text-base font-semibold text-neutral-900">Prix</span>
-                        {isMobilePriceOpen ? (
-                          <ChevronUp className="w-5 h-5 text-neutral-500" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-neutral-500" />
-                        )}
-                      </button>
-                      {isMobilePriceOpen && (
-                        <div className="px-4 pb-3 space-y-2">
-                          {PRICE_RANGES.map((range) => (
-                            <div key={range.value} className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                id={`mobile-price-${range.value}`}
-                                checked={filters.selectedPriceRanges.includes(range.value)}
-                                onChange={() => handlePriceRangeChange(range.value)}
-                                className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
-                              />
-                              <label htmlFor={`mobile-price-${range.value}`} className="text-neutral-800 cursor-pointer text-base font-medium">
-                                {range.label}
-                              </label>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
                   </div>
                   <div className="p-6 border-t border-neutral-100 bg-white">
                     <button
@@ -563,7 +508,6 @@ const ArtistsPage = () => {
                           {user.location && <div className="text-sm text-neutral-500 mb-0.5">{user.location}</div>}
                           {user.musicStyle && <div className="text-sm text-neutral-700 font-semibold mb-1">{MUSIC_STYLES.find(s => s.value === user.musicStyle)?.label || user.musicStyle}</div>}
                           {user.bio && <div className="text-sm text-neutral-700 mb-2 line-clamp-3">{user.bio}</div>}
-                          {user.price && <div className="text-sm text-neutral-700 font-semibold mb-2">À partir de {user.price}€</div>}
                           <div className="flex items-center gap-2 mb-2">
                             {user.rating ? (
                               <div className="flex items-center gap-1">
@@ -605,7 +549,6 @@ const ArtistsPage = () => {
                           {user.location && <div className="text-sm text-neutral-500 mb-0.5">{user.location}</div>}
                           {user.musicStyle && <div className="text-sm text-neutral-700 font-semibold mb-1">{MUSIC_STYLES.find(s => s.value === user.musicStyle)?.label || user.musicStyle}</div>}
                           {user.bio && <div className="text-sm text-neutral-700 mb-2 line-clamp-2">{user.bio}</div>}
-                          {user.price && <div className="text-sm text-neutral-700 font-semibold mb-2">À partir de {user.price}€</div>}
                           <div className="flex items-center gap-2 mb-4">
                             {user.rating ? (
                               <div className="flex items-center gap-1">

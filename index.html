@@ -33,6 +33,37 @@
 
   <body>
     <div id="root"></div>
+    <script>
+      // Protection contre les conflits FIDO2/WebAuthn
+      if (typeof navigator !== 'undefined' && navigator.credentials) {
+        // Sauvegarder l'API originale
+        const originalCreate = navigator.credentials.create;
+        const originalGet = navigator.credentials.get;
+        
+        // Redéfinir seulement si nécessaire
+        if (originalCreate && typeof originalCreate === 'function') {
+          navigator.credentials.create = function(...args) {
+            try {
+              return originalCreate.apply(this, args);
+            } catch (error) {
+              console.warn('FIDO2 create error intercepted:', error);
+              return Promise.reject(error);
+            }
+          };
+        }
+        
+        if (originalGet && typeof originalGet === 'function') {
+          navigator.credentials.get = function(...args) {
+            try {
+              return originalGet.apply(this, args);
+            } catch (error) {
+              console.warn('FIDO2 get error intercepted:', error);
+              return Promise.reject(error);
+            }
+          };
+        }
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

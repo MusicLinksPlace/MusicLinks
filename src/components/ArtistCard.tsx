@@ -88,15 +88,6 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
             {shortDescription}
           </span>
         </div>
-        {/* Prix discret */}
-        {user.price && (
-          <div className="mb-3">
-            <div className="flex items-center gap-1">
-              <img src="/money.png" alt="Prix" className="w-3 h-3" />
-              <span className="text-xs text-gray-500">À partir de {user.price}€</span>
-            </div>
-          </div>
-        )}
         <div className="flex-1" />
         {/* Footer note */}
         <div className="flex items-end justify-between mt-auto pt-2 pb-1">

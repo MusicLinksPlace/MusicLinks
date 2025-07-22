@@ -693,6 +693,11 @@ const ProvidersPage = () => {
                       {user.location && <div className="text-sm text-neutral-500 mb-0.5">{user.location}</div>}
                       {user.subCategory && <div className="text-sm text-neutral-700 font-semibold mb-1">{SUBCATEGORY_LABELS[user.subCategory] || user.subCategory}</div>}
                       {user.bio && <div className="text-sm text-neutral-700 mb-2 line-clamp-3">{user.bio}</div>}
+                      {user.price && (
+                        <div className="text-xs text-neutral-500 mb-2 opacity-75">
+                          À partir de {user.price.toLocaleString('fr-FR')}€
+                        </div>
+                      )}
                       <button 
                         onClick={() => handleContact(user.id, user.name)}
                         className="mt-2 w-full bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
@@ -723,6 +728,11 @@ const ProvidersPage = () => {
                       {user.location && <div className="text-sm text-neutral-500 mb-0.5 truncate">{user.location}</div>}
                       {user.subCategory && <div className="text-sm text-neutral-700 font-semibold mb-1 truncate">{SUBCATEGORY_LABELS[user.subCategory] || user.subCategory}</div>}
                       {user.bio && <div className="text-sm text-neutral-700 line-clamp-2 md:line-clamp-2 break-words">{user.bio}</div>}
+                      {user.price && (
+                        <div className="text-xs text-neutral-500 mt-1 opacity-75">
+                          À partir de {user.price.toLocaleString('fr-FR')}€
+                        </div>
+                      )}
                     </a>
                     {/* CTA */}
                     <div className="flex flex-col items-center md:items-end justify-center pr-2 md:pr-4 min-w-[120px]">

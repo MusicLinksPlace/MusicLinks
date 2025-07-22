@@ -357,15 +357,17 @@ const Header = () => {
                     onMouseLeave={handleMenuLeave}
                   >
                     <button
-                      className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-150 ${isSelected ? 'font-bold text-blue-700' : 'font-medium text-gray-700 hover:text-blue-700'} bg-transparent border-none focus:outline-none`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-full transition-all duration-150 font-medium text-gray-700 hover:text-blue-700 bg-transparent border-none focus:outline-none`}
                       style={{ fontSize: '1.1rem', position: 'relative' }}
                       onClick={() => navigate(item.link)}
                     >
                       <span className="text-xl flex items-center justify-center" style={{ lineHeight: 1 }}>{navIcons[item.type]}</span>
                       <span className="truncate text-base" style={{ lineHeight: 1 }}>{item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}</span>
                     </button>
-                    {(isSelected || hoveredMenu === item.type) && (
-                      <span className="block absolute left-0 right-0 -bottom-1 h-1 rounded-full bg-blue-600" style={{ width: '80%', margin: '0 auto' }} />
+                    {hoveredMenu === item.type && (
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+                        <span className="block h-1 rounded-full bg-blue-600" style={{ width: '90%', minWidth: '60px' }} />
+                      </div>
                     )}
                     {/* Mega-menu déroulant ARTISTES */}
                     {displayedMenu === item.type && item.type === 'artists' && (

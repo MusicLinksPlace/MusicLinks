@@ -48,12 +48,6 @@ const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
             </span>
           )}
         </div>
-        {partner.price && (
-          <div className="flex items-center gap-1 mt-2">
-            <img src="/money.png" alt="Prix" className="w-3 h-3 brightness-0 invert" />
-            <span className="text-white/80 text-xs">À partir de {partner.price}€</span>
-          </div>
-        )}
       </div>
     </Link>
   );

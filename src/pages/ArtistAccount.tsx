@@ -487,23 +487,6 @@ const ArtistAccount = () => {
                       <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre musique..." rows={5}/>
                   </div>
                    <div>
-                      <Label htmlFor="price">Prix (à partir de)</Label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          id="price" 
-                          name="price" 
-                          type="number" 
-                          min="0" 
-                          step="100"
-                          value={formData.price || ''} 
-                          onChange={handleInputChange} 
-                          placeholder="0" 
-                        />
-                        <span className="text-gray-600 font-medium">€</span>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-1">Indiquez votre tarif de base pour vos prestations</p>
-                  </div>
-                   <div>
                       <Label htmlFor="serviceDescription">Description du service proposé</Label>
                       <Textarea 
                         id="serviceDescription" 

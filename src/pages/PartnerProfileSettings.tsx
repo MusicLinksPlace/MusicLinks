@@ -678,25 +678,6 @@ const PartnerProfileSettings = () => {
                 <Label htmlFor="bio" className="md:text-lg">Biographie</Label>
                 <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre activité..." rows={5} className="md:text-lg md:h-32"/>
               </div>
-              {/* Prix */}
-              <div>
-                <Label htmlFor="price" className="md:text-lg">Prix (à partir de)</Label>
-                <div className="flex items-center gap-2">
-                  <Input 
-                    id="price" 
-                    name="price" 
-                    type="number" 
-                    min="0" 
-                    step="100"
-                    value={formData.price || ''} 
-                    onChange={handleInputChange} 
-                    placeholder="0" 
-                    className="md:h-12 md:text-lg"
-                  />
-                  <span className="text-gray-600 font-medium md:text-lg">€</span>
-                </div>
-                <p className="text-sm text-gray-500 mt-1">Indiquez votre tarif de base pour vos prestations</p>
-              </div>
               {/* Description du service */}
               <div>
                 <Label htmlFor="serviceDescription" className="md:text-lg">Description du service proposé</Label>
