@@ -235,11 +235,12 @@ const Header = () => {
       color: "text-green-600",
       items: [
         { label: "Tous les prestataires", link: "/providers" },
-        { label: "Visuel", link: "/providers?category=visuel" },
+        { label: "Professionnels de l'enregistrement", link: "/providers?category=recording" },
+        { label: "Promotion et marketing", link: "/providers?category=marketing" },
+        { label: "Visuel", link: "/providers?category=visuals" },
         { label: "Distribution", link: "/providers?category=distribution" },
-        { label: "Formation", link: "/providers?category=formation" },
-        { label: "Juridique", link: "/providers?category=juridique" },
-        { label: "Marketing", link: "/providers?category=marketing" }
+        { label: "Droits", link: "/providers?category=rights" },
+        { label: "Formation", link: "/providers?category=training" }
       ]
     },
     partners: {
@@ -644,7 +645,7 @@ const Header = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                   >
-                    <Camera className="w-5 h-5" />
+                    <span className="text-xl">📢</span>
                     <span>Projets</span>
                   </Link>
                   <Link 
