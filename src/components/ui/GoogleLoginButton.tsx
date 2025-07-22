@@ -7,7 +7,7 @@ const GoogleLoginButton = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/signup/continue`,
+        redirectTo: `${window.location.origin}/signup/continue?verified=true`,
       },
     });
 

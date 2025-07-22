@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { sendWelcomeEmail } from "../lib/emailService";
 
 const ROLE_OPTIONS = [
   { label: "Artiste", value: "artist" },
@@ -14,8 +15,15 @@ export default function SignUpContinue() {
   const [error, setError] = useState("");
   const [selecting, setSelecting] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
+    // Nettoyer l'URL en supprimant le hash et les paramètres
+    if (location.hash || location.search) {
+      const cleanUrl = location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+
     const fetchUser = async () => {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data.user) {
@@ -27,7 +35,7 @@ export default function SignUpContinue() {
       // Vérifie le champ 'role' dans la table User
       const { data: userProfile, error: userError } = await supabase
         .from('User')
-        .select('role')
+        .select('role, name, email')
         .eq('id', data.user.id)
         .single();
       if (userError) {
@@ -44,23 +52,48 @@ export default function SignUpContinue() {
       setLoading(false);
     };
     fetchUser();
-  }, [navigate]);
+  }, [navigate, location]);
 
   const handleRoleSelect = async (role) => {
     if (!user) return;
     setLoading(true);
-    // Met à jour le champ 'role' dans la table User
-    const { error } = await supabase
-      .from("User")
-      .update({ role })
-      .eq("id", user.id);
-    if (error) {
-      setError("Erreur lors de la mise à jour du rôle. Merci de réessayer.");
+    
+    try {
+      // Met à jour le champ 'role' dans la table User
+      const { error } = await supabase
+        .from("User")
+        .update({ role })
+        .eq("id", user.id);
+        
+      if (error) {
+        setError("Erreur lors de la mise à jour du rôle. Merci de réessayer.");
+        setLoading(false);
+        return;
+      }
+
+      // Récupère les informations utilisateur pour l'email de bienvenue
+      const { data: userProfile } = await supabase
+        .from('User')
+        .select('name, email')
+        .eq('id', user.id)
+        .single();
+
+      // Envoie l'email de bienvenue
+      if (userProfile) {
+        const firstName = userProfile.name ? userProfile.name.split(' ')[0] : 'Utilisateur';
+        await sendWelcomeEmail({
+          firstName: firstName,
+          email: userProfile.email
+        });
+      }
+
+      // Redirige vers la page de compte utilisateur
+      navigate("/mon-compte");
+    } catch (error) {
+      console.error('Erreur lors de la finalisation de l\'inscription:', error);
+      setError("Erreur lors de la finalisation de l'inscription. Merci de réessayer.");
       setLoading(false);
-      return;
     }
-    // Redirige vers la page de compte utilisateur (à adapter si besoin)
-    navigate("/mon-compte");
   };
 
   if (loading) return <div>Chargement...</div>;
