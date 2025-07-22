@@ -32,7 +32,7 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <section className="relative py-20 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-hidden">
+    <section className="relative py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black overflow-hidden">
       {/* Musical background elements */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400 rounded-full blur-2xl"></div>
@@ -45,17 +45,17 @@ const HowItWorks = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6">
             <Play className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
             Comment ça marche ?
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
             Découvrez comment MusicLinks facilite les connexions ainsi que les opportunités d'affaires entre artistes, prestataires et partenaires du secteur musical.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
           {/* Connecting line */}
-          <div className="hidden md:block absolute top-20 left-1/4 right-1/4 h-1 bg-gradient-to-r from-blue-200 via-green-200 to-purple-200 rounded-full z-0"></div>
+          <div className="hidden md:block absolute top-20 left-1/4 right-1/4 h-1 bg-gradient-to-r from-blue-400 via-green-400 to-purple-400 rounded-full z-0"></div>
           
           {steps.map((step, index) => {
             const IconComponent = step.icon;
@@ -63,7 +63,7 @@ const HowItWorks = () => {
               <div key={index} className="text-center relative z-10 group">
                 {/* Step circle with animation */}
                 <div className="relative mb-8">
-                  <div className="w-20 h-20 mx-auto bg-white rounded-full shadow-lg border-4 border-white flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-gray-800 to-gray-900 rounded-full shadow-lg border-4 border-gray-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg`}>
                       <span className="text-xl font-bold text-white">{step.step}</span>
                     </div>
@@ -74,16 +74,16 @@ const HowItWorks = () => {
                   </div>
 
                 {/* Icon with background */}
-                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl ${step.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                  <IconComponent className="w-8 h-8 text-gray-700" />
+                <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm border border-gray-700/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
+                  <IconComponent className="w-8 h-8 text-gray-300" />
                   </div>
 
                   {/* Content */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-gray-800 transition-colors">
+                <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-gray-200 transition-colors">
                     {step.title}
                   </h3>
                   
-                <p className="text-gray-600 leading-relaxed">
+                <p className="text-gray-300 leading-relaxed">
                     {step.description}
                   </p>
               </div>
@@ -105,7 +105,7 @@ const HowItWorks = () => {
           <Link to="/how-it-works">
             <Button 
               size="lg" 
-              className="font-semibold px-10 py-5 rounded-2xl text-lg bg-white/20 backdrop-blur border border-white/30 text-gray-800 hover:bg-white/30 hover:border-white/40 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
+              className="font-semibold px-10 py-5 rounded-2xl text-lg bg-white text-gray-900 hover:bg-gray-100 shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 border-0"
             >
               En savoir plus
               <ArrowRight className="ml-3 h-5 w-5" />
