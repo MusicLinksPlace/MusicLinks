@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HorizontalCarousel from '@/components/HorizontalCarousel';
-import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown, MessageCircle } from 'lucide-react';
+import { Megaphone, Camera, Gavel, GraduationCap, Search, MapPin, ChevronDown, MessageCircle, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,38 @@ import ModernLoader, { ModernSkeleton } from '@/components/ui/ModernLoader';
 import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
 import OptimizedImage from '@/components/ui/OptimizedImage';
 
+// Configuration des filtres de prix
+const PRICE_RANGES = [
+  { value: '0-500', label: 'Moins de 500€' },
+  { value: '500-1000', label: '500€ - 1.000€' },
+  { value: '1000-1500', label: '1.000€ - 1.500€' },
+  { value: '1500+', label: 'Plus de 1.500€' },
+];
+
+// Composant pour les filtres dépliants
+const CollapsibleFilter = ({ title, children, isOpen, onToggle }: any) => {
+  return (
+    <div className="mb-6">
+      <button
+        onClick={onToggle}
+        className="flex items-center justify-between w-full text-left py-3 px-0 border-b border-gray-200"
+      >
+        <span className="text-sm font-semibold text-neutral-800">{title}</span>
+        {isOpen ? (
+          <ChevronUp className="w-4 h-4 text-neutral-500" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-neutral-500" />
+        )}
+      </button>
+      {isOpen && (
+        <div className="mt-3 space-y-2">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface User {
   id: string;
   name: string;
@@ -25,6 +57,7 @@ interface User {
   portfolio_url?: string;
   social_links?: string[];
   bio?: string;
+  price?: number;
 }
 
 export const providerGroupsConfig = [
@@ -232,12 +265,18 @@ const ProvidersPage = () => {
   const [filters, setFilters] = useState({
     searchTerm: '',
     selectedLocation: 'all',
-    selectedSubCategories: getAllSubCategories(),
+    selectedSubCategories: [], // Rien n'est coché par défaut
+    selectedPriceRanges: [] as string[],
   });
   const [allLocations, setAllLocations] = useState<string[]>([]);
   const isMobile = useIsMobile();
   const [isLocationOpen, setIsLocationOpen] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [isPriceOpen, setIsPriceOpen] = useState(false);
+  const [isProfessionOpen, setIsProfessionOpen] = useState(false);
+  const [isMobilePriceOpen, setIsMobilePriceOpen] = useState(false);
+  const [isMobileProfessionOpen, setIsMobileProfessionOpen] = useState(false);
+  const [isMobileLocationOpen, setIsMobileLocationOpen] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -248,7 +287,12 @@ const ProvidersPage = () => {
   }, [location.search]);
 
   const handleResetFilters = () => {
-    setFilters({ searchTerm: '', selectedLocation: 'all', selectedSubCategories: getAllSubCategories() });
+    setFilters({ 
+      searchTerm: '', 
+      selectedLocation: 'all', 
+      selectedSubCategories: [], // Rien coché = tout s'affiche
+      selectedPriceRanges: [] 
+    });
   };
 
   useEffect(() => {
@@ -276,7 +320,7 @@ const ProvidersPage = () => {
 
   useEffect(() => {
     let filtered = [...allProviders];
-    const { searchTerm, selectedLocation, selectedSubCategories } = filters;
+    const { searchTerm, selectedLocation, selectedSubCategories, selectedPriceRanges } = filters;
     if (searchTerm) {
       filtered = filtered.filter(user =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -287,6 +331,19 @@ const ProvidersPage = () => {
     }
     if (selectedSubCategories.length > 0) {
       filtered = filtered.filter(user => selectedSubCategories.includes(user.subCategory || ''));
+    }
+    // Si aucune catégorie n'est sélectionnée, tout s'affiche (pas de filtrage)
+    if (selectedPriceRanges.length > 0) {
+      filtered = filtered.filter(user => {
+        const userPrice = user.price || 0;
+        return selectedPriceRanges.some(range => {
+          if (range === '1500+') {
+            return userPrice >= 1500;
+          }
+          const [min, max] = range.split('-').map(Number);
+          return userPrice >= min && userPrice <= max;
+        });
+      });
     }
     setFilteredProviders(filtered);
   }, [filters, allProviders]);
@@ -307,6 +364,15 @@ const ProvidersPage = () => {
 
   const handleContact = (userId: string, userName: string) => {
     navigate(`/chat?userId=${userId}`);
+  };
+
+  const handlePriceRangeChange = (range: string) => {
+    setFilters(f => ({
+      ...f,
+      selectedPriceRanges: f.selectedPriceRanges.includes(range)
+        ? f.selectedPriceRanges.filter(r => r !== range)
+        : [...f.selectedPriceRanges, range]
+    }));
   };
 
   const locationButton = (
@@ -397,7 +463,35 @@ const ProvidersPage = () => {
               </Popover>
             )}
           </div>
-          <div className="mb-6">
+
+          {/* Filtre Prix - Desktop only */}
+          <CollapsibleFilter
+            title="Prix"
+            isOpen={isPriceOpen}
+            onToggle={() => setIsPriceOpen(!isPriceOpen)}
+          >
+            {PRICE_RANGES.map((range) => (
+              <div key={range.value} className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id={`price-${range.value}`}
+                  checked={filters.selectedPriceRanges.includes(range.value)}
+                  onChange={() => handlePriceRangeChange(range.value)}
+                  className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
+                />
+                <label htmlFor={`price-${range.value}`} className="text-neutral-800 cursor-pointer text-base font-medium">
+                  {range.label}
+                </label>
+              </div>
+            ))}
+          </CollapsibleFilter>
+
+          {/* Filtre Profession - Desktop only */}
+          <CollapsibleFilter
+            title="Profession"
+            isOpen={isProfessionOpen}
+            onToggle={() => setIsProfessionOpen(!isProfessionOpen)}
+          >
             <div className="space-y-6">
               {providerGroupsConfig.map((group, idx) => {
                 let emoji = '';
@@ -409,7 +503,7 @@ const ProvidersPage = () => {
                 if (group.title === "Droits") emoji = '⚖️';
                 return (
                   <div key={group.title} className="mb-6">
-                    <div className="pt-8 text-base font-bold text-neutral-900 mb-2 flex items-center gap-2 pl-0 whitespace-nowrap">
+                    <div className="pt-4 text-base font-bold text-neutral-900 mb-2 flex items-center gap-2 pl-0 whitespace-nowrap">
                       {emoji && <span className="text-2xl">{emoji}</span>}
                       {group.title}
                     </div>
@@ -431,7 +525,7 @@ const ProvidersPage = () => {
                 );
               })}
             </div>
-          </div>
+          </CollapsibleFilter>
         </aside>
         {/* Résultats à droite */}
         <section className="flex-1">
@@ -446,70 +540,128 @@ const ProvidersPage = () => {
             </button>
             <span className="text-lg font-extrabold text-neutral-700 tracking-wide">{filteredProviders.length} RÉSULTATS</span>
           </div>
-          {/* Popup filtres mobile */}
-          {mobileFiltersOpen && (
-            <div className="fixed inset-0 z-50 bg-black/40 flex md:hidden">
-              <div className="fixed inset-x-0 bottom-0 top-0 bg-white rounded-t-3xl shadow-2xl flex flex-col max-h-full animate-slideInUp">
-                <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-neutral-100">
-                  <span className="text-xl font-bold">Filtres</span>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => {
-                      // Réinitialiser : tout décocher
-                      providerGroupsConfig.forEach(group => {
-                        group.sections.forEach(section => {
-                          if (filters.selectedSubCategories.includes(section.subCategories[0])) {
-                            handleCheckboxChange(section.subCategories[0]);
-                          }
-                        });
-                      });
-                    }} className="text-sm font-semibold text-ml-blue px-2 py-1 rounded hover:bg-blue-50">Réinitialiser</button>
-                    <button onClick={() => {
-                      // Tout cocher
-                      providerGroupsConfig.forEach(group => {
-                        group.sections.forEach(section => {
-                          if (!filters.selectedSubCategories.includes(section.subCategories[0])) {
-                            handleCheckboxChange(section.subCategories[0]);
-                          }
-                        });
-                      });
-                    }} className="text-sm font-semibold text-ml-blue px-2 py-1 rounded hover:bg-blue-50">Tout cocher</button>
-                    <button onClick={() => setMobileFiltersOpen(false)} className="p-2 rounded-lg hover:bg-gray-100 transition-colors">
-                      <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                    </button>
-                  </div>
-                </div>
-                <div className="flex-1 overflow-y-auto px-6 py-4">
-                  {providerGroupsConfig.map(group => (
-                    <div key={group.title} className="mb-6">
-                      <div className="text-base font-bold text-neutral-900 mb-2">{group.title}</div>
-                      <ul className="space-y-2">
-                        {group.sections.map(section => (
-                          <li key={section.title} className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              id={`mobile-subcat-${section.subCategories[0]}`}
-                              checked={filters.selectedSubCategories.includes(section.subCategories[0])}
-                              onChange={() => handleCheckboxChange(section.subCategories[0])}
-                              className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
-                            />
-                            <label htmlFor={`mobile-subcat-${section.subCategories[0]}`} className="text-neutral-800 cursor-pointer text-base font-medium">{section.title}</label>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-6 border-t border-neutral-100">
+
+          {/* Popup mobile avec Drawer */}
+          <Drawer open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
+            <DrawerContent className="h-[95vh] top-0 mt-0">
+              <DrawerHeader className="text-left">
+                <DrawerTitle className="text-2xl font-bold">Filtres</DrawerTitle>
+                <button 
+                  onClick={() => setMobileFiltersOpen(false)} 
+                  className="absolute top-6 right-6 p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+                >
+                  <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </DrawerHeader>
+              <div className="px-6 py-4 space-y-6">
+                {/* Localisation */}
+                <div className="border border-neutral-200 rounded-xl overflow-hidden">
                   <button
-                    className="w-full bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
-                    onClick={() => setMobileFiltersOpen(false)}
+                    onClick={() => setIsMobileLocationOpen(!isMobileLocationOpen)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-neutral-50 transition-colors"
                   >
-                    Valider
+                    <span className="text-base font-semibold text-neutral-900">Localisation</span>
+                    {isMobileLocationOpen ? (
+                      <ChevronUp className="w-5 h-5 text-neutral-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-neutral-500" />
+                    )}
                   </button>
+                  {isMobileLocationOpen && (
+                    <div className="px-4 pb-3">
+                      <LocationFilter
+                        selectedLocation={filters.selectedLocation}
+                        onLocationChange={handleLocationChange}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Prix */}
+                <div className="border border-neutral-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setIsMobilePriceOpen(!isMobilePriceOpen)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-neutral-50 transition-colors"
+                  >
+                    <span className="text-base font-semibold text-neutral-900">Prix</span>
+                    {isMobilePriceOpen ? (
+                      <ChevronUp className="w-5 h-5 text-neutral-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-neutral-500" />
+                    )}
+                  </button>
+                  {isMobilePriceOpen && (
+                    <div className="px-4 pb-3 space-y-2">
+                      {PRICE_RANGES.map((range) => (
+                        <div key={range.value} className="flex items-center gap-3">
+                          <input
+                            type="checkbox"
+                            id={`mobile-price-${range.value}`}
+                            checked={filters.selectedPriceRanges.includes(range.value)}
+                            onChange={() => handlePriceRangeChange(range.value)}
+                            className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
+                          />
+                          <label htmlFor={`mobile-price-${range.value}`} className="text-neutral-800 cursor-pointer text-base font-medium">
+                            {range.label}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Profession */}
+                <div className="border border-neutral-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setIsMobileProfessionOpen(!isMobileProfessionOpen)}
+                    className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-neutral-50 transition-colors"
+                  >
+                    <span className="text-base font-semibold text-neutral-900">Profession</span>
+                    {isMobileProfessionOpen ? (
+                      <ChevronUp className="w-5 h-5 text-neutral-500" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-neutral-500" />
+                    )}
+                  </button>
+                  {isMobileProfessionOpen && (
+                    <div className="px-4 pb-3 max-h-48 overflow-y-auto">
+                      {providerGroupsConfig.map(group => (
+                        <div key={group.title} className="mb-4">
+                          <div className="text-base font-bold text-neutral-900 mb-2">{group.title}</div>
+                          <ul className="space-y-2">
+                            {group.sections.map(section => (
+                              <li key={section.title} className="flex items-center gap-3">
+                                <input
+                                  type="checkbox"
+                                  id={`mobile-subcat-${section.subCategories[0]}`}
+                                  checked={filters.selectedSubCategories.includes(section.subCategories[0])}
+                                  onChange={() => handleCheckboxChange(section.subCategories[0])}
+                                  className="accent-blue-600 w-5 h-5 rounded-lg border border-neutral-300 shadow-sm"
+                                />
+                                <label htmlFor={`mobile-subcat-${section.subCategories[0]}`} className="text-neutral-800 cursor-pointer text-base font-medium">{section.title}</label>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-          )}
+              <div className="p-6 border-t border-neutral-100 bg-white">
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                >
+                  Valider
+                </button>
+              </div>
+            </DrawerContent>
+          </Drawer>
+          
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <ModernLoader size="lg" text="Chargement des prestataires..." />
