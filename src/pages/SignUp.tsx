@@ -544,7 +544,7 @@ const SignUpPage = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/signup/continue`,
+          emailRedirectTo: `${window.location.origin}/signup/continue?verified=true`,
           data: profileData,
         }
       });
