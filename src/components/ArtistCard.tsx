@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Star, Play } from 'lucide-react';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
@@ -28,6 +28,7 @@ interface ArtistCardProps {
 }
 
 const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
+  const navigate = useNavigate();
   const categoryLabel = user.subcategory ? CATEGORY_TRANSLATIONS[user.subcategory] : null;
   const musicStyleLabel = user.musicStyle ? CATEGORY_TRANSLATIONS[user.musicStyle] : null;
   
@@ -45,8 +46,15 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
     displayBadges = [...displayBadges, 'Vetted'];
   }
 
+  const handleCardClick = () => {
+    navigate(`/profile/${user.id}`);
+  };
+
   return (
-    <div className="relative flex flex-col w-[260px] sm:w-[270px] md:w-[300px] flex-shrink-0">
+    <div 
+      className="relative flex flex-col w-[260px] sm:w-[270px] md:w-[300px] flex-shrink-0 cursor-pointer group"
+      onClick={handleCardClick}
+    >
       {/* Image 16/9 */}
       <div className="relative aspect-video overflow-hidden rounded-t-xl group">
         <OptimizedImage
@@ -98,7 +106,6 @@ const ArtistCard: React.FC<ArtistCardProps> = ({ user }) => {
           </div>
         </div>
       </div>
-      <Link to={`/profile/${user.id}`} className="absolute inset-0 z-10" aria-label={`Voir le profil de ${user.name}`} />
     </div>
   );
 };
