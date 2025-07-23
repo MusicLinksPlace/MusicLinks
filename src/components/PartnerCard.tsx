@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Star } from 'lucide-react';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
@@ -16,11 +16,17 @@ interface Partner {
 }
 
 const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
+  const navigate = useNavigate();
   const styleLabel = partner.musicStyle ? CATEGORY_TRANSLATIONS[partner.musicStyle] || partner.musicStyle : null;
+  
+  const handleCardClick = () => {
+    navigate(`/profile/${partner.id}`);
+  };
+
   return (
-    <Link
-      to={`/profile/${partner.id}`}
-      className="group block w-[320px] md:w-[420px] h-[280px] rounded-3xl overflow-hidden shadow-lg bg-gray-200 relative transition-all duration-300 hover:shadow-2xl hover:scale-105"
+    <div
+      onClick={handleCardClick}
+      className="group block w-[320px] md:w-[420px] h-[280px] rounded-3xl overflow-hidden shadow-lg bg-gray-200 relative transition-all duration-300 hover:shadow-2xl hover:scale-105 cursor-pointer"
     >
       {/* Image de fond */}
       {partner.profilepicture ? (
@@ -49,7 +55,7 @@ const PartnerCard: React.FC<{ partner: Partner }> = ({ partner }) => {
           )}
         </div>
       </div>
-    </Link>
+    </div>
   );
 };
 

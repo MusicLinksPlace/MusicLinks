@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -145,6 +146,7 @@ const FilterBar = ({ onFilterChange, onReset, filters }: any) => {
 };
 
 const ArtistsPage = () => {
+  const navigate = useNavigate();
   const [allArtists, setAllArtists] = useState<User[]>([]);
   const [filteredArtists, setFilteredArtists] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -522,12 +524,12 @@ const ArtistsPage = () => {
                               </div>
                             )}
                           </div>
-                          <a 
-                            href={`/profile/${user.id}`}
+                          <button 
+                            onClick={() => navigate(`/profile/${user.id}`)}
                             className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
                           >
                             Voir le profil
-                          </a>
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -563,12 +565,12 @@ const ArtistsPage = () => {
                               </div>
                             )}
                           </div>
-                          <a 
-                            href={`/profile/${user.id}`}
+                          <button 
+                            onClick={() => navigate(`/profile/${user.id}`)}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
                           >
                             Voir le profil
-                          </a>
+                          </button>
                         </div>
                       </div>
                     ))}

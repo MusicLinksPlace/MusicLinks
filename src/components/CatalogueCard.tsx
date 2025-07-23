@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Star } from 'lucide-react';
@@ -43,22 +43,30 @@ const getSocialIcon = (url: string) => {
 };
 
 const CatalogueCard: React.FC<CatalogueCardProps> = ({ user }) => {
+  const navigate = useNavigate();
   const musicStyleLabel = MUSIC_STYLES.find(style => style.value === user.musicStyle)?.label;
   const userSocials = (user.social_links || []).map(link => ({
     url: link,
     icon: link ? getSocialIcon(link) : null
   })).filter(social => social.icon);
 
+  const handleCardClick = () => {
+    navigate(`/profile/${user.id}`);
+  };
+
   return (
-    <div className="bg-white rounded-3xl shadow-md overflow-hidden w-48 sm:w-56 flex-shrink-0 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
-      <Link to={`/profile/${user.id}`} className="block h-48 sm:h-52 p-4">
+    <div 
+      className="bg-white rounded-3xl shadow-md overflow-hidden w-48 sm:w-56 flex-shrink-0 group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <div className="h-48 sm:h-52 p-4">
         <OptimizedImage
           src={getImageUrlWithCacheBust(user.profilepicture)}
           alt={user.name}
           className="w-full h-full object-cover rounded-2xl"
           fallback="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+"
         />
-      </Link>
+      </div>
       <div className="p-3">
         <div className="flex justify-between items-start">
           <div className="flex-grow overflow-hidden pr-2">

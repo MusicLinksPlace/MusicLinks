@@ -723,7 +723,7 @@ const ProvidersPage = () => {
                       />
                     </div>
                     {/* Infos cliquables */}
-                    <a href={`/profile/${user.id}`} className="flex-1 flex flex-col justify-center px-2 md:px-4 cursor-pointer group min-w-0">
+                    <div onClick={() => navigate(`/profile/${user.id}`)} className="flex-1 flex flex-col justify-center px-2 md:px-4 cursor-pointer group min-w-0">
                       <div className="text-lg md:text-xl font-extrabold text-neutral-900 mb-1 leading-tight group-hover:underline truncate">{user.name}</div>
                       {user.location && <div className="text-sm text-neutral-500 mb-0.5 truncate">{user.location}</div>}
                       {user.subCategory && <div className="text-sm text-neutral-700 font-semibold mb-1 truncate">{SUBCATEGORY_LABELS[user.subCategory] || user.subCategory}</div>}
@@ -733,7 +733,7 @@ const ProvidersPage = () => {
                           À partir de {user.price.toLocaleString('fr-FR')}€
                         </div>
                       )}
-                    </a>
+                    </div>
                     {/* CTA */}
                     <div className="flex flex-col items-center md:items-end justify-center pr-2 md:pr-4 min-w-[120px]">
                       <button
