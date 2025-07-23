@@ -88,7 +88,7 @@ export const useLikes = (targetUserId?: string) => {
     try {
       const currentUser = getCurrentUser();
       if (!currentUser) {
-        throw new Error('Utilisateur non connecté');
+        return null;
       }
 
       const { data, error } = await supabase
@@ -121,7 +121,7 @@ export const useLikes = (targetUserId?: string) => {
     try {
       const currentUser = getCurrentUser();
       if (!currentUser) {
-        throw new Error('Utilisateur non connecté');
+        return null;
       }
 
       const { error } = await supabase
@@ -158,13 +158,22 @@ export const useLikes = (targetUserId?: string) => {
       );
 
       if (existingLike) {
-        await removeLike(toUserId);
+        const result = await removeLike(toUserId);
+        if (result === null) {
+          setShowLoginPopup(true);
+          return;
+        }
       } else {
-        await addLike(toUserId);
+        const result = await addLike(toUserId);
+        if (result === null) {
+          setShowLoginPopup(true);
+          return;
+        }
       }
     } catch (err: any) {
       console.error('Erreur lors du toggle like:', err);
-      throw err;
+      // Ne pas lancer l'erreur, juste afficher la popup
+      setShowLoginPopup(true);
     }
   };
 
