@@ -6,6 +6,7 @@ import { useLikes } from '@/hooks/use-likes';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
 import { CATEGORY_TRANSLATIONS } from '@/lib/constants';
 import ModernLoader, { ModernSkeleton } from '@/components/ui/ModernLoader';
+import LoginRequiredPopup from '@/components/ui/LoginRequiredPopup';
 
 interface LikedProfile {
   id: string;
@@ -23,7 +24,7 @@ const LikedProfiles: React.FC = () => {
   const [likedProfiles, setLikedProfiles] = useState<LikedProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { getLikedProfiles, toggleLike } = useLikes();
+  const { getLikedProfiles, toggleLike, showLoginPopup, setShowLoginPopup } = useLikes();
 
   useEffect(() => {
     loadLikedProfiles();
@@ -129,6 +130,12 @@ const LikedProfiles: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Popup de connexion requise */}
+      <LoginRequiredPopup 
+        isOpen={showLoginPopup} 
+        onClose={() => setShowLoginPopup(false)} 
+      />
+      
       <div className="flex items-center justify-between">
         <h3 className="text-xl font-bold text-gray-900">
           Profils likés ({likedProfiles.length})

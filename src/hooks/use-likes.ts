@@ -28,6 +28,7 @@ export const useLikes = (targetUserId?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [likeCount, setLikeCount] = useState(0);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   // Récupérer l'utilisateur connecté
   const getCurrentUser = () => {
@@ -148,7 +149,8 @@ export const useLikes = (targetUserId?: string) => {
     try {
       const currentUser = getCurrentUser();
       if (!currentUser) {
-        throw new Error('Utilisateur non connecté');
+        setShowLoginPopup(true);
+        return;
       }
 
       const existingLike = likes.find(like => 
@@ -249,6 +251,8 @@ export const useLikes = (targetUserId?: string) => {
     likeCount,
     loading,
     error,
+    showLoginPopup,
+    setShowLoginPopup,
     addLike,
     removeLike,
     toggleLike,

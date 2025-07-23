@@ -39,6 +39,7 @@ import VideoPlayer from '@/components/ui/VideoPlayer';
 import PageTransition, { StaggeredAnimation } from '@/components/ui/PageTransition';
 import ServicesSection from '@/components/profile/ServicesSection';
 import LikedProfiles from '@/components/profile/LikedProfiles';
+import LoginRequiredPopup from '@/components/ui/LoginRequiredPopup';
 
 // Composant de galerie moderne et fluide
 const ModernGallery = ({ video, images }: { video?: string, images?: string[] }) => {
@@ -504,7 +505,7 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
 
 // En-tête de profil moderne et sobre
 const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
-  const { isLiked, toggleLike, loading: likeLoading, likeCount } = useLikes(user?.id);
+  const { isLiked, toggleLike, loading: likeLoading, likeCount, showLoginPopup, setShowLoginPopup } = useLikes(user?.id);
 
   // Calcul de la date d'inscription
   const getMemberSince = (createdAt?: string) => {
@@ -547,6 +548,12 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
           />
         </div>
       </div>
+
+      {/* Popup de connexion requise */}
+      <LoginRequiredPopup 
+        isOpen={showLoginPopup} 
+        onClose={() => setShowLoginPopup(false)} 
+      />
 
       {/* Carte profil compacte */}
       <div className="px-4 md:px-6 pb-6">
