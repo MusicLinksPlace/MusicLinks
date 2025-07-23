@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Star as StarIcon } from 'lucide-react';
 import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { getImageUrlWithCacheBust } from '@/lib/utils';
+import { sendMessageNotification } from '@/lib/emailService';
 
 interface Conversation {
   id: string;
@@ -376,6 +377,32 @@ const Chat = () => {
       setNewMessage('');
       removeFile();
       loadMessages();
+
+      // Envoyer la notification par email
+      try {
+        // Récupérer les informations du destinataire
+        const { data: receiverData } = await supabase
+          .from('User')
+          .select('name, email')
+          .eq('id', selectedUserId)
+          .single();
+
+        if (receiverData && receiverData.email) {
+          const messagePreview = newMessage.trim() || `[${attachmentType === 'image' ? 'Image' : 'Fichier'} envoyé(e)]`;
+          const conversationUrl = `${window.location.origin}/chat?userId=${currentUser.id}`;
+          
+          await sendMessageNotification({
+            receiverEmail: receiverData.email,
+            receiverName: receiverData.name || 'Utilisateur',
+            senderName: currentUser.name || 'Utilisateur',
+            messagePreview: messagePreview.length > 100 ? messagePreview.substring(0, 100) + '...' : messagePreview,
+            conversationUrl
+          });
+        }
+      } catch (emailError) {
+        console.error('Erreur lors de l\'envoi de la notification par email:', emailError);
+        // Ne pas bloquer l'envoi du message si l'email échoue
+      }
     } catch (error: any) {
       console.error('Error sending message:', error);
       toast({ title: "Erreur", description: "Impossible d'envoyer le message: " + error.message, variant: "destructive" });
