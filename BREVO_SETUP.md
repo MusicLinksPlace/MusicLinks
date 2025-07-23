@@ -42,6 +42,16 @@ Le template d'email de bienvenue est configuré avec l'ID : `2DWQWFGHlPQcCSpZcbp
 - **Contenu** : Email HTML personnalisé avec lien de vérification
 - **Expiration** : 24 heures
 
+### 3. Notifications de nouveaux messages ⭐ NOUVEAU
+- **Déclencheur** : Quand un utilisateur reçoit un nouveau message
+- **Contenu** : Email HTML personnalisé avec aperçu du message
+- **Fonctionnalités** :
+  - Aperçu du message (100 premiers caractères)
+  - Nom de l'expéditeur
+  - Lien direct vers la conversation
+  - Design responsive et professionnel
+  - Logo MusicLinks intégré
+
 ## Utilisation
 
 ### Envoi d'email de bienvenue
@@ -64,6 +74,19 @@ await sendEmailVerification(
 );
 ```
 
+### Envoi de notification de message
+```typescript
+import { sendMessageNotification } from '@/lib/emailService';
+
+await sendMessageNotification({
+  receiverEmail: 'recipient@example.com',
+  receiverName: 'Marie',
+  senderName: 'John',
+  messagePreview: 'Bonjour ! Je suis intéressé par votre projet...',
+  conversationUrl: 'https://votre-site.com/chat?userId=123'
+});
+```
+
 ## Déploiement
 
 ### Vercel
@@ -79,6 +102,26 @@ Assurez-vous que la variable `VITE_BREVO_API_KEY` est disponible dans votre envi
 1. **"Invalid API key"** : Vérifiez que votre clé API Brevo est correcte
 2. **"Template not found"** : Vérifiez que l'ID du template est correct
 3. **"Rate limit exceeded"** : Attendez quelques minutes avant de réessayer
+4. **"Email notification failed"** : Vérifiez que l'email du destinataire est valide
 
 ### Logs
-Les erreurs et succès sont loggés dans la console du navigateur pour faciliter le débogage. 
+Les erreurs et succès sont loggés dans la console du navigateur pour faciliter le débogage.
+
+## Configuration côté Brevo
+
+### 1. Vérification des emails
+- Assurez-vous que votre domaine d'envoi est vérifié dans Brevo
+- Configurez les enregistrements SPF et DKIM pour améliorer la délivrabilité
+
+### 2. Limites d'envoi
+- Vérifiez vos limites d'envoi dans votre plan Brevo
+- Les notifications de messages peuvent augmenter significativement le volume d'emails
+
+### 3. Templates personnalisés (optionnel)
+Si vous souhaitez utiliser des templates Brevo pour les notifications de messages :
+1. Créez un template dans Brevo
+2. Remplacez l'ID du template dans `emailService.ts`
+3. Utilisez les variables disponibles dans le template
+
+### 4. Gestion des désabonnements
+Les emails de notification incluent un lien vers les paramètres du profil pour permettre aux utilisateurs de désactiver les notifications. 

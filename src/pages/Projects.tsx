@@ -16,6 +16,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger as Draw
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LocationFilter } from '@/components/ui/LocationFilter';
 import { useNavigate } from 'react-router-dom';
+import { sendMessageNotification } from '@/lib/emailService';
 
 type Project = Database['public']['Tables']['Project']['Row'];
 
@@ -227,6 +228,31 @@ const Projects = () => {
         });
 
       if (error) throw error;
+
+      // Envoyer la notification par email
+      try {
+        // Récupérer les informations du destinataire (auteur du projet)
+        const { data: receiverData } = await supabase
+          .from('User')
+          .select('name, email')
+          .eq('id', project.authorId)
+          .single();
+
+        if (receiverData && receiverData.email) {
+          const conversationUrl = `${window.location.origin}/chat?userId=${currentUser.id}`;
+          
+          await sendMessageNotification({
+            receiverEmail: receiverData.email,
+            receiverName: receiverData.name || 'Utilisateur',
+            senderName: currentUser.name || 'Utilisateur',
+            messagePreview: projectMessage.length > 100 ? projectMessage.substring(0, 100) + '...' : projectMessage,
+            conversationUrl
+          });
+        }
+      } catch (emailError) {
+        console.error('Erreur lors de l\'envoi de la notification par email:', emailError);
+        // Ne pas bloquer l'envoi du message si l'email échoue
+      }
 
       toast({
         title: "Succès",
