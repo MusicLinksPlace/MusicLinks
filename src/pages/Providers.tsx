@@ -699,11 +699,10 @@ const ProvidersPage = () => {
                         </div>
                       )}
                       <button 
-                        onClick={() => handleContact(user.id, user.name)}
-                        className="mt-2 w-full bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
+                        onClick={() => navigate(`/profile/${user.id}`)}
+                        className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
                       >
-                        <MessageCircle className="h-4 w-4" />
-                        Contacter
+                        Voir le profil
                       </button>
                     </div>
                   </div>
