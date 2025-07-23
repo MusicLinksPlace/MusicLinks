@@ -966,24 +966,21 @@ const UserProfile = () => {
                     <h3 className="text-lg font-semibold text-gray-900">Informations</h3>
                   </div>
                   <div className="space-y-3 text-gray-600">
-                    <div className="flex items-center gap-3 p-3 rounded-lg">
-                      <Calendar className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm">
-                        {(() => {
-                          const createdDate = new Date(user.createdat);
-                          const now = new Date();
-                          const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
-                          
-                          if (monthsDiff < 1) {
-                            return "Membre depuis moins d'un mois";
-                          } else if (monthsDiff === 1) {
-                            return "Membre depuis 1 mois";
-                          } else {
-                            return `Membre depuis ${monthsDiff} mois`;
-                          }
-                        })()}
-                      </span>
-                    </div>
+                    <p className="text-gray-700 leading-relaxed">
+                      Inscrit sur MusicLinks depuis {(() => {
+                        const createdDate = new Date(user.createdat);
+                        const now = new Date();
+                        const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
+                        
+                        if (monthsDiff < 1) {
+                          return "moins d'un mois";
+                        } else if (monthsDiff === 1) {
+                          return "1 mois";
+                        } else {
+                          return `${monthsDiff} mois`;
+                        }
+                      })()}
+                    </p>
                   </div>
                 </div>
 
@@ -1079,26 +1076,23 @@ const UserProfile = () => {
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900">Informations</h3>
                       </div>
-                      <div className="space-y-3 text-gray-600">
-                        <div className="flex items-center gap-3 p-3 rounded-lg">
-                          <Calendar className="w-4 h-4 text-gray-500" />
-                          <span className="text-sm">
-                            {(() => {
-                              const createdDate = new Date(user.createdat);
-                              const now = new Date();
-                              const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
-                              
-                              if (monthsDiff < 1) {
-                                return "Membre depuis moins d'un mois";
-                              } else if (monthsDiff === 1) {
-                                return "Membre depuis 1 mois";
-                              } else {
-                                return `Membre depuis ${monthsDiff} mois`;
-                              }
-                            })()}
-                          </span>
-                        </div>
-                      </div>
+                                        <div className="space-y-3 text-gray-600">
+                    <p className="text-gray-700 leading-relaxed">
+                      Inscrit sur MusicLinks depuis {(() => {
+                        const createdDate = new Date(user.createdat);
+                        const now = new Date();
+                        const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
+                        
+                        if (monthsDiff < 1) {
+                          return "moins d'un mois";
+                        } else if (monthsDiff === 1) {
+                          return "1 mois";
+                        } else {
+                          return `${monthsDiff} mois`;
+                        }
+                      })()}
+                    </p>
+                  </div>
                     </div>
 
                     {/* Réseaux sociaux */}

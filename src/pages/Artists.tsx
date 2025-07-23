@@ -497,7 +497,11 @@ const ArtistsPage = () => {
                   {/* Version mobile : card image en haut, détails dessous */}
                   <div className="flex flex-col gap-6 md:hidden">
                     {filteredArtists.map(user => (
-                      <div key={user.id} className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col">
+                      <div 
+                        key={user.id} 
+                        className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-all duration-300"
+                        onClick={() => navigate(`/profile/${user.id}`)}
+                      >
                         <div className="w-full aspect-[4/3] bg-neutral-100 flex items-center justify-center overflow-hidden">
                           <img
                             src={user.profilepicture || '/placeholder.svg'}
@@ -524,12 +528,9 @@ const ArtistsPage = () => {
                               </div>
                             )}
                           </div>
-                          <button 
-                            onClick={() => navigate(`/profile/${user.id}`)}
-                            className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
-                          >
+                          <div className="mt-2 w-full bg-blue-600 text-white font-bold rounded-xl px-6 py-3 text-base flex items-center justify-center gap-2">
                             Voir le profil
-                          </button>
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -538,7 +539,11 @@ const ArtistsPage = () => {
                   {/* Version desktop : cartes en grille */}
                   <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredArtists.map(user => (
-                      <div key={user.id} className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col">
+                      <div 
+                        key={user.id} 
+                        className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-all duration-300"
+                        onClick={() => navigate(`/profile/${user.id}`)}
+                      >
                         <div className="w-full aspect-[4/3] bg-neutral-100 flex items-center justify-center overflow-hidden">
                           <img
                             src={user.profilepicture || '/placeholder.svg'}
@@ -565,12 +570,9 @@ const ArtistsPage = () => {
                               </div>
                             )}
                           </div>
-                          <button 
-                            onClick={() => navigate(`/profile/${user.id}`)}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
-                          >
+                          <div className="w-full bg-blue-600 text-white font-bold rounded-xl px-6 py-3 text-base flex items-center justify-center gap-2">
                             Voir le profil
-                          </button>
+                          </div>
                         </div>
                       </div>
                     ))}

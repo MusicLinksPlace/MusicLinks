@@ -679,7 +679,11 @@ const ProvidersPage = () => {
               {/* Version mobile : card image en haut, détails dessous */}
               <div className="flex flex-col gap-6 md:hidden">
                 {filteredProviders.map(user => (
-                  <div key={user.id} className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col">
+                  <div 
+                    key={user.id} 
+                    className="bg-white rounded-2xl shadow-md overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-all duration-300"
+                    onClick={() => navigate(`/profile/${user.id}`)}
+                  >
                     <div className="w-full aspect-[4/3] bg-neutral-100 flex items-center justify-center overflow-hidden">
                       <OptimizedImage
                         src={user.profilepicture || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik03NSA0MUM4My4yODQzIDQxIDkwIDQ3LjcxNTcgOTAgNTZWMTA0QzkwIDExMi4yODQgODMuMjg0MyAxMTkgNzUgMTE5QzY2LjcxNTcgMTE5IDYwIDExMi4yODQgNjAgMTA0VjU2QzYwIDQ3LjcxNTcgNjYuNzE1NyA0MSA3NSA0MVoiIGZpbGw9IiM5Q0EzQUYiLz4KPC9zdmc+'}
@@ -698,12 +702,9 @@ const ProvidersPage = () => {
                           À partir de {user.price.toLocaleString('fr-FR')}€
                         </div>
                       )}
-                      <button 
-                        onClick={() => navigate(`/profile/${user.id}`)}
-                        className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-3 text-base transition-colors shadow focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center justify-center gap-2"
-                      >
+                      <div className="mt-2 w-full bg-blue-600 text-white font-bold rounded-xl px-6 py-3 text-base flex items-center justify-center gap-2">
                         Voir le profil
-                      </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -711,7 +712,11 @@ const ProvidersPage = () => {
               {/* Version desktop : inchangée */}
               <div className="hidden md:flex flex-col divide-y divide-neutral-200 bg-transparent">
                 {filteredProviders.map((user, idx) => (
-                  <div key={user.id} className="flex flex-row items-center bg-transparent py-5 px-0 w-full gap-0 md:gap-4 md:min-h-[180px]">
+                  <div 
+                    key={user.id} 
+                    className="flex flex-row items-center bg-transparent py-5 px-0 w-full gap-0 md:gap-4 md:min-h-[180px] cursor-pointer hover:bg-gray-50 transition-colors duration-200"
+                    onClick={() => navigate(`/profile/${user.id}`)}
+                  >
                     {/* Image */}
                     <div className="flex-shrink-0 w-[100px] h-[100px] md:w-[220px] md:h-[160px] overflow-hidden rounded-l-2xl bg-neutral-100 flex items-center justify-center">
                       <OptimizedImage
@@ -722,7 +727,7 @@ const ProvidersPage = () => {
                       />
                     </div>
                     {/* Infos cliquables */}
-                    <div onClick={() => navigate(`/profile/${user.id}`)} className="flex-1 flex flex-col justify-center px-2 md:px-4 cursor-pointer group min-w-0">
+                    <div className="flex-1 flex flex-col justify-center px-2 md:px-4 cursor-pointer group min-w-0">
                       <div className="text-lg md:text-xl font-extrabold text-neutral-900 mb-1 leading-tight group-hover:underline truncate">{user.name}</div>
                       {user.location && <div className="text-sm text-neutral-500 mb-0.5 truncate">{user.location}</div>}
                       {user.subCategory && <div className="text-sm text-neutral-700 font-semibold mb-1 truncate">{SUBCATEGORY_LABELS[user.subCategory] || user.subCategory}</div>}
@@ -736,7 +741,10 @@ const ProvidersPage = () => {
                     {/* CTA */}
                     <div className="flex flex-col items-center md:items-end justify-center pr-2 md:pr-4 min-w-[120px]">
                       <button
-                        onClick={() => handleContact(user.id, user.name)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleContact(user.id, user.name);
+                        }}
                         className="inline-block bg-ml-blue hover:bg-ml-blue/90 text-white font-bold rounded-xl px-6 py-2 text-base md:text-lg transition-colors shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 flex items-center gap-2"
                         style={{ minWidth: 120 }}
                       >
