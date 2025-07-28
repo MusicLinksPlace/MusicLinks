@@ -25,7 +25,7 @@ import ConfirmPage from './pages/Confirm';
 import type { Session } from '@supabase/supabase-js';
 import ScrollToTop from './components/ScrollToTop';
 import SignUpContinue from './pages/SignUpContinue';
-import AuthCallback from './pages/AuthCallback';
+import AuthCallback from './pages/auth/callback';
 import ProviderProfileSettings from './pages/ProviderProfileSettings';
 import AccountSettingsRouter from './pages/AccountSettingsRouter';
 import PartnerAccountSettings from './pages/PartnerAccount';
@@ -38,6 +38,15 @@ import AdminUsers from './pages/AdminUsers';
 const queryClient = new QueryClient();
 
 const App = () => {
+  // Log global au démarrage de l'app
+  useEffect(() => {
+    console.log("🌐 App - Application démarrée");
+    console.log("🌐 App - URL actuelle :", window.location.href);
+    console.log("🌐 App - Hash :", window.location.hash);
+    console.log("🌐 App - Search :", window.location.search);
+    console.log("🌐 App - Pathname :", window.location.pathname);
+  }, []);
+
   useEffect(() => {
     const handleAuthChange = async (event: string, session: Session | null) => {
         console.log(`[Auth] Event: ${event}`, session);
@@ -147,11 +156,14 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    console.log("🔄 App - Configuration du middleware de redirection");
     // Configuration du middleware de redirection
     setupUrlInterceptor();
     
     // Vérifier et gérer les redirections avec hash
+    console.log("🛡️ App - Vérification des redirections avec hash");
     if (handleHashRedirects()) {
+      console.log("🛡️ App - Redirection middleware effectuée, arrêt");
       return; // Arrêter l'exécution si une redirection a été effectuée
     }
     

@@ -4,22 +4,38 @@ import { toast } from "sonner";
 
 const GoogleLoginButton = () => {
   const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent',
-        }
-      },
-    });
+    console.log("🚀 GoogleLoginButton - Lancement login Google");
+    console.log("🌐 GoogleLoginButton - URL actuelle:", window.location.href);
+    console.log("🌐 GoogleLoginButton - Origin:", window.location.origin);
+    console.log("🎯 GoogleLoginButton - RedirectTo:", `${window.location.origin}/auth/callback`);
+    
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        },
+      });
 
-    if (error) {
-      toast.error(
-        error.message ||
-          "Une erreur est survenue lors de la connexion avec Google."
-      );
+      console.log("✅ GoogleLoginButton - Requête OAuth envoyée");
+      console.log("📊 GoogleLoginButton - Résultat:", { hasError: !!error, errorMessage: error?.message });
+
+      if (error) {
+        console.error("❌ GoogleLoginButton - Erreur OAuth:", error);
+        toast.error(
+          error.message ||
+            "Une erreur est survenue lors de la connexion avec Google."
+        );
+      } else {
+        console.log("🎉 GoogleLoginButton - Redirection OAuth initiée avec succès");
+      }
+    } catch (catchError) {
+      console.error("💥 GoogleLoginButton - Erreur inattendue:", catchError);
+      toast.error("Une erreur inattendue est survenue.");
     }
   };
 

@@ -14,9 +14,10 @@
 ## ✅ Corrections apportées
 
 ### 1. **Page AuthCallback**
-- **Fichier** : `src/pages/AuthCallback.tsx`
-- **Fonctionnalité** : Gestion centralisée du retour OAuth
+- **Fichier** : `src/pages/auth/callback.tsx`
+- **Fonctionnalité** : Gestion centralisée du retour OAuth avec logs détaillés
 - **Logique** : Vérification de session et redirection appropriée
+- **Logs** : Traçage complet du flux d'authentification
 
 ### 2. **Protection FIDO2 renforcée**
 - **Fichier** : `index.html`
@@ -29,7 +30,7 @@
   - **Évite les redirections automatiques** si session déjà valide
   - Vérification de profil existant avant redirection
   - Interface utilisateur moderne et responsive
-  - Logs détaillés pour le debugging
+  - **Logs détaillés** pour tracer le flux d'authentification
   - Gestion d'erreurs améliorée
   - **Nettoyage IMMÉDIAT des URLs avec hash** pour éviter les boucles
   - **Protection contre les redirections multiples** avec `useSafeNavigation`
@@ -42,6 +43,7 @@
   - **Redirection vers `/auth/callback`** au lieu de `/signup/continue`
   - Suppression de `skipBrowserRedirect` pour laisser Supabase gérer la redirection
   - Ajout de `queryParams` pour une meilleure compatibilité
+  - **Logs détaillés** pour tracer le processus de connexion
 
 ### 5. **Configuration Vercel**
 - **Fichier** : `vercel.json`

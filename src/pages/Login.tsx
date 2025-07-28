@@ -18,19 +18,34 @@ const Login = () => {
 
   const from = location.state?.from?.pathname || "/";
 
+  // Log global au chargement de la page
+  useEffect(() => {
+    console.log("🌐 Login - Page chargée :", window.location.href);
+    console.log("🌐 Login - Hash :", window.location.hash);
+    console.log("🌐 Login - Search :", window.location.search);
+    console.log("🌐 Login - Pathname :", window.location.pathname);
+    console.log("🌐 Login - From :", from);
+  }, [from]);
+
   useEffect(() => {
     // This effect makes the login page reactive to auth changes.
     // If a user logs in (or is already logged in), it redirects them.
     const handleAuthChange = () => {
+      console.log("🔄 Login - handleAuthChange appelé");
       const user = localStorage.getItem('musiclinks_user');
+      console.log("📊 Login - User dans localStorage:", !!user);
+      
       if (user) {
+        console.log("✅ Login - Utilisateur connecté, redirection vers:", from);
         setIsLoggedIn(true);
         navigate(from, { replace: true });
       } else {
+        console.log("❌ Login - Pas d'utilisateur connecté");
         setIsLoggedIn(false);
       }
     };
 
+    console.log("🔄 Login - Vérification initiale de l'authentification");
     handleAuthChange(); // Initial check
 
     window.addEventListener('auth-change', handleAuthChange);

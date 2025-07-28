@@ -6,6 +6,11 @@
       "permanent": false
     },
     {
+      "source": "/auth/callback/:hash*",
+      "destination": "/index.html",
+      "permanent": false
+    },
+    {
       "source": "/signup/continue",
       "destination": "/signup/continue",
       "permanent": false

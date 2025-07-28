@@ -54,89 +54,139 @@ export default function SignUpContinue() {
   const [selecting, setSelecting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Log global au chargement de la page
   useEffect(() => {
+    console.log("🌐 SignUpContinue - Page chargée :", window.location.href);
+    console.log("🌐 SignUpContinue - Hash :", window.location.hash);
+    console.log("🌐 SignUpContinue - Search :", window.location.search);
+    console.log("🌐 SignUpContinue - Pathname :", window.location.pathname);
+  }, []);
+
+  useEffect(() => {
+    console.log("🔄 SignUpContinue - Début du useEffect principal");
+    
     // Éviter les boucles de redirection
     if (isProcessing) {
-      console.log('🔄 Already processing, skipping...');
+      console.log('🔄 SignUpContinue - Already processing, skipping...');
       return;
     }
     
     setIsProcessing(true);
+    console.log("🔄 SignUpContinue - isProcessing set to true");
     
     // Désactiver les scripts FIDO2 qui peuvent interférer
+    console.log("🔒 SignUpContinue - Désactivation FIDO2");
     disableFIDO2Scripts();
     
     // Utiliser le middleware pour gérer les redirections avec hash
+    console.log("🛡️ SignUpContinue - Vérification middleware hash");
     if (handleHashRedirects()) {
+      console.log("🛡️ SignUpContinue - Redirection middleware effectuée, arrêt");
       return; // Arrêter l'exécution si une redirection a été effectuée
     }
     
     // Nettoyer l'URL si nécessaire
+    console.log("🧹 SignUpContinue - Nettoyage URL");
     cleanHashFromUrl();
     
     const handleAuthRedirect = async () => {
       try {
+        console.log("🔍 SignUpContinue - Vérification de la session");
+        
         // Vérifier d'abord si l'utilisateur a déjà une session valide
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
+        console.log("📊 SignUpContinue - Résultat getSession:", {
+          hasSession: !!session,
+          hasError: !!sessionError,
+          userEmail: session?.user?.email,
+          userId: session?.user?.id
+        });
+        
         if (sessionError) {
-          console.error('❌ Session check error:', sessionError);
+          console.error('❌ SignUpContinue - Session check error:', sessionError);
+          console.log('➡️ SignUpContinue - Redirection vers /login (erreur session)');
           safeNavigate('/login');
           return;
         }
 
         // Si pas de session, rediriger vers login
         if (!session || !session.user) {
-          console.log('❌ No valid session found, redirecting to login');
+          console.log('❌ SignUpContinue - Pas de session valide, redirection vers /login');
+          console.log('➡️ SignUpContinue - Redirection vers /login');
           safeNavigate('/login');
           return;
         }
 
+        console.log('✅ SignUpContinue - Session valide trouvée');
+        console.log('👤 SignUpContinue - User:', {
+          id: session.user.id,
+          email: session.user.email
+        });
+
         // Attendre un peu pour que l'authentification se stabilise
+        console.log("⏳ SignUpContinue - Attente stabilisation auth (1s)");
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Récupérer l'utilisateur actuel
+        console.log("🔍 SignUpContinue - Récupération utilisateur");
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
+        console.log("📊 SignUpContinue - Résultat getUser:", {
+          hasUser: !!user,
+          hasError: !!userError,
+          userEmail: user?.email
+        });
+        
         if (userError) {
-          console.error('❌ Error getting user:', userError);
+          console.error('❌ SignUpContinue - Error getting user:', userError);
           setError("Erreur lors de la récupération des données utilisateur.");
           setLoading(false);
           return;
         }
 
         if (!user) {
-          console.log('❌ No user found, redirecting to login');
+          console.log('❌ SignUpContinue - Pas d\'utilisateur trouvé, redirection vers /login');
+          console.log('➡️ SignUpContinue - Redirection vers /login');
           safeNavigate('/login');
           return;
         }
 
-        console.log('✅ User found:', user.email);
+        console.log('✅ SignUpContinue - Utilisateur trouvé:', user.email);
         setUser(user);
 
         // Vérifier si l'utilisateur a déjà un profil
+        console.log("🔍 SignUpContinue - Vérification du profil utilisateur");
         const { data: profile, error: profileError } = await supabase
           .from('User')
           .select('*')
           .eq('id', user.id)
           .single();
 
+        console.log("📊 SignUpContinue - Résultat profil:", {
+          hasProfile: !!profile,
+          hasError: !!profileError,
+          profileRole: profile?.role,
+          profileName: profile?.name
+        });
+
         if (profileError) {
-          console.log('📝 Profile not found, user needs to complete setup');
+          console.log('📝 SignUpContinue - Profil non trouvé, utilisateur doit compléter setup');
           // Continuer avec la sélection de rôle
         } else if (profile && profile.role) {
-          console.log('✅ Profile already exists, redirecting to home');
+          console.log('✅ SignUpContinue - Profil existant trouvé, redirection vers /');
+          console.log('➡️ SignUpContinue - Redirection vers /');
           safeNavigate('/');
           return;
         }
 
         // Si on arrive ici, l'utilisateur doit compléter son profil
-        console.log('👤 User needs to complete profile setup');
+        console.log('👤 SignUpContinue - Utilisateur doit compléter son profil');
         setSelecting(true);
         setLoading(false);
         
       } catch (error) {
-        console.error('❌ Error in handleAuthRedirect:', error);
+        console.error('❌ SignUpContinue - Erreur dans handleAuthRedirect:', error);
         setError("Une erreur est survenue. Merci de réessayer.");
         setLoading(false);
       }
