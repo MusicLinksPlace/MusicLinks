@@ -160,12 +160,12 @@ const App = () => {
     // Configuration du middleware de redirection
     setupUrlInterceptor();
     
-    // TEMPORAIREMENT DÉSACTIVÉ - Debugging des redirections
-    console.log("🛡️ App - Vérification des redirections avec hash (DÉSACTIVÉE POUR DEBUG)");
-    // if (handleHashRedirects()) {
-    //   console.log("🛡️ App - Redirection middleware effectuée, arrêt");
-    //   return; // Arrêter l'exécution si une redirection a été effectuée
-    // }
+    // Vérifier et gérer les redirections avec hash
+    console.log("🛡️ App - Vérification des redirections avec hash");
+    if (handleHashRedirects()) {
+      console.log("🛡️ App - Redirection middleware effectuée, arrêt");
+      return; // Arrêter l'exécution si une redirection a été effectuée
+    }
     
     const syncProfile = async () => {
       const session = (await supabase.auth.getSession()).data.session;

@@ -37,10 +37,9 @@ const Login = () => {
       console.log("📊 Login - User dans localStorage:", !!user);
       
               if (user) {
-          console.log("✅ Login - Utilisateur connecté");
-          console.log("⚠️ Login - PAS DE REDIRECTION (DEBUG) - Affichage message");
+          console.log("✅ Login - Utilisateur connecté, redirection vers:", from);
           setIsLoggedIn(true);
-          // navigate(from, { replace: true }); // DÉSACTIVÉ POUR DEBUG
+          navigate(from, { replace: true });
         } else {
           console.log("❌ Login - Pas d'utilisateur connecté");
           setIsLoggedIn(false);

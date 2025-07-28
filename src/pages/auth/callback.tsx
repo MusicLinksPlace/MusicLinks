@@ -70,20 +70,23 @@ export default function AuthCallback() {
           await new Promise(resolve => setTimeout(resolve, 2000));
 
           if (profileError) {
-            console.log('📝 AuthCallback - Profil non trouvé');
-            console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage message');
-            setStatus('success');
-            // Afficher un message au lieu de rediriger
+            console.log('📝 AuthCallback - Profil non trouvé, redirection vers /signup/continue');
+            setTimeout(() => {
+              console.log('➡️ AuthCallback - Redirection vers /signup/continue');
+              window.location.href = "/signup/continue";
+            }, 2000);
           } else if (profile && profile.role) {
-            console.log('👤 AuthCallback - Profil existant trouvé');
-            console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage message');
-            setStatus('success');
-            // Afficher un message au lieu de rediriger
+            console.log('👤 AuthCallback - Profil existant trouvé, redirection vers /');
+            setTimeout(() => {
+              console.log('➡️ AuthCallback - Redirection vers /');
+              window.location.href = "/";
+            }, 2000);
           } else {
-            console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle');
-            console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage message');
-            setStatus('success');
-            // Afficher un message au lieu de rediriger
+            console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle, redirection vers /signup/continue');
+            setTimeout(() => {
+              console.log('➡️ AuthCallback - Redirection vers /signup/continue');
+              window.location.href = "/signup/continue";
+            }, 2000);
           }
         } else {
           console.log('❌ AuthCallback - Pas de session valide');

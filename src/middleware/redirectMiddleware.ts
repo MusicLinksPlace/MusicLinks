@@ -4,10 +4,6 @@ export const handleHashRedirects = () => {
   console.log('🛡️ MIDDLEWARE - Hash:', window.location.hash);
   console.log('🛡️ MIDDLEWARE - Pathname:', window.location.pathname);
   
-  // TEMPORAIREMENT DÉSACTIVÉ POUR DEBUG
-  console.log('🛡️ MIDDLEWARE - DÉSACTIVÉ POUR DEBUG - Pas de redirection');
-  return false;
-  
   // Vérifier si on est sur une URL avec hash
   if (window.location.hash && window.location.pathname.includes('/signup/continue')) {
     console.log('🚨 MIDDLEWARE - Hash detected in URL, redirecting to clean URL');

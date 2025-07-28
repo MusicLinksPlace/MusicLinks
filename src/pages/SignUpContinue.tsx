@@ -85,12 +85,12 @@ export default function SignUpContinue() {
     console.log("🔒 SignUpContinue - Désactivation FIDO2");
     disableFIDO2Scripts();
     
-    // TEMPORAIREMENT DÉSACTIVÉ - Debugging des redirections
-    console.log("🛡️ SignUpContinue - Vérification middleware hash (DÉSACTIVÉE POUR DEBUG)");
-    // if (handleHashRedirects()) {
-    //   console.log("🛡️ SignUpContinue - Redirection middleware effectuée, arrêt");
-    //   return; // Arrêter l'exécution si une redirection a été effectuée
-    // }
+    // Utiliser le middleware pour gérer les redirections avec hash
+    console.log("🛡️ SignUpContinue - Vérification middleware hash");
+    if (handleHashRedirects()) {
+      console.log("🛡️ SignUpContinue - Redirection middleware effectuée, arrêt");
+      return; // Arrêter l'exécution si une redirection a été effectuée
+    }
     
     // Nettoyer l'URL si nécessaire
     console.log("🧹 SignUpContinue - Nettoyage URL");
@@ -117,12 +117,11 @@ export default function SignUpContinue() {
           return;
         }
 
-        // Si pas de session, afficher un message au lieu de rediriger
+        // Si pas de session, rediriger vers login
         if (!session || !session.user) {
-          console.log('❌ SignUpContinue - Pas de session valide');
-          console.log('⚠️ SignUpContinue - PAS DE REDIRECTION (DEBUG) - Affichage message');
-          setError("Veuillez vous connecter pour continuer.");
-          setLoading(false);
+          console.log('❌ SignUpContinue - Pas de session valide, redirection vers /login');
+          console.log('➡️ SignUpContinue - Redirection vers /login');
+          safeNavigate('/login');
           return;
         }
 
@@ -154,10 +153,9 @@ export default function SignUpContinue() {
         }
 
         if (!user) {
-          console.log('❌ SignUpContinue - Pas d\'utilisateur trouvé');
-          console.log('⚠️ SignUpContinue - PAS DE REDIRECTION (DEBUG) - Affichage message');
-          setError("Erreur lors de la récupération des données utilisateur.");
-          setLoading(false);
+          console.log('❌ SignUpContinue - Pas d\'utilisateur trouvé, redirection vers /login');
+          console.log('➡️ SignUpContinue - Redirection vers /login');
+          safeNavigate('/login');
           return;
         }
 
@@ -183,10 +181,9 @@ export default function SignUpContinue() {
           console.log('📝 SignUpContinue - Profil non trouvé, utilisateur doit compléter setup');
           // Continuer avec la sélection de rôle
         } else if (profile && profile.role) {
-          console.log('✅ SignUpContinue - Profil existant trouvé');
-          console.log('⚠️ SignUpContinue - PAS DE REDIRECTION (DEBUG) - Affichage message');
-          setError("Vous avez déjà un profil complet. Redirection manuelle vers l'accueil.");
-          setLoading(false);
+          console.log('✅ SignUpContinue - Profil existant trouvé, redirection vers /');
+          console.log('➡️ SignUpContinue - Redirection vers /');
+          safeNavigate('/');
           return;
         }
 

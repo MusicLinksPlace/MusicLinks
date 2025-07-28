@@ -74,16 +74,16 @@
 - **Changements** : URLs mises à jour vers `musiclinks.fr`
 - **Protection renforcée** : Nettoyage automatique des URLs avec hash au chargement
 
-## 🔍 Mode Debug - Redirections désactivées
+## ✅ SSO Fonctionnel - Redirections corrigées
 
 ### **État actuel :**
-- ✅ **Toutes les redirections automatiques sont DÉSACTIVÉES** pour debugging
-- ✅ **Logs ultra-précoces** dans index.html et main.tsx
+- ✅ **SSO Google fonctionne correctement**
+- ✅ **Redirections vers `/` (page d'accueil) au lieu de `/index.html`**
 - ✅ **Logs détaillés** sur toutes les pages d'authentification
 - ✅ **Composant DebugLogger** pour tracer les sessions Supabase
-- ✅ **Middleware de redirection** complètement désactivé
-- ✅ **Redirections Vercel** désactivées pour /signup/continue
-- ✅ **Pauses de 2-3 secondes** pour voir les logs avant redirection
+- ✅ **Middleware de redirection** réactivé et fonctionnel
+- ✅ **Redirections Vercel** corrigées pour pointer vers `/`
+- ✅ **Pauses de 2 secondes** pour voir les logs avant redirection
 
 ### **Pages avec debugging :**
 - `AuthCallback` : Logs de session et profil utilisateur

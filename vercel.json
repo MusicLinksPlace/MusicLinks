@@ -2,12 +2,12 @@
   "redirects": [
     {
       "source": "/auth/callback",
-      "destination": "/index.html",
+      "destination": "/",
       "permanent": false
     },
     {
       "source": "/auth/callback/:hash*",
-      "destination": "/index.html",
+      "destination": "/",
       "permanent": false
     }
   ],
