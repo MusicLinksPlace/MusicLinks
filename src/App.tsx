@@ -172,6 +172,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/signup/continue" element={<SignUpContinue />} />
           <Route path="/signup/continue/*" element={<SignUpContinue />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

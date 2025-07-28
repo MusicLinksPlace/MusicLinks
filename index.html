@@ -13,12 +13,12 @@
     <title>MusicLinks - Réseau Professionnel Musical</title>
     
     <!-- Open Graph / Facebook -->
-    <meta property="og:url" content="https://musiclinks.vercel.app/" />
+    <meta property="og:url" content="https://musiclinks.fr/" />
     <meta property="og:site_name" content="MusicLinks" />
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://musiclinks.vercel.app/" />
+    <meta property="twitter:url" content="https://musiclinks.fr/" />
     <meta property="twitter:title" content="MusicLinks - Marketplace musicale" />
     <meta property="twitter:description" content="La plateforme qui connecte artistes et prestataires musicaux" />
 
@@ -34,35 +34,45 @@
   <body>
     <div id="root"></div>
     <script>
-      // Protection contre les conflits FIDO2/WebAuthn
-      if (typeof navigator !== 'undefined' && navigator.credentials) {
-        // Sauvegarder l'API originale
-        const originalCreate = navigator.credentials.create;
-        const originalGet = navigator.credentials.get;
-        
-        // Redéfinir seulement si nécessaire
-        if (originalCreate && typeof originalCreate === 'function') {
-          navigator.credentials.create = function(...args) {
-            try {
-              return originalCreate.apply(this, args);
-            } catch (error) {
-              console.warn('FIDO2 create error intercepted:', error);
-              return Promise.reject(error);
+      // Protection contre les conflits FIDO2/WebAuthn pour SSO
+      (function() {
+        try {
+          if (typeof navigator !== 'undefined' && navigator.credentials) {
+            // Sauvegarder l'API originale
+            const originalCreate = navigator.credentials.create;
+            const originalGet = navigator.credentials.get;
+            
+            // Redéfinir avec gestion d'erreur robuste
+            if (originalCreate && typeof originalCreate === 'function') {
+              navigator.credentials.create = function(...args) {
+                try {
+                  return originalCreate.apply(this, args);
+                } catch (error) {
+                  console.warn('🔒 FIDO2 create error intercepted:', error);
+                  // Retourner une promesse rejetée au lieu de lancer une exception
+                  return Promise.reject(new Error('FIDO2 operation blocked'));
+                }
+              };
             }
-          };
-        }
-        
-        if (originalGet && typeof originalGet === 'function') {
-          navigator.credentials.get = function(...args) {
-            try {
-              return originalGet.apply(this, args);
-            } catch (error) {
-              console.warn('FIDO2 get error intercepted:', error);
-              return Promise.reject(error);
+            
+            if (originalGet && typeof originalGet === 'function') {
+              navigator.credentials.get = function(...args) {
+                try {
+                  return originalGet.apply(this, args);
+                } catch (error) {
+                  console.warn('🔒 FIDO2 get error intercepted:', error);
+                  // Retourner une promesse rejetée au lieu de lancer une exception
+                  return Promise.reject(new Error('FIDO2 operation blocked'));
+                }
+              };
             }
-          };
+            
+            console.log('🔒 FIDO2 protection enabled');
+          }
+        } catch (error) {
+          console.warn('⚠️ FIDO2 protection setup failed:', error);
         }
-      }
+      })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
