@@ -112,14 +112,14 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
   );
 
   return (
-    <section className="py-16 md:py-20 bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900">
+    <section className="py-16 md:py-20 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900">
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-12 px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             {title}
           </h2>
-          <div className="w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-blue-400 to-indigo-500 mx-auto rounded-full"></div>
         </div>
 
         {/* Users Carousel */}
@@ -138,14 +138,14 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
                   to={`/profile/${user.id}`}
                   className="flex-shrink-0 w-64 md:w-72 group"
                 >
-                  <div className="bg-gradient-to-br from-gray-700/80 to-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-600/50 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer hover:border-gray-500/50">
+                  <div className="bg-gradient-to-br from-blue-800/60 to-indigo-900/60 backdrop-blur-sm rounded-2xl shadow-lg border border-blue-700/50 p-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer hover:border-blue-600/50">
                     {/* Avatar with Star Badge */}
                     <div className="flex justify-center mb-4">
                       <div className="relative">
                         <img
                           src={getImageUrlWithCacheBust(user.profilepicture, '/lovable-uploads/logo2.png')}
                           alt={user.name}
-                          className="w-20 h-20 rounded-full object-cover border-4 border-gray-600 shadow group-hover:scale-105 transition-transform duration-300"
+                          className="w-20 h-20 rounded-full object-cover border-4 border-blue-600 shadow group-hover:scale-105 transition-transform duration-300"
                         />
                         <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full p-1.5 shadow-lg">
                           <Star className="w-4 h-4 text-white fill-current" />
@@ -160,13 +160,13 @@ const TopUsersSection: React.FC<TopUsersSectionProps> = ({ role, title }) => {
                       </h3>
                       
                       {user.subCategory && (
-                        <p className="text-sm text-gray-300 mb-1 font-medium">
+                        <p className="text-sm text-blue-200 mb-1 font-medium">
                           {translateCategory(user.subCategory)}
                         </p>
                       )}
                       
                       {user.location && (
-                        <div className="flex items-center justify-center text-xs text-gray-400">
+                        <div className="flex items-center justify-center text-xs text-blue-300">
                           <MapPin className="w-3 h-3 mr-1" />
                           <span>{user.location}</span>
                         </div>
