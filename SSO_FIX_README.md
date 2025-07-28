@@ -78,9 +78,12 @@
 
 ### **État actuel :**
 - ✅ **Toutes les redirections automatiques sont DÉSACTIVÉES** pour debugging
+- ✅ **Logs ultra-précoces** dans index.html et main.tsx
 - ✅ **Logs détaillés** sur toutes les pages d'authentification
 - ✅ **Composant DebugLogger** pour tracer les sessions Supabase
-- ✅ **Middleware de redirection** temporairement désactivé
+- ✅ **Middleware de redirection** complètement désactivé
+- ✅ **Redirections Vercel** désactivées pour /signup/continue
+- ✅ **Pauses de 2-3 secondes** pour voir les logs avant redirection
 
 ### **Pages avec debugging :**
 - `AuthCallback` : Logs de session et profil utilisateur
@@ -90,10 +93,16 @@
 
 ### **Logs disponibles :**
 ```
+🚀 ULTRA-PRÉCOCE - Script chargé
+🌐 ULTRA-PRÉCOCE - URL actuelle: [URL]
+🚀 MAIN - React démarrage
+🌐 MAIN - URL actuelle: [URL]
+🚀 [Page] - COMPOSANT MONTÉ
 🌐 [Page] - Page chargée : [URL]
 🔍 [Page] - Vérification session Supabase...
-📊 [Page] - Résultat session: { hasSession, userEmail, userId, ... }
+📊 [Page] - Résultat session: { hasSession, userEmail, userId, accessToken, refreshToken, ... }
 💾 [Page] - User localStorage: PRESENT/MISSING
+⏳ [Page] - Pause de X secondes pour voir les logs...
 ```
 
 ## 🔄 Étapes pour le déploiement

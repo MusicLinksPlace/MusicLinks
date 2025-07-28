@@ -57,10 +57,16 @@ export default function SignUpContinue() {
 
   // Log global au chargement de la page
   useEffect(() => {
+    console.log("🚀 SignUpContinue - COMPOSANT MONTÉ");
     console.log("🌐 SignUpContinue - Page chargée :", window.location.href);
     console.log("🌐 SignUpContinue - Hash :", window.location.hash);
     console.log("🌐 SignUpContinue - Search :", window.location.search);
     console.log("🌐 SignUpContinue - Pathname :", window.location.pathname);
+    
+    // PAUSE DE 1 SECONDE POUR VOIR LES LOGS
+    setTimeout(() => {
+      console.log("⏳ SignUpContinue - Pause terminée, continuation...");
+    }, 1000);
   }, []);
 
   useEffect(() => {

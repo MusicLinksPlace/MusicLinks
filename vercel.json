@@ -9,31 +9,6 @@
       "source": "/auth/callback/:hash*",
       "destination": "/index.html",
       "permanent": false
-    },
-    {
-      "source": "/signup/continue",
-      "destination": "/signup/continue",
-      "permanent": false
-    },
-    {
-      "source": "/signup/continue/:hash*",
-      "destination": "/signup/continue",
-      "permanent": false
-    },
-    {
-      "source": "/signup/continue#:hash*",
-      "destination": "/signup/continue",
-      "permanent": false
-    },
-    {
-      "source": "/signup/continue?verified=true",
-      "destination": "/signup/continue",
-      "permanent": false
-    },
-    {
-      "source": "/signup/continue?verified=true#:hash*",
-      "destination": "/signup/continue",
-      "permanent": false
     }
   ],
   "rewrites": [

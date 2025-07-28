@@ -33,51 +33,62 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      // Protection contre les conflits FIDO2/WebAuthn pour SSO
-      (function() {
-        try {
-          // Nettoyer les URLs avec hash au chargement
-          if (window.location.hash && window.location.pathname.includes('/signup/continue')) {
-            console.log('🧹 Cleaning hash from URL on page load');
-            const cleanUrl = window.location.pathname;
-            window.history.replaceState({}, document.title, cleanUrl);
+          <script>
+        // LOGS ULTRA-PRÉCOCES - AVANT REACT
+        console.log('🚀 ULTRA-PRÉCOCE - Script chargé');
+        console.log('🌐 ULTRA-PRÉCOCE - URL actuelle:', window.location.href);
+        console.log('🌐 ULTRA-PRÉCOCE - Pathname:', window.location.pathname);
+        console.log('🌐 ULTRA-PRÉCOCE - Hash:', window.location.hash);
+        console.log('🌐 ULTRA-PRÉCOCE - Search:', window.location.search);
+        
+        // Protection contre les conflits FIDO2/WebAuthn pour SSO
+        (function() {
+          try {
+            console.log('🔒 ULTRA-PRÉCOCE - Début protection FIDO2');
             
-            // Forcer le nettoyage plusieurs fois
-            setTimeout(() => {
-              if (window.location.hash) {
-                console.log('🧹 Force cleaning hash again');
-                window.history.replaceState({}, document.title, window.location.pathname);
-              }
-            }, 0);
-            
-            setTimeout(() => {
-              if (window.location.hash) {
-                console.log('🧹 Final hash cleanup');
-                window.history.replaceState({}, document.title, window.location.pathname);
-              }
-            }, 100);
-          }
-          
-          // Intercepter les changements d'URL pour nettoyer les hash
-          const originalPushState = history.pushState;
-          const originalReplaceState = history.replaceState;
-          
-          history.pushState = function(...args) {
-            if (args[2] && typeof args[2] === 'string' && args[2].includes('/signup/continue#')) {
-              console.log('🧹 Intercepting pushState with hash, cleaning...');
-              args[2] = args[2].split('#')[0];
+            // Nettoyer les URLs avec hash au chargement
+            if (window.location.hash && window.location.pathname.includes('/signup/continue')) {
+              console.log('🧹 ULTRA-PRÉCOCE - Cleaning hash from URL on page load');
+              const cleanUrl = window.location.pathname;
+              window.history.replaceState({}, document.title, cleanUrl);
+              
+              // Forcer le nettoyage plusieurs fois
+              setTimeout(() => {
+                if (window.location.hash) {
+                  console.log('🧹 ULTRA-PRÉCOCE - Force cleaning hash again');
+                  window.history.replaceState({}, document.title, window.location.pathname);
+                }
+              }, 0);
+              
+              setTimeout(() => {
+                if (window.location.hash) {
+                  console.log('🧹 ULTRA-PRÉCOCE - Final hash cleanup');
+                  window.history.replaceState({}, document.title, window.location.pathname);
+                }
+              }, 100);
             }
-            return originalPushState.apply(this, args);
-          };
           
-          history.replaceState = function(...args) {
-            if (args[2] && typeof args[2] === 'string' && args[2].includes('/signup/continue#')) {
-              console.log('🧹 Intercepting replaceState with hash, cleaning...');
-              args[2] = args[2].split('#')[0];
-            }
-            return originalReplaceState.apply(this, args);
-          };
+                       // Intercepter les changements d'URL pour nettoyer les hash
+             const originalPushState = history.pushState;
+             const originalReplaceState = history.replaceState;
+             
+             history.pushState = function(...args) {
+               console.log('🔄 ULTRA-PRÉCOCE - pushState appelé:', args[2]);
+               if (args[2] && typeof args[2] === 'string' && args[2].includes('/signup/continue#')) {
+                 console.log('🧹 ULTRA-PRÉCOCE - Intercepting pushState with hash, cleaning...');
+                 args[2] = args[2].split('#')[0];
+               }
+               return originalPushState.apply(this, args);
+             };
+             
+             history.replaceState = function(...args) {
+               console.log('🔄 ULTRA-PRÉCOCE - replaceState appelé:', args[2]);
+               if (args[2] && typeof args[2] === 'string' && args[2].includes('/signup/continue#')) {
+                 console.log('🧹 ULTRA-PRÉCOCE - Intercepting replaceState with hash, cleaning...');
+                 args[2] = args[2].split('#')[0];
+               }
+               return originalReplaceState.apply(this, args);
+             };
           
           if (typeof navigator !== 'undefined' && navigator.credentials) {
             // Sauvegarder l'API originale

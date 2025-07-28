@@ -40,7 +40,15 @@ export default function AuthCallback() {
             email: session.user.email,
             metadata: session.user.user_metadata
           });
+          console.log('🔑 AuthCallback - Access Token:', session.access_token ? 'PRESENT' : 'MISSING');
+          console.log('🔄 AuthCallback - Refresh Token:', session.refresh_token ? 'PRESENT' : 'MISSING');
+          console.log('⏰ AuthCallback - Expires At:', session.expires_at);
+          
           setStatus('success');
+          
+          // PAUSE DE 3 SECONDES POUR VOIR LES LOGS
+          console.log('⏳ AuthCallback - Pause de 3 secondes pour voir les logs...');
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
           // Vérifier si l'utilisateur a déjà un profil
           console.log('🔍 AuthCallback - Vérification du profil utilisateur');
@@ -56,6 +64,10 @@ export default function AuthCallback() {
             profileRole: profile?.role,
             profileName: profile?.name
           });
+
+          // PAUSE DE 2 SECONDES POUR VOIR LES LOGS
+          console.log('⏳ AuthCallback - Pause de 2 secondes pour voir les logs...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
 
           if (profileError) {
             console.log('📝 AuthCallback - Profil non trouvé');
