@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabaseClient";
 import { sendWelcomeEmail } from "../lib/emailService";
 import { useSafeNavigation } from "../hooks/use-safe-navigation";
 import { handleHashRedirects, cleanHashFromUrl } from "../middleware/redirectMiddleware";
+import DebugLogger from "../components/DebugLogger";
 
 // Désactiver les scripts FIDO2 qui peuvent interférer avec l'authentification
 const disableFIDO2Scripts = () => {
@@ -78,12 +79,12 @@ export default function SignUpContinue() {
     console.log("🔒 SignUpContinue - Désactivation FIDO2");
     disableFIDO2Scripts();
     
-    // Utiliser le middleware pour gérer les redirections avec hash
-    console.log("🛡️ SignUpContinue - Vérification middleware hash");
-    if (handleHashRedirects()) {
-      console.log("🛡️ SignUpContinue - Redirection middleware effectuée, arrêt");
-      return; // Arrêter l'exécution si une redirection a été effectuée
-    }
+    // TEMPORAIREMENT DÉSACTIVÉ - Debugging des redirections
+    console.log("🛡️ SignUpContinue - Vérification middleware hash (DÉSACTIVÉE POUR DEBUG)");
+    // if (handleHashRedirects()) {
+    //   console.log("🛡️ SignUpContinue - Redirection middleware effectuée, arrêt");
+    //   return; // Arrêter l'exécution si une redirection a été effectuée
+    // }
     
     // Nettoyer l'URL si nécessaire
     console.log("🧹 SignUpContinue - Nettoyage URL");
@@ -110,11 +111,12 @@ export default function SignUpContinue() {
           return;
         }
 
-        // Si pas de session, rediriger vers login
+        // Si pas de session, afficher un message au lieu de rediriger
         if (!session || !session.user) {
-          console.log('❌ SignUpContinue - Pas de session valide, redirection vers /login');
-          console.log('➡️ SignUpContinue - Redirection vers /login');
-          safeNavigate('/login');
+          console.log('❌ SignUpContinue - Pas de session valide');
+          console.log('⚠️ SignUpContinue - PAS DE REDIRECTION (DEBUG) - Affichage message');
+          setError("Veuillez vous connecter pour continuer.");
+          setLoading(false);
           return;
         }
 
@@ -146,9 +148,10 @@ export default function SignUpContinue() {
         }
 
         if (!user) {
-          console.log('❌ SignUpContinue - Pas d\'utilisateur trouvé, redirection vers /login');
-          console.log('➡️ SignUpContinue - Redirection vers /login');
-          safeNavigate('/login');
+          console.log('❌ SignUpContinue - Pas d\'utilisateur trouvé');
+          console.log('⚠️ SignUpContinue - PAS DE REDIRECTION (DEBUG) - Affichage message');
+          setError("Erreur lors de la récupération des données utilisateur.");
+          setLoading(false);
           return;
         }
 
@@ -174,9 +177,10 @@ export default function SignUpContinue() {
           console.log('📝 SignUpContinue - Profil non trouvé, utilisateur doit compléter setup');
           // Continuer avec la sélection de rôle
         } else if (profile && profile.role) {
-          console.log('✅ SignUpContinue - Profil existant trouvé, redirection vers /');
-          console.log('➡️ SignUpContinue - Redirection vers /');
-          safeNavigate('/');
+          console.log('✅ SignUpContinue - Profil existant trouvé');
+          console.log('⚠️ SignUpContinue - PAS DE REDIRECTION (DEBUG) - Affichage message');
+          setError("Vous avez déjà un profil complet. Redirection manuelle vers l'accueil.");
+          setLoading(false);
           return;
         }
 
@@ -264,6 +268,7 @@ export default function SignUpContinue() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <DebugLogger pageName="SignUpContinue" />
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <h2 className="text-xl font-bold text-white mb-2">Finalisation de votre inscription</h2>
@@ -276,6 +281,7 @@ export default function SignUpContinue() {
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <DebugLogger pageName="SignUpContinue" />
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center max-w-md">
           <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-red-400 text-2xl">⚠️</span>
@@ -296,6 +302,7 @@ export default function SignUpContinue() {
   if (selecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center p-4">
+        <DebugLogger pageName="SignUpContinue" />
         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 text-center max-w-md">
           <h2 className="text-2xl font-bold text-white mb-6">Choisissez votre rôle</h2>
           <p className="text-white/80 mb-8">

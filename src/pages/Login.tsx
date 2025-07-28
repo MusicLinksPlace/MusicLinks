@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import GoogleLoginButton from '@/components/ui/GoogleLoginButton';
+import DebugLogger from '@/components/DebugLogger';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -35,14 +36,15 @@ const Login = () => {
       const user = localStorage.getItem('musiclinks_user');
       console.log("📊 Login - User dans localStorage:", !!user);
       
-      if (user) {
-        console.log("✅ Login - Utilisateur connecté, redirection vers:", from);
-        setIsLoggedIn(true);
-        navigate(from, { replace: true });
-      } else {
-        console.log("❌ Login - Pas d'utilisateur connecté");
-        setIsLoggedIn(false);
-      }
+              if (user) {
+          console.log("✅ Login - Utilisateur connecté");
+          console.log("⚠️ Login - PAS DE REDIRECTION (DEBUG) - Affichage message");
+          setIsLoggedIn(true);
+          // navigate(from, { replace: true }); // DÉSACTIVÉ POUR DEBUG
+        } else {
+          console.log("❌ Login - Pas d'utilisateur connecté");
+          setIsLoggedIn(false);
+        }
     };
 
     console.log("🔄 Login - Vérification initiale de l'authentification");
@@ -80,6 +82,7 @@ const Login = () => {
   if (isLoggedIn) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <DebugLogger pageName="Login" />
         <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
         <p className="text-lg font-semibold text-gray-700 mt-4">Vous êtes déjà connecté.</p>
         <p className="text-gray-500 mt-1">Redirection en cours...</p>
@@ -89,6 +92,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-ml-charcoal via-ml-navy to-ml-charcoal flex items-center justify-center p-4">
+      <DebugLogger pageName="Login" />
       <div className="w-full max-w-md">
         <div className="text-center mb-12">
           <Link to="/" className="flex items-center justify-center gap-2 mb-8">

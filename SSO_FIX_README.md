@@ -74,6 +74,28 @@
 - **Changements** : URLs mises à jour vers `musiclinks.fr`
 - **Protection renforcée** : Nettoyage automatique des URLs avec hash au chargement
 
+## 🔍 Mode Debug - Redirections désactivées
+
+### **État actuel :**
+- ✅ **Toutes les redirections automatiques sont DÉSACTIVÉES** pour debugging
+- ✅ **Logs détaillés** sur toutes les pages d'authentification
+- ✅ **Composant DebugLogger** pour tracer les sessions Supabase
+- ✅ **Middleware de redirection** temporairement désactivé
+
+### **Pages avec debugging :**
+- `AuthCallback` : Logs de session et profil utilisateur
+- `SignUpContinue` : Logs de session et état du profil
+- `Login` : Logs d'état d'authentification
+- `App` : Logs globaux au démarrage
+
+### **Logs disponibles :**
+```
+🌐 [Page] - Page chargée : [URL]
+🔍 [Page] - Vérification session Supabase...
+📊 [Page] - Résultat session: { hasSession, userEmail, userId, ... }
+💾 [Page] - User localStorage: PRESENT/MISSING
+```
+
 ## 🔄 Étapes pour le déploiement
 
 ### 1. **Configuration Supabase**

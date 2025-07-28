@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import DebugLogger from "../../components/DebugLogger";
 
 export default function AuthCallback() {
   const [status, setStatus] = useState<'checking' | 'success' | 'error'>('checking');
@@ -28,10 +29,7 @@ export default function AuthCallback() {
         if (error) {
           console.error('❌ AuthCallback - Session check error:', error);
           setStatus('error');
-          console.log('➡️ AuthCallback - Redirection vers /login (erreur session)');
-          setTimeout(() => {
-            window.location.href = "/login";
-          }, 2000);
+          console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage erreur');
           return;
         }
 
@@ -60,40 +58,30 @@ export default function AuthCallback() {
           });
 
           if (profileError) {
-            console.log('📝 AuthCallback - Profil non trouvé, redirection vers /signup/continue');
-            setTimeout(() => {
-              console.log('➡️ AuthCallback - Redirection vers /signup/continue');
-              window.location.href = "/signup/continue";
-            }, 1000);
+            console.log('📝 AuthCallback - Profil non trouvé');
+            console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage message');
+            setStatus('success');
+            // Afficher un message au lieu de rediriger
           } else if (profile && profile.role) {
-            console.log('👤 AuthCallback - Profil existant trouvé, redirection vers /');
-            setTimeout(() => {
-              console.log('➡️ AuthCallback - Redirection vers /');
-              window.location.href = "/";
-            }, 1000);
+            console.log('👤 AuthCallback - Profil existant trouvé');
+            console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage message');
+            setStatus('success');
+            // Afficher un message au lieu de rediriger
           } else {
-            console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle, redirection vers /signup/continue');
-            setTimeout(() => {
-              console.log('➡️ AuthCallback - Redirection vers /signup/continue');
-              window.location.href = "/signup/continue";
-            }, 1000);
+            console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle');
+            console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage message');
+            setStatus('success');
+            // Afficher un message au lieu de rediriger
           }
         } else {
-          console.log('❌ AuthCallback - Pas de session valide, redirection vers /login');
+          console.log('❌ AuthCallback - Pas de session valide');
+          console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage erreur');
           setStatus('error');
-          setTimeout(() => {
-            console.log('➡️ AuthCallback - Redirection vers /login');
-            window.location.href = "/login";
-          }, 2000);
         }
-      } catch (error) {
-        console.error('❌ AuthCallback - Erreur générale:', error);
-        setStatus('error');
-        setTimeout(() => {
-          console.log('➡️ AuthCallback - Redirection vers /login (erreur générale)');
-          window.location.href = "/login";
-        }, 2000);
-      }
+              } catch (error) {
+          console.error('❌ AuthCallback - Erreur générale:', error);
+          setStatus('error');
+        }
     };
 
     checkSession();
@@ -101,6 +89,7 @@ export default function AuthCallback() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center">
+      <DebugLogger pageName="AuthCallback" />
       <div className="text-center text-white">
         {status === 'checking' && (
           <>
