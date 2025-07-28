@@ -90,14 +90,14 @@ const ServiceCategories = () => {
         <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-indigo-400 rounded-full blur-3xl"></div>
       </div>
               <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+        <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Explorez notre communauté
-            </h2>
+            Explorez notre communauté
+          </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              Que vous soyez un artiste en quête de collaborateurs, un prestataire offrant vos services, ou un partenaire en recherche de talents, MusicLinks est votre point de ralliement.
-            </p>
-          </div>
+            Que vous soyez un artiste en quête de collaborateurs, un prestataire offrant vos services, ou un partenaire en recherche de talents, MusicLinks est votre point de ralliement.
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {roles.map((role) => {

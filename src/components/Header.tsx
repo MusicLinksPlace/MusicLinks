@@ -598,20 +598,28 @@ const Header = () => {
 
         {/* Menu mobile drawer principal */}
         <Drawer open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <DrawerContent className="h-[95vh] top-0 mt-0 transition-none">
-            <DrawerHeader className="text-left">
-              <DrawerTitle className="text-2xl font-bold">Menu</DrawerTitle>
+          <DrawerContent className="h-full w-80 top-0 mt-0 transition-none ml-auto">
+            <DrawerHeader className="text-left pb-4">
+              <div className="flex justify-between items-center">
+                <DrawerTitle className="text-lg font-medium text-gray-800">Menu</DrawerTitle>
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="p-1 rounded hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-600" />
+                </button>
+              </div>
             </DrawerHeader>
             <div className="px-4 overflow-y-auto">
-              <div className="space-y-6">
+              <div className="space-y-1">
                 {/* Section Artistes */}
                 <div>
                   <button
                     onClick={() => openSubMenu('artists')}
-                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 flex items-center justify-between transition-colors"
                   >
-                    <span className="text-base font-medium">Artistes</span>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <span className="text-base">Artistes</span>
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
 
@@ -619,10 +627,10 @@ const Header = () => {
                 <div>
                   <button
                     onClick={() => openSubMenu('providers')}
-                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 flex items-center justify-between transition-colors"
                   >
-                    <span className="text-base font-medium">Prestataires</span>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <span className="text-base">Prestataires</span>
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
 
@@ -630,68 +638,66 @@ const Header = () => {
                 <div>
                   <button
                     onClick={() => openSubMenu('partners')}
-                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50 flex items-center justify-between"
+                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 flex items-center justify-between transition-colors"
                   >
-                    <span className="text-base font-medium">Partenaires</span>
-                    <ChevronRight className="w-5 h-5 text-gray-400" />
+                    <span className="text-base">Partenaires</span>
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </button>
                 </div>
 
                 {/* Séparateur */}
-                <div className="border-t border-gray-200 my-4"></div>
+                <div className="border-t border-gray-200 my-2"></div>
 
                 {/* Liens supplémentaires */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Link 
                     to="/Project" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="flex items-center gap-2 py-3 text-gray-700 hover:text-gray-900 transition-colors"
                   >
-                    <span className="text-xl">📢</span>
-                    <span>Projets</span>
+                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <span className="text-base">Projets</span>
                   </Link>
                   <Link 
                     to="/how-it-works" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
                   >
-                    <GraduationCap className="w-5 h-5" />
-                    <span>Comment ça marche</span>
+                    <span className="text-base">Comment ça marche</span>
                   </Link>
                   <Link 
                     to="/about" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
                   >
-                    <Users className="w-5 h-5" />
-                    <span>Qui sommes-nous ?</span>
+                    <span className="text-base">Qui sommes-nous ?</span>
                   </Link>
                   <button
                     onClick={() => {
                       setShowSocialDialog(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
+                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 transition-colors"
                   >
-                    <Megaphone className="w-5 h-5" />
-                    <span>Suivez-nous</span>
+                    <span className="text-base">Suivez-nous</span>
                   </button>
                 </div>
 
                 {/* Séparateur */}
-                <div className="border-t border-gray-200 my-4"></div>
+                <div className="border-t border-gray-200 my-2"></div>
 
                 {/* Actions utilisateur - en bas */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {currentUser ? (
                     <>
                       <Link 
                         to="/mon-compte" 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                        className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
                       >
-                        <User className="w-5 h-5" />
-                        <span>Mon profil</span>
+                        <span className="text-base">Mon profil</span>
                       </Link>
                       
                       <button
@@ -699,33 +705,24 @@ const Header = () => {
                           handleChatClick();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors w-full text-left"
+                        className="w-full text-left py-3 text-gray-700 hover:text-gray-900 transition-colors"
                       >
-                        <MessageCircle className="w-5 h-5" />
-                        <span>Messages</span>
+                        <span className="text-base">Messages</span>
                       </button>
                       
                       {currentUser.isAdmin && (
                         <Link 
                           to="/admin/users" 
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                          className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
                         >
-                          <Gavel className="w-5 h-5" />
-                          <span>Administration</span>
+                          <span className="text-base">Administration</span>
                         </Link>
                       )}
                       
-                      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                          <span className="text-white font-bold text-sm uppercase">
-                            {currentUser.name?.[0] || 'U'}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900 text-sm">{currentUser.name}</div>
-                          <div className="text-xs text-gray-500">Connecté</div>
-                        </div>
+                      <div className="py-3">
+                        <div className="text-sm text-gray-500">{currentUser.name}</div>
+                        <div className="text-xs text-gray-400">Connecté</div>
                       </div>
                       
                       <button
@@ -733,10 +730,9 @@ const Header = () => {
                           handleSignOut();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors w-full text-left"
+                        className="w-full text-left py-3 text-red-600 hover:text-red-700 transition-colors"
                       >
-                        <LogOut className="w-5 h-5" />
-                        <span>Déconnexion</span>
+                        <span className="text-base">Déconnexion</span>
                       </button>
                     </>
                   ) : (
@@ -744,17 +740,16 @@ const Header = () => {
                       <Link 
                         to="/login" 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-center gap-2 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                        className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
                       >
-                        <User className="w-5 h-5" />
-                        <span>Connexion</span>
+                        <span className="text-base">Connexion</span>
                       </Link>
                       <Link 
                         to="/signup" 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
                       >
-                        <span>S'inscrire</span>
+                        <span className="text-base">S'inscrire</span>
                       </Link>
                     </>
                   )}
@@ -766,29 +761,29 @@ const Header = () => {
 
         {/* Drawer sous-menu */}
         <Drawer open={isSubMenuOpen} onOpenChange={setIsSubMenuOpen}>
-          <DrawerContent className="h-[95vh] top-0 mt-0 transition-none">
-            <DrawerHeader className="text-left">
+          <DrawerContent className="h-full w-80 top-0 mt-0 transition-none ml-auto">
+            <DrawerHeader className="text-left pb-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={goBackToMainMenu}
-                  className="p-1 rounded-lg hover:bg-gray-100"
+                  className="p-1 rounded hover:bg-gray-100 transition-colors"
                 >
-                  <ChevronLeft className="w-6 h-6 text-gray-600" />
+                  <ChevronLeft className="w-5 h-5 text-gray-600" />
                 </button>
                 {currentSubMenu && (
-                  <DrawerTitle className="text-xl font-bold">{currentSubMenu.title}</DrawerTitle>
+                  <DrawerTitle className="text-lg font-medium text-gray-800">{currentSubMenu.title}</DrawerTitle>
                 )}
               </div>
             </DrawerHeader>
             <div className="px-4 overflow-y-auto">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {currentSubMenu?.items.map((item: any, index: number) => (
                   <button
                     key={index}
                     onClick={() => navigateAndClose(item.link)}
-                    className="w-full text-left px-4 py-3 rounded-lg transition-colors text-gray-700 hover:bg-gray-50"
+                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 transition-colors"
                   >
-                    {item.label}
+                    <span className="text-base">{item.label}</span>
                   </button>
                 ))}
               </div>

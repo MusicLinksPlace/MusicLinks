@@ -1,14 +1,26 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
 User-agent: *
 Allow: /
+
+# Sitemap
+Sitemap: https://musiclinks.fr/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/
+Disallow: /signup/continue
+Disallow: /mon-compte/
+Disallow: /chat/
+
+# Allow important pages
+Allow: /
+Allow: /artistes
+Allow: /prestataires
+Allow: /partenaires
+Allow: /about
+Allow: /how-it-works
+Allow: /legal
+Allow: /Project

@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import HorizontalCarousel from '@/components/HorizontalCarousel';
-import { Search, MapPin, Music, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, MapPin, Music, ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -389,10 +389,10 @@ const ArtistsPage = () => {
               {/* Section filtres mobile */}
               <div className="md:hidden flex items-center gap-4 px-4 py-4 mb-2">
                 <button
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-neutral-300 bg-white text-neutral-800 font-bold shadow-lg text-base active:scale-95 transition-transform"
+                  className="flex items-center gap-3 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold shadow-lg text-base active:scale-95 transition-all duration-200 hover:shadow-xl hover:from-blue-600 hover:to-indigo-700 border-0"
                   onClick={() => setMobileFiltersOpen(true)}
                 >
-                  <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><circle cx="4" cy="12" r="2"/><circle cx="12" cy="6" r="2"/><circle cx="20" cy="14" r="2"/></svg>
+                  <Filter className="w-5 h-5" />
                   Filtres
                 </button>
                 <span className="text-lg font-extrabold text-neutral-700 tracking-wide">{filteredArtists.length} RÉSULTATS</span>
