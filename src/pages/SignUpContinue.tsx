@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { sendWelcomeEmail } from "../lib/emailService";
 import { useSafeNavigation } from "../hooks/use-safe-navigation";
+import { handleHashRedirects, cleanHashFromUrl } from "../middleware/redirectMiddleware";
 
 // Désactiver les scripts FIDO2 qui peuvent interférer avec l'authentification
 const disableFIDO2Scripts = () => {
@@ -53,27 +54,13 @@ export default function SignUpContinue() {
     // Désactiver les scripts FIDO2 qui peuvent interférer
     disableFIDO2Scripts();
     
-    // Nettoyer IMMÉDIATEMENT l'URL en supprimant le hash et les paramètres
-    if (location.hash || location.search) {
-      console.log('🧹 Cleaning URL from hash/params:', location.hash, location.search);
-      const cleanUrl = location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
-      
-      // Forcer le nettoyage immédiat
-      setTimeout(() => {
-        if (window.location.hash || window.location.search) {
-          console.log('🧹 Force cleaning URL again');
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }, 0);
-      
-      // Si on a un hash, rediriger immédiatement vers une URL propre
-      if (location.hash) {
-        console.log('🚨 Hash detected, redirecting to clean URL');
-        window.location.href = '/signup/continue';
-        return;
-      }
+    // Utiliser le middleware pour gérer les redirections avec hash
+    if (handleHashRedirects()) {
+      return; // Arrêter l'exécution si une redirection a été effectuée
     }
+    
+    // Nettoyer l'URL si nécessaire
+    cleanHashFromUrl();
     
     const handleAuthRedirect = async () => {
       try {

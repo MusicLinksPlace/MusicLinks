@@ -9,7 +9,7 @@
 ### 2. **Boucle de redirection (ERR_TOO_MANY_REDIRECTS)**
 - URL avec hash `#access_token=...` causant des redirections infinies
 - Problème de nettoyage d'URL non synchronisé
-- **SOLUTION RADICALE** : Redirection immédiate vers URL propre + interception des changements d'URL
+- **SOLUTION RADICALE** : Middleware de redirection + interception côté serveur + redirection manuelle
 
 ## ✅ Corrections apportées
 
@@ -52,11 +52,16 @@
 - **Fichier** : `src/hooks/use-safe-navigation.ts`
 - **Fonctionnalité** : Évite les boucles de redirection en empêchant les navigations multiples simultanées
 
-### 6. **Interception des changements d'URL**
+### 6. **Middleware de redirection**
+- **Fichier** : `src/middleware/redirectMiddleware.ts`
+- **Fonctionnalité** : Gestion centralisée des redirections avec hash
+- **Interception** : `pushState` et `replaceState` pour nettoyer automatiquement les hash
+
+### 7. **Interception des changements d'URL**
 - **Fichier** : `index.html`
 - **Fonctionnalité** : Intercepte `pushState` et `replaceState` pour nettoyer automatiquement les hash
 
-### 7. **Mise à jour du domaine**
+### 8. **Mise à jour du domaine**
 - **Fichier** : `index.html`
 - **Changements** : URLs mises à jour vers `musiclinks.fr`
 - **Protection renforcée** : Nettoyage automatique des URLs avec hash au chargement

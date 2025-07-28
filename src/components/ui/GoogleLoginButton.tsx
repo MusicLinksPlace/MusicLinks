@@ -12,7 +12,7 @@ const GoogleLoginButton = () => {
           access_type: 'offline',
           prompt: 'consent',
         },
-        skipBrowserRedirect: false
+        skipBrowserRedirect: true
       },
     });
 
@@ -21,6 +21,9 @@ const GoogleLoginButton = () => {
         error.message ||
           "Une erreur est survenue lors de la connexion avec Google."
       );
+    } else {
+      // Redirection manuelle vers la page de sélection de rôle
+      window.location.href = '/signup/continue';
     }
   };
 

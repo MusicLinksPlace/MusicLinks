@@ -30,6 +30,10 @@
     {
       "source": "/signup/continue#:hash*",
       "destination": "/signup/continue"
+    },
+    {
+      "source": "/signup/continue",
+      "destination": "/index.html"
     }
   ],
   "headers": [

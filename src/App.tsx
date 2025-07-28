@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { handleHashRedirects, setupUrlInterceptor } from './middleware/redirectMiddleware';
 import Index from "./pages/Index";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
@@ -145,6 +146,14 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    // Configuration du middleware de redirection
+    setupUrlInterceptor();
+    
+    // Vérifier et gérer les redirections avec hash
+    if (handleHashRedirects()) {
+      return; // Arrêter l'exécution si une redirection a été effectuée
+    }
+    
     const syncProfile = async () => {
       const session = (await supabase.auth.getSession()).data.session;
       if (session && session.user) {
