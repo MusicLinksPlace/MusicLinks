@@ -1,10 +1,15 @@
 # 🔧 Corrections SSO et Migration vers musiclinks.fr
 
-## 🚨 Problème résolu
+## 🚨 Problèmes résolus
 
-**Erreur 404 lors de la connexion SSO** avec les logs :
+### 1. **Erreur 404 lors de la connexion SSO**
 - `fido2-page-script.js:418 Uncaught TypeError: Cannot assign to read only property 'create'`
 - Redirection vers `/signup/continue?verified=true#access_token=...` qui causait une erreur 404
+
+### 2. **Boucle de redirection (ERR_TOO_MANY_REDIRECTS)**
+- URL avec hash `#access_token=...` causant des redirections infinies
+- Problème de nettoyage d'URL non synchronisé
+- **SOLUTION RADICALE** : Redirection immédiate vers URL propre + interception des changements d'URL
 
 ## ✅ Corrections apportées
 
@@ -21,6 +26,8 @@
   - Interface utilisateur moderne et responsive
   - Logs détaillés pour le debugging
   - Gestion d'erreurs améliorée
+  - **Nettoyage IMMÉDIAT des URLs avec hash** pour éviter les boucles
+  - **Protection contre les redirections multiples** avec `useSafeNavigation`
 
 ### 3. **Configuration des redirections SSO**
 - **Fichiers** : 
@@ -37,10 +44,22 @@
   - Headers de sécurité
   - Redirections pour le nouveau domaine
   - Configuration pour éviter les erreurs 404
+  - **Redirection des URLs avec hash** vers `/signup/continue` propre
+  - **Rewrites** pour gérer les hash côté serveur
+  - **Redirections multiples** pour tous les cas de figure
 
-### 5. **Mise à jour du domaine**
+### 5. **Hook de navigation sécurisée**
+- **Fichier** : `src/hooks/use-safe-navigation.ts`
+- **Fonctionnalité** : Évite les boucles de redirection en empêchant les navigations multiples simultanées
+
+### 6. **Interception des changements d'URL**
+- **Fichier** : `index.html`
+- **Fonctionnalité** : Intercepte `pushState` et `replaceState` pour nettoyer automatiquement les hash
+
+### 7. **Mise à jour du domaine**
 - **Fichier** : `index.html`
 - **Changements** : URLs mises à jour vers `musiclinks.fr`
+- **Protection renforcée** : Nettoyage automatique des URLs avec hash au chargement
 
 ## 🔄 Étapes pour le déploiement
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 import { sendWelcomeEmail } from "../lib/emailService";
+import { useSafeNavigation } from "../hooks/use-safe-navigation";
 
 // Désactiver les scripts FIDO2 qui peuvent interférer avec l'authentification
 const disableFIDO2Scripts = () => {
@@ -35,28 +36,54 @@ export default function SignUpContinue() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [selecting, setSelecting] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const navigate = useNavigate();
+  const safeNavigate = useSafeNavigation();
   const location = useLocation();
 
   useEffect(() => {
+    // Éviter les boucles de redirection
+    if (isProcessing) {
+      console.log('🔄 Already processing, skipping...');
+      return;
+    }
+    
+    setIsProcessing(true);
+    
     // Désactiver les scripts FIDO2 qui peuvent interférer
     disableFIDO2Scripts();
+    
+    // Nettoyer IMMÉDIATEMENT l'URL en supprimant le hash et les paramètres
+    if (location.hash || location.search) {
+      console.log('🧹 Cleaning URL from hash/params:', location.hash, location.search);
+      const cleanUrl = location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      
+      // Forcer le nettoyage immédiat
+      setTimeout(() => {
+        if (window.location.hash || window.location.search) {
+          console.log('🧹 Force cleaning URL again');
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }, 0);
+      
+      // Si on a un hash, rediriger immédiatement vers une URL propre
+      if (location.hash) {
+        console.log('🚨 Hash detected, redirecting to clean URL');
+        window.location.href = '/signup/continue';
+        return;
+      }
+    }
     
     const handleAuthRedirect = async () => {
       try {
         // Attendre un peu pour que l'authentification se stabilise
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Nettoyer l'URL en supprimant le hash et les paramètres
-        if (location.hash || location.search) {
-          const cleanUrl = location.pathname;
-          window.history.replaceState({}, document.title, cleanUrl);
-        }
 
         const { data, error } = await supabase.auth.getUser();
         if (error || !data.user) {
           console.log('❌ No user found, redirecting to login');
-          navigate('/login', { replace: true });
+          safeNavigate('/login', { replace: true });
           return;
         }
 
@@ -108,7 +135,7 @@ export default function SignUpContinue() {
         if (userProfile && userProfile.role) {
           console.log('✅ User already has role, redirecting to account');
           // Si le rôle existe déjà, redirige directement
-          navigate('/mon-compte', { replace: true });
+          safeNavigate('/mon-compte', { replace: true });
           return;
         }
 
@@ -183,7 +210,7 @@ export default function SignUpContinue() {
 
       console.log('✅ Redirecting to account page');
       // Redirige vers la page de compte utilisateur
-      navigate("/mon-compte", { replace: true });
+      safeNavigate("/mon-compte", { replace: true });
     } catch (error) {
       console.error('❌ Error in handleRoleSelect:', error);
       setError("Erreur lors de la finalisation de l'inscription. Merci de réessayer.");
