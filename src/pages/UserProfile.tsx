@@ -368,6 +368,7 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
 // Galerie mobile avec photos d'abord, puis vidéos, scroll horizontal
 const MobileGallery = ({ video, images }: { video?: string, images?: string[] }) => {
   const [current, setCurrent] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
   // Photos d'abord, puis vidéos
@@ -378,69 +379,109 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
   
   if (slides.length === 0) return null;
 
-  const nextSlide = () => {
-    const newCurrent = (current + 1) % slides.length;
-    setCurrent(newCurrent);
-    if (scrollContainerRef.current) {
-      const slideWidth = scrollContainerRef.current.offsetWidth;
-      scrollContainerRef.current.scrollTo({
-        left: newCurrent * slideWidth,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const prevSlide = () => {
-    const newCurrent = (current - 1 + slides.length) % slides.length;
-    setCurrent(newCurrent);
-    if (scrollContainerRef.current) {
-      const slideWidth = scrollContainerRef.current.offsetWidth;
-      scrollContainerRef.current.scrollTo({
-        left: newCurrent * slideWidth,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const goToSlide = (index: number) => {
+  const scrollToSlide = (index: number, smooth: boolean = true) => {
     if (index < 0 || index >= slides.length) return;
+    
     setCurrent(index);
+    setIsScrolling(true);
+    
     if (scrollContainerRef.current) {
       const slideWidth = scrollContainerRef.current.offsetWidth;
       scrollContainerRef.current.scrollTo({
         left: index * slideWidth,
-        behavior: 'smooth'
+        behavior: smooth ? 'smooth' : 'auto'
       });
+      
+      // Réinitialiser le flag de scroll après l'animation
+      if (smooth) {
+        setTimeout(() => setIsScrolling(false), 500);
+      } else {
+        setIsScrolling(false);
+      }
     }
   };
 
-  // Écouter le scroll pour mettre à jour current
+  const nextSlide = () => {
+    const newCurrent = (current + 1) % slides.length;
+    scrollToSlide(newCurrent);
+  };
+
+  const prevSlide = () => {
+    const newCurrent = (current - 1 + slides.length) % slides.length;
+    scrollToSlide(newCurrent);
+  };
+
+  const goToSlide = (index: number) => {
+    scrollToSlide(index);
+  };
+
+  // Écouter le scroll pour mettre à jour current (seulement si pas en cours de scroll programmatique)
   const handleScroll = () => {
-    if (scrollContainerRef.current) {
-      const slideWidth = scrollContainerRef.current.offsetWidth;
-      const scrollLeft = scrollContainerRef.current.scrollLeft;
-      const newCurrent = Math.round(scrollLeft / slideWidth);
-      
-      if (newCurrent !== current && newCurrent >= 0 && newCurrent < slides.length) {
-        setCurrent(newCurrent);
-      }
+    if (isScrolling || !scrollContainerRef.current) return;
+    
+    const slideWidth = scrollContainerRef.current.offsetWidth;
+    const scrollLeft = scrollContainerRef.current.scrollLeft;
+    const newCurrent = Math.round(scrollLeft / slideWidth);
+    
+    if (newCurrent !== current && newCurrent >= 0 && newCurrent < slides.length) {
+      setCurrent(newCurrent);
+    }
+  };
+
+  // Empêcher le scroll du body quand on touche le carousel
+  const handleTouchStart = (e: React.TouchEvent) => {
+    document.body.style.overflow = 'hidden';
+    // Empêcher le scroll vertical
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = () => {
+    setTimeout(() => {
+      document.body.style.overflow = '';
+    }, 100);
+  };
+
+  // Empêcher le scroll vertical sur les événements touch
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    const startY = touch.clientY;
+    
+    // Si le mouvement est plus vertical qu'horizontal, empêcher le scroll
+    if (Math.abs(touch.clientY - startY) > Math.abs(touch.clientX - (e.currentTarget as any).startX || 0)) {
+      e.preventDefault();
     }
   };
 
   return (
     <div className="md:hidden relative">
       {/* Container principal FIXE comme Instagram */}
-      <div className="relative w-full h-[400px] bg-black overflow-hidden">
+      <div 
+        className="relative w-full h-[400px] bg-black overflow-hidden"
+        style={{
+          overflowY: 'hidden',
+          touchAction: 'pan-x'
+        }}
+      >
         {/* Container de scroll horizontal */}
         <div 
           ref={scrollContainerRef}
-          className="flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+          className="flex h-full overflow-x-auto scrollbar-hide snap-x snap-mandatory scroll-smooth"
           onScroll={handleScroll}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          style={{
+            scrollBehavior: 'smooth',
+            WebkitOverflowScrolling: 'touch',
+            overflowY: 'hidden',
+            touchAction: 'pan-x'
+          }}
         >
           {slides.map((slide, index) => (
             <div 
               key={index}
-              className="flex-shrink-0 w-full h-full snap-center"
+              className="flex-shrink-0 w-full h-full snap-center snap-always"
+              style={{ minWidth: '100%' }}
             >
               {slide.type === 'video' ? (
                 // Vidéo avec bandes noires sur les côtés
@@ -454,11 +495,18 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
                 </div>
               ) : (
                 // Image avec object-cover pour remplir tout l'espace
-                <div className="w-full h-full">
+                <div className="w-full h-full flex items-center justify-center">
                   <img 
                     src={slide.url} 
                     alt="media" 
                     className="w-full h-full object-cover"
+                    style={{ 
+                      objectPosition: 'center',
+                      userSelect: 'none',
+                      pointerEvents: 'none',
+                      touchAction: 'none'
+                    }}
+                    draggable={false}
                   />
                 </div>
               )}
@@ -471,13 +519,15 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
           <>
             <button 
               onClick={prevSlide}
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-all z-10 backdrop-blur-sm"
+              disabled={isScrolling}
+              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-all z-10 backdrop-blur-sm disabled:opacity-50 disabled:pointer-events-none"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
             <button 
               onClick={nextSlide}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-all z-10 backdrop-blur-sm"
+              disabled={isScrolling}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition-all z-10 backdrop-blur-sm disabled:opacity-50 disabled:pointer-events-none"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -491,9 +541,10 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
               <button
                 key={i}
                 onClick={() => goToSlide(i)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  i === current ? 'bg-white' : 'bg-white/50'
-                }`}
+                disabled={isScrolling}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  i === current ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/70'
+                } disabled:opacity-50 disabled:pointer-events-none`}
               />
             ))}
           </div>
