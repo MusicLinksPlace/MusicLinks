@@ -7,12 +7,11 @@ const GoogleLoginButton = () => {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/signup/continue`,
+        redirectTo: `${window.location.origin}/auth/callback`,
         queryParams: {
           access_type: 'offline',
           prompt: 'consent',
-        },
-        skipBrowserRedirect: true
+        }
       },
     });
 
@@ -21,9 +20,6 @@ const GoogleLoginButton = () => {
         error.message ||
           "Une erreur est survenue lors de la connexion avec Google."
       );
-    } else {
-      // Redirection manuelle vers la page de sélection de rôle
-      window.location.href = '/signup/continue';
     }
   };
 

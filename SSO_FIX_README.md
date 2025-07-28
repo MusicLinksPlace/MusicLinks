@@ -13,55 +13,61 @@
 
 ## ✅ Corrections apportées
 
-### 1. **Protection FIDO2 renforcée**
+### 1. **Page AuthCallback**
+- **Fichier** : `src/pages/AuthCallback.tsx`
+- **Fonctionnalité** : Gestion centralisée du retour OAuth
+- **Logique** : Vérification de session et redirection appropriée
+
+### 2. **Protection FIDO2 renforcée**
 - **Fichier** : `index.html`
 - **Amélioration** : Protection robuste contre les conflits FIDO2/WebAuthn
 - **Résultat** : Évite les erreurs `Cannot assign to read only property 'create'`
 
-### 2. **Page SignUpContinue améliorée**
+### 3. **Page SignUpContinue corrigée**
 - **Fichier** : `src/pages/SignUpContinue.tsx`
 - **Améliorations** :
-  - Gestion robuste des redirections SSO
-  - Création automatique du profil utilisateur si inexistant
+  - **Évite les redirections automatiques** si session déjà valide
+  - Vérification de profil existant avant redirection
   - Interface utilisateur moderne et responsive
   - Logs détaillés pour le debugging
   - Gestion d'erreurs améliorée
   - **Nettoyage IMMÉDIAT des URLs avec hash** pour éviter les boucles
   - **Protection contre les redirections multiples** avec `useSafeNavigation`
 
-### 3. **Configuration des redirections SSO**
+### 4. **Configuration des redirections SSO**
 - **Fichiers** : 
   - `src/components/ui/GoogleLoginButton.tsx`
   - `src/pages/SignUp.tsx`
 - **Changements** :
-  - Suppression du paramètre `?verified=true` problématique
+  - **Redirection vers `/auth/callback`** au lieu de `/signup/continue`
+  - Suppression de `skipBrowserRedirect` pour laisser Supabase gérer la redirection
   - Ajout de `queryParams` pour une meilleure compatibilité
-  - Redirection simplifiée vers `/signup/continue`
 
-### 4. **Configuration Vercel**
+### 5. **Configuration Vercel**
 - **Fichier** : `vercel.json`
 - **Ajouts** :
   - Headers de sécurité
   - Redirections pour le nouveau domaine
   - Configuration pour éviter les erreurs 404
+  - **Redirection de `/auth/callback`** vers `/index.html`
   - **Redirection des URLs avec hash** vers `/signup/continue` propre
   - **Rewrites** pour gérer les hash côté serveur
   - **Redirections multiples** pour tous les cas de figure
 
-### 5. **Hook de navigation sécurisée**
+### 6. **Hook de navigation sécurisée**
 - **Fichier** : `src/hooks/use-safe-navigation.ts`
 - **Fonctionnalité** : Évite les boucles de redirection en empêchant les navigations multiples simultanées
 
-### 6. **Middleware de redirection**
+### 7. **Middleware de redirection**
 - **Fichier** : `src/middleware/redirectMiddleware.ts`
 - **Fonctionnalité** : Gestion centralisée des redirections avec hash
 - **Interception** : `pushState` et `replaceState` pour nettoyer automatiquement les hash
 
-### 7. **Interception des changements d'URL**
+### 8. **Interception des changements d'URL**
 - **Fichier** : `index.html`
 - **Fonctionnalité** : Intercepte `pushState` et `replaceState` pour nettoyer automatiquement les hash
 
-### 8. **Mise à jour du domaine**
+### 9. **Mise à jour du domaine**
 - **Fichier** : `index.html`
 - **Changements** : URLs mises à jour vers `musiclinks.fr`
 - **Protection renforcée** : Nettoyage automatique des URLs avec hash au chargement
@@ -73,6 +79,7 @@
 # Dans votre dashboard Supabase, mettre à jour les URLs de redirection :
 Site URL: https://musiclinks.fr
 Redirect URLs: 
+- https://musiclinks.fr/auth/callback
 - https://musiclinks.fr/signup/continue
 - https://musiclinks.fr/login
 - https://musiclinks.fr/confirm

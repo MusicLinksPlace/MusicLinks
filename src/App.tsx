@@ -25,6 +25,7 @@ import ConfirmPage from './pages/Confirm';
 import type { Session } from '@supabase/supabase-js';
 import ScrollToTop from './components/ScrollToTop';
 import SignUpContinue from './pages/SignUpContinue';
+import AuthCallback from './pages/AuthCallback';
 import ProviderProfileSettings from './pages/ProviderProfileSettings';
 import AccountSettingsRouter from './pages/AccountSettingsRouter';
 import PartnerAccountSettings from './pages/PartnerAccount';
@@ -181,6 +182,7 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/signup/continue" element={<SignUpContinue />} />
           <Route path="/signup/continue/*" element={<SignUpContinue />} />
           <Route path="/login" element={<Login />} />

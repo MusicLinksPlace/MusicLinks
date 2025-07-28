@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/auth/callback",
+      "destination": "/index.html",
+      "permanent": false
+    },
+    {
       "source": "/signup/continue",
       "destination": "/signup/continue",
       "permanent": false
