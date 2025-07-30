@@ -2,6 +2,7 @@ import React from 'react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
+import VideoPlayer from '@/components/ui/VideoPlayer';
 import { Search, Users, MessageCircle, Star, CheckCircle, Music, Briefcase, Handshake, ArrowRight, Target, Sparkles, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -91,6 +92,32 @@ const HowItWorks = () => {
                   <p className="text-gray-300 leading-relaxed">
                     Donnez vie à votre projet musical avec l'expertise de professionnels passionnés et talentueux.
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Section Vidéo */}
+        <section className="py-12 sm:py-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 sm:mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Découvrez MusicLinks en action
+              </h2>
+              <p className="text-lg sm:text-xl text-gray-300 max-w-3xl mx-auto px-4">
+                Regardez notre vidéo de présentation pour comprendre comment MusicLinks révolutionne les connexions dans l'industrie musicale
+              </p>
+            </div>
+            
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-0">
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl sm:rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                <div className="relative">
+                  <VideoPlayer 
+                    src="/video.mov" 
+                    className="w-full aspect-video"
+                  />
                 </div>
               </div>
             </div>
