@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import { Button } from '@/components/ui/button';
-import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight, Camera, Megaphone, GraduationCap, Gavel, MessageCircle, ChevronLeft } from 'lucide-react';
+import { Menu, X, User, LogOut, Mic, Headphones, Users, ChevronRight, Camera, Megaphone, GraduationCap, Gavel, MessageCircle, ChevronLeft, Shield } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -552,7 +552,20 @@ const Header = () => {
                       <Link to="/admin/users" className="flex items-center gap-2 py-2 text-gray-700 hover:text-blue-600">Administration</Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 py-2 text-gray-700 hover:text-red-600 cursor-pointer">Déconnexion</DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleSignOut} className="flex items-center gap-2 py-2 text-gray-700 hover:text-red-600 cursor-pointer">
+                    <LogOut className="w-4 h-4" />
+                    Déconnexion
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => {
+                      localStorage.removeItem('musiclinks_authorized');
+                      window.location.reload();
+                    }} 
+                    className="flex items-center gap-2 py-2 text-gray-700 hover:text-orange-600 cursor-pointer"
+                  >
+                    <Shield className="w-4 h-4" />
+                    Quitter la version privée
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
@@ -733,6 +746,17 @@ const Header = () => {
                         className="w-full text-left py-3 text-red-600 hover:text-red-700 transition-colors"
                       >
                         <span className="text-base">Déconnexion</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          localStorage.removeItem('musiclinks_authorized');
+                          window.location.reload();
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full text-left py-3 text-orange-600 hover:text-orange-700 transition-colors"
+                      >
+                        <span className="text-base">Quitter la version privée</span>
                       </button>
                     </>
                   ) : (
