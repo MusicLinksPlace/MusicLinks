@@ -14,7 +14,7 @@ const PasswordProtection: React.FC<PasswordProtectionProps> = ({ onSuccess }) =>
   const [isLoading, setIsLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
-  const correctPassword = 'nicolo13';
+  const correctPassword = 'musiclinkstest';
 
   useEffect(() => {
     // Vérifier si l'accès a déjà été autorisé
