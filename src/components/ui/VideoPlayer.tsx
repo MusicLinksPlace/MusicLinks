@@ -28,8 +28,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
         const response = await fetch(src, { method: 'HEAD' });
         if (!response.ok) {
           console.error('🚨 Video not accessible:', src, response.status);
-          setHasError(true);
-          setIsLoading(false);
+          // Ne pas définir d'erreur immédiatement, essayer de charger quand même
         }
       } catch (error) {
         console.error('🚨 Video access check failed:', error);
@@ -51,8 +50,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
       setHasError(false);
     };
 
-    const handleError = () => {
+    const handleError = (event: Event) => {
+      const target = event.target as HTMLVideoElement;
       console.error('🚨 Video failed to load:', src);
+      console.error('🚨 Video error details:', target.error);
       setHasError(true);
       setIsLoading(false);
     };
@@ -147,9 +148,10 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
           setIsLoading(false);
         }}
         onClick={handleVideoClick}
+        preload="metadata"
       >
-        <source src={src} type="video/quicktime" />
         <source src={src} type="video/mp4" />
+        <source src={src} type="video/quicktime" />
         <source src={src} type="video/webm" />
         <source src={src} type="video/ogg" />
         Votre navigateur ne supporte pas la lecture de vidéos.
@@ -189,18 +191,36 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
             </div>
             <h3 className="text-lg font-semibold mb-2">Vidéo non disponible</h3>
             <p className="text-sm text-gray-300 mb-4">La vidéo ne peut pas être chargée pour le moment.</p>
-            <Button
-              onClick={() => {
-                setHasError(false);
-                setIsLoading(true);
-                if (videoRef.current) {
-                  videoRef.current.load();
-                }
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
-            >
-              Réessayer
-            </Button>
+            <div className="space-y-3">
+              <Button
+                onClick={() => {
+                  setHasError(false);
+                  setIsLoading(true);
+                  if (videoRef.current) {
+                    videoRef.current.load();
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm mr-2"
+              >
+                Réessayer
+              </Button>
+              <Button
+                onClick={() => {
+                  // Utiliser une vidéo de démonstration
+                  const demoVideo = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+                  if (videoRef.current) {
+                    videoRef.current.src = demoVideo;
+                    videoRef.current.load();
+                    setHasError(false);
+                    setIsLoading(true);
+                  }
+                }}
+                variant="outline"
+                className="border-white/20 text-white hover:bg-white/10 px-4 py-2 rounded-lg text-sm"
+              >
+                Vidéo de démonstration
+              </Button>
+            </div>
           </div>
         </div>
       )}

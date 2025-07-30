@@ -115,7 +115,7 @@ const HowItWorks = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-2xl sm:rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
                 <div className="relative">
                   <VideoPlayer 
-                    src="/video.mov" 
+                    src="/video-web.mp4" 
                     className="w-full aspect-video"
                   />
                 </div>

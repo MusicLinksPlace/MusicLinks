@@ -35,6 +35,7 @@ import PartnerProfileSettings from './pages/PartnerProfileSettings';
 import Chat from './pages/Chat';
 import AdminUsers from './pages/AdminUsers';
 import ErrorBoundary from './components/ErrorBoundary';
+import VideoTest from './components/VideoTest';
 
 const queryClient = new QueryClient();
 
@@ -217,9 +218,10 @@ const App = () => {
             <Route path="/confirm" element={<ConfirmPage />} />
             <Route path="/mon-compte" element={<AccountSettingsRouter />} />
             <Route path="/partner-account" element={<PartnerAccountSettings />} />
-            <Route path="/chat" element={<Chat />} />
+                        <Route path="/chat" element={<Chat />} />
             <Route path="/admin/users" element={<AdminUsers />} />
-                        <Route path="/404" element={<NotFound />} />
+            <Route path="/video-test" element={<VideoTest />} />
+            <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
