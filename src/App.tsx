@@ -34,6 +34,7 @@ import ArtistProfileSettings from './pages/ArtistProfileSettings';
 import PartnerProfileSettings from './pages/PartnerProfileSettings';
 import Chat from './pages/Chat';
 import AdminUsers from './pages/AdminUsers';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient();
 
@@ -185,13 +186,14 @@ const App = () => {
   }, []);
 
   return (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-          <ScrollToTop />
-        <Routes>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+            <ScrollToTop />
+          <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
@@ -217,11 +219,13 @@ const App = () => {
             <Route path="/partner-account" element={<PartnerAccountSettings />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+                        <Route path="/404" element={<NotFound />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 };
 

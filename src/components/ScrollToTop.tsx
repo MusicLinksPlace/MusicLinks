@@ -5,17 +5,23 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    // Using `document.documentElement.scrollTo` is often more reliable,
-    // especially in complex layouts with sticky or fixed elements.
-    // It ensures we scroll the main document container to the very top.
-    document.documentElement.scrollTo({
+    // Scroll to top on route change
+    window.scrollTo({
       top: 0,
       left: 0,
-      behavior: 'instant', // Use 'auto' or 'instant' for immediate scrolling
+      behavior: 'instant',
     });
+    
+    // Clear any hash from URL
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+    
+    // Log navigation for debugging
+    console.log('🔄 Navigation to:', pathname);
   }, [pathname]);
 
-  return null; // This component does not render anything
+  return null;
 };
 
 export default ScrollToTop; 

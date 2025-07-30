@@ -19,6 +19,11 @@
       "source": "/index.htm",
       "destination": "/",
       "permanent": true
+    },
+    {
+      "source": "/how-it-works",
+      "destination": "/how-it-works",
+      "permanent": false
     }
   ],
   "rewrites": [
@@ -27,7 +32,7 @@
       "destination": "/signup/continue"
     },
     {
-      "source": "/signup/continue",
+      "source": "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
