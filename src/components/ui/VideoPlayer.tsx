@@ -13,12 +13,31 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [showControls, setShowControls] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
+    // Vérifier si la source vidéo est accessible
+    const checkVideoAccess = async () => {
+      try {
+        const response = await fetch(src, { method: 'HEAD' });
+        if (!response.ok) {
+          console.error('🚨 Video not accessible:', src, response.status);
+          setHasError(true);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('🚨 Video access check failed:', error);
+        // Ne pas définir d'erreur ici, laisser le navigateur essayer de charger
+      }
+    };
+
+    checkVideoAccess();
 
     const updateProgress = () => {
       if (video.duration) {
@@ -28,15 +47,32 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
+      setIsLoading(false);
+      setHasError(false);
+    };
+
+    const handleError = () => {
+      console.error('🚨 Video failed to load:', src);
+      setHasError(true);
+      setIsLoading(false);
+    };
+
+    const handleCanPlay = () => {
+      setIsLoading(false);
+      setHasError(false);
     };
 
     video.addEventListener('timeupdate', updateProgress);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('error', handleError);
+    video.addEventListener('canplay', handleCanPlay);
 
-    return () => {
-      video.removeEventListener('timeupdate', updateProgress);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-    };
+          return () => {
+        video.removeEventListener('timeupdate', updateProgress);
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('error', handleError);
+        video.removeEventListener('canplay', handleCanPlay);
+      };
   }, []);
 
   const togglePlay = () => {
@@ -100,16 +136,27 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
     >
       <video
         ref={videoRef}
-        src={src}
         className="w-full h-full object-cover cursor-pointer"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onEnded={() => setIsPlaying(false)}
+        onError={(e) => {
+          console.error('🚨 Video error:', e);
+          console.error('🚨 Video src:', src);
+          setHasError(true);
+          setIsLoading(false);
+        }}
         onClick={handleVideoClick}
-      />
+      >
+        <source src={src} type="video/quicktime" />
+        <source src={src} type="video/mp4" />
+        <source src={src} type="video/webm" />
+        <source src={src} type="video/ogg" />
+        Votre navigateur ne supporte pas la lecture de vidéos.
+      </video>
       
       {/* Overlay avec bouton play central */}
-      {!isPlaying && (
+      {!isPlaying && !hasError && !isLoading && (
         <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
           <Button
             onClick={togglePlay}
@@ -118,6 +165,43 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, className = '' }) => {
           >
             <Play className="w-6 h-6 sm:w-8 sm:h-8 text-white ml-1" />
           </Button>
+        </div>
+      )}
+
+      {/* État de chargement */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p className="text-sm">Chargement de la vidéo...</p>
+          </div>
+        </div>
+      )}
+
+      {/* État d'erreur */}
+      {hasError && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+          <div className="text-white text-center p-6">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold mb-2">Vidéo non disponible</h3>
+            <p className="text-sm text-gray-300 mb-4">La vidéo ne peut pas être chargée pour le moment.</p>
+            <Button
+              onClick={() => {
+                setHasError(false);
+                setIsLoading(true);
+                if (videoRef.current) {
+                  videoRef.current.load();
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm"
+            >
+              Réessayer
+            </Button>
+          </div>
         </div>
       )}
 
