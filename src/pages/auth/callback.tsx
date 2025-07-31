@@ -69,24 +69,49 @@ export default function AuthCallback() {
           console.log('⏳ AuthCallback - Pause de 2 secondes pour voir les logs...');
           await new Promise(resolve => setTimeout(resolve, 2000));
 
-          if (profileError) {
-            console.log('📝 AuthCallback - Profil non trouvé, redirection vers /signup/continue');
+          if (profileError && profileError.code === 'PGRST116') {
+            // Profil non trouvé - créer un profil de base
+            console.log('📝 AuthCallback - Profil non trouvé, création du profil de base');
+            const { data: newProfile, error: createError } = await supabase
+              .from('User')
+              .insert({
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.email?.split('@')[0] || 'Nouvel utilisateur',
+                role: null, // Sera défini plus tard
+                verified: 1, // Email vérifié
+                disabled: 0,
+                createdat: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (createError) {
+              console.error('❌ AuthCallback - Erreur création profil:', createError);
+              setStatus('error');
+              return;
+            }
+
+            console.log('✅ AuthCallback - Profil de base créé, redirection vers /signup/continue');
             setTimeout(() => {
               console.log('➡️ AuthCallback - Redirection vers /signup/continue');
               window.location.href = "/signup/continue";
             }, 2000);
           } else if (profile && profile.role) {
-            console.log('👤 AuthCallback - Profil existant trouvé, redirection vers /');
+            console.log('👤 AuthCallback - Profil existant avec rôle trouvé, redirection vers /');
             setTimeout(() => {
               console.log('➡️ AuthCallback - Redirection vers /');
               window.location.href = "/";
             }, 2000);
-          } else {
+          } else if (profile && !profile.role) {
             console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle, redirection vers /signup/continue');
             setTimeout(() => {
               console.log('➡️ AuthCallback - Redirection vers /signup/continue');
               window.location.href = "/signup/continue";
             }, 2000);
+          } else {
+            console.log('❌ AuthCallback - Erreur inattendue lors de la vérification du profil');
+            setStatus('error');
           }
         } else {
           console.log('❌ AuthCallback - Pas de session valide');
