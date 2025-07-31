@@ -556,7 +556,24 @@ const SignUpPage = () => {
 
       if (error) {
         console.error('🚨 Signup error:', error);
-        toast.error(error.message);
+        
+        // Gestion spécifique des erreurs de rate limit
+        if (error.message.includes('rate limit') || error.message.includes('429')) {
+          toast.error('Limite d\'envoi d\'emails atteinte', {
+            description: "Vous avez dépassé la limite d'envoi d'emails. Veuillez attendre quelques minutes avant de réessayer ou contactez-nous si le problème persiste.",
+            duration: 8000,
+          });
+        } else if (error.message.includes('email')) {
+          toast.error('Erreur avec l\'email', {
+            description: "Vérifiez que l'adresse email est valide et n'a pas déjà été utilisée.",
+            duration: 6000,
+          });
+        } else {
+          toast.error('Erreur lors de l\'inscription', {
+            description: error.message,
+            duration: 6000,
+          });
+        }
       } else {
         console.log('✅ Signup successful, user created:', data.user);
         toast.success('Compte créé !', {
@@ -569,7 +586,25 @@ const SignUpPage = () => {
       }
     } catch (error: any) {
       console.error('🚨 Signup Error:', error);
-      toast.error(`Erreur lors de l'inscription: ${error.message}`);
+      setIsLoading(false);
+      
+      // Gestion spécifique des erreurs de rate limit
+      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        toast.error('Limite d\'envoi d\'emails atteinte', {
+          description: "Vous avez dépassé la limite d'envoi d'emails. Veuillez attendre quelques minutes avant de réessayer ou contactez-nous si le problème persiste.",
+          duration: 8000,
+        });
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        toast.error('Erreur de connexion', {
+          description: "Vérifiez votre connexion internet et réessayez.",
+          duration: 6000,
+        });
+      } else {
+        toast.error('Erreur lors de l\'inscription', {
+          description: error.message || "Une erreur inattendue s'est produite. Veuillez réessayer.",
+          duration: 6000,
+        });
+      }
     }
   };
   
@@ -607,10 +642,37 @@ const SignUpPage = () => {
   if (emailCheckStep) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-ml-charcoal via-ml-navy to-ml-charcoal px-4">
-        <div className="w-full max-w-sm text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 flex flex-col items-center">
+        <div className="w-full max-w-md text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 flex flex-col items-center">
           <img src="/lovable-uploads/logo-white.png" alt="MusicLinks Logo" className="h-8 w-auto mb-4 mx-auto" />
           <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Vérifiez votre email</h2>
-          <p className="text-white/80 text-base md:text-lg leading-relaxed mb-2">Cliquez sur le lien reçu par email pour continuer votre inscription.</p>
+          <p className="text-white/80 text-base md:text-lg leading-relaxed mb-4">
+            Cliquez sur le lien reçu par email pour continuer votre inscription.
+          </p>
+          
+          <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4 mb-6 w-full">
+            <h3 className="text-blue-300 font-semibold mb-2">💡 Conseils :</h3>
+            <ul className="text-blue-200 text-sm space-y-1 text-left">
+              <li>• Vérifiez vos spams/promotions</li>
+              <li>• L'email peut prendre quelques minutes</li>
+              <li>• Cliquez sur le lien dans l'email</li>
+            </ul>
+          </div>
+          
+          <div className="flex gap-3 w-full">
+            <Button
+              onClick={() => setEmailCheckStep(false)}
+              variant="outline"
+              className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10"
+            >
+              Retour
+            </Button>
+            <Button
+              onClick={() => window.location.reload()}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              Actualiser
+            </Button>
+          </div>
         </div>
       </div>
     );

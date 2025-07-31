@@ -27,7 +27,25 @@ const ForgotPassword = () => {
       toast.success("Un email de réinitialisation a été envoyé à votre adresse email");
 
     } catch (error: any) {
-      toast.error(error.message || "Une erreur est survenue lors de l'envoi de l'email");
+      console.error('🚨 ForgotPassword error:', error);
+      
+      // Gestion spécifique des erreurs de rate limit
+      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+        toast.error('Limite d\'envoi d\'emails atteinte', {
+          description: "Vous avez dépassé la limite d'envoi d'emails. Veuillez attendre quelques minutes avant de réessayer.",
+          duration: 8000,
+        });
+      } else if (error.message?.includes('email')) {
+        toast.error('Email non trouvé', {
+          description: "Aucun compte associé à cette adresse email.",
+          duration: 6000,
+        });
+      } else {
+        toast.error('Erreur lors de l\'envoi', {
+          description: error.message || "Une erreur est survenue lors de l'envoi de l'email",
+          duration: 6000,
+        });
+      }
     } finally {
       setIsLoading(false);
     }
