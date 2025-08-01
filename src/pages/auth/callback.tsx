@@ -46,9 +46,9 @@ export default function AuthCallback() {
           
           setStatus('success');
           
-          // PAUSE DE 3 SECONDES POUR VOIR LES LOGS
-          console.log('⏳ AuthCallback - Pause de 3 secondes pour voir les logs...');
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          // PAUSE DE 2 SECONDES POUR VOIR LES LOGS
+          console.log('⏳ AuthCallback - Pause de 2 secondes pour voir les logs...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Vérifier si l'utilisateur a déjà un profil
           console.log('🔍 AuthCallback - Vérification du profil utilisateur');
@@ -65,9 +65,9 @@ export default function AuthCallback() {
             profileName: profile?.name
           });
 
-          // PAUSE DE 2 SECONDES POUR VOIR LES LOGS
-          console.log('⏳ AuthCallback - Pause de 2 secondes pour voir les logs...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          // PAUSE DE 1 SECONDE POUR VOIR LES LOGS
+          console.log('⏳ AuthCallback - Pause de 1 seconde pour voir les logs...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
           if (profileError && profileError.code === 'PGRST116') {
             // Profil non trouvé - créer un profil de base
@@ -77,9 +77,15 @@ export default function AuthCallback() {
               .insert({
                 id: session.user.id,
                 email: session.user.email,
-                name: session.user.email?.split('@')[0] || 'Nouvel utilisateur',
-                role: null, // Sera défini plus tard
-                verified: 1, // Email vérifié
+                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Nouvel utilisateur',
+                role: session.user.user_metadata?.role || null,
+                subCategory: session.user.user_metadata?.subCategory || null,
+                bio: session.user.user_metadata?.bio || null,
+                location: session.user.user_metadata?.location || null,
+                portfolio_url: session.user.user_metadata?.portfolio_url || null,
+                social_links: session.user.user_metadata?.social_links || null,
+                musicStyle: session.user.user_metadata?.musicStyle || null,
+                verified: 1, // Email vérifié automatiquement
                 disabled: 0,
                 createdat: new Date().toISOString()
               })
@@ -92,23 +98,35 @@ export default function AuthCallback() {
               return;
             }
 
-            console.log('✅ AuthCallback - Profil de base créé, redirection vers /signup/continue');
-            setTimeout(() => {
-              console.log('➡️ AuthCallback - Redirection vers /signup/continue');
-              window.location.href = "/signup/continue";
-            }, 2000);
+            console.log('✅ AuthCallback - Profil créé avec succès');
+            
+            // Si l'utilisateur a déjà un rôle, rediriger vers la page d'accueil
+            if (session.user.user_metadata?.role) {
+              console.log('👤 AuthCallback - Utilisateur avec rôle, redirection vers /');
+              setTimeout(() => {
+                console.log('➡️ AuthCallback - Redirection vers /');
+                window.location.href = "/";
+              }, 1000);
+            } else {
+              // Sinon, rediriger vers la sélection du rôle
+              console.log('🎭 AuthCallback - Utilisateur sans rôle, redirection vers /signup/continue');
+              setTimeout(() => {
+                console.log('➡️ AuthCallback - Redirection vers /signup/continue');
+                window.location.href = "/signup/continue";
+              }, 1000);
+            }
           } else if (profile && profile.role) {
             console.log('👤 AuthCallback - Profil existant avec rôle trouvé, redirection vers /');
             setTimeout(() => {
               console.log('➡️ AuthCallback - Redirection vers /');
               window.location.href = "/";
-            }, 2000);
+            }, 1000);
           } else if (profile && !profile.role) {
             console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle, redirection vers /signup/continue');
             setTimeout(() => {
               console.log('➡️ AuthCallback - Redirection vers /signup/continue');
               window.location.href = "/signup/continue";
-            }, 2000);
+            }, 1000);
           } else {
             console.log('❌ AuthCallback - Erreur inattendue lors de la vérification du profil');
             setStatus('error');

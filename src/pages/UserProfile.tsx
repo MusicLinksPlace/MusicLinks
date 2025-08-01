@@ -330,9 +330,8 @@ const ModernGallery = ({ video, images }: { video?: string, images?: string[] })
             <div className="relative bg-white rounded-t-2xl overflow-hidden p-3">
               <div className="w-full flex items-center justify-center">
                 <VideoPlayer
-                  videoUrl={video}
+                  src={video}
                   className="w-full max-w-full"
-                  showControls={true}
                 />
               </div>
 
@@ -487,10 +486,8 @@ const MobileGallery = ({ video, images }: { video?: string, images?: string[] })
                 // Vidéo avec bandes noires sur les côtés
                 <div className="w-full h-full bg-black flex items-center justify-center">
                   <VideoPlayer
-                    videoUrl={slide.url}
-                    poster={images && images[0]}
+                    src={slide.url}
                     className="w-full h-full object-contain"
-                    showControls={true}
                   />
                 </div>
               ) : (
@@ -1003,54 +1000,98 @@ const UserProfile = () => {
             {activeTab === 'informations' && (
               <div className="space-y-8">
                 {/* Description */}
-                {user.bio && (
-                  <div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                        <User className="w-4 h-4 text-violet-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">À propos</h3>
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                      <User className="w-4 h-4 text-violet-600" />
                     </div>
-                    <p className="text-gray-700 leading-relaxed text-base">{user.bio}</p>
+                    <h3 className="text-lg font-semibold text-gray-900">À propos</h3>
                   </div>
-                )}
+                  {user.bio ? (
+                    <p className="text-gray-700 leading-relaxed text-base">{user.bio}</p>
+                  ) : (
+                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                      <p className="text-gray-500 text-sm">Aucune description n'a encore été ajoutée à ce profil.</p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Informations pratiques */}
                 <div>
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                       <Calendar className="w-4 h-4 text-blue-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">Informations</h3>
                   </div>
-                  <div className="space-y-3 text-gray-600">
-                    <p className="text-gray-700 leading-relaxed">
-                      Inscrit sur MusicLinks depuis {(() => {
-                        const createdDate = new Date(user.createdat);
-                        const now = new Date();
-                        const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
-                        
-                        if (monthsDiff < 1) {
-                          return "moins d'un mois";
-                        } else if (monthsDiff === 1) {
-                          return "1 mois";
-                        } else {
-                          return `${monthsDiff} mois`;
-                        }
-                      })()}
-                    </p>
+                  <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
+                          <Calendar className="w-3 h-3 text-green-600" />
+                        </div>
+                        <div>
+                          <div className="text-sm text-gray-600">Membre depuis</div>
+                          <div className="text-gray-900 font-medium">
+                            {(() => {
+                              const createdDate = new Date(user.createdat);
+                              const now = new Date();
+                              const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
+                              
+                              if (monthsDiff < 1) {
+                                return "moins d'un mois";
+                              } else if (monthsDiff === 1) {
+                                return "1 mois";
+                              } else {
+                                return `${monthsDiff} mois`;
+                              }
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {user.location && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <MapPin className="w-3 h-3 text-purple-600" />
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-600">Localisation</div>
+                            <div className="text-gray-900 font-medium">{user.location}</div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {user.role && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <span className="text-orange-600 text-xs font-bold">
+                              {user.role === 'artist' ? '🎤' : user.role === 'provider' ? '💼' : '🤝'}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="text-sm text-gray-600">Type de profil</div>
+                            <div className="text-gray-900 font-medium">
+                              {user.role === 'artist' ? 'Artiste' : 
+                               user.role === 'provider' ? 'Prestataire' : 
+                               user.role === 'partner' ? 'Partenaire' : 'Utilisateur'}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {/* Réseaux sociaux */}
-                {user.social_links && user.social_links.length > 0 && (
-                  <div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                        <ExternalLink className="w-4 h-4 text-green-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">Réseaux sociaux</h3>
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                      <ExternalLink className="w-4 h-4 text-green-600" />
                     </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Réseaux sociaux</h3>
+                  </div>
+                  {user.social_links && user.social_links.length > 0 ? (
                     <div className="flex flex-wrap gap-3">
                       {user.social_links.map((url: string, i: number) => (
                         <a 
@@ -1069,8 +1110,12 @@ const UserProfile = () => {
                         </a>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                      <p className="text-gray-500 text-sm">Aucun réseau social n'a encore été ajouté à ce profil.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -1114,54 +1159,98 @@ const UserProfile = () => {
                 {activeTab === 'informations' && (
                   <div className="space-y-6">
                     {/* Description */}
-                    {user.bio && (
-                      <div>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                            <User className="w-4 h-4 text-violet-600" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">À propos</h3>
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-violet-100 rounded-lg flex items-center justify-center">
+                          <User className="w-4 h-4 text-violet-600" />
                         </div>
-                        <p className="text-gray-700 leading-relaxed">{user.bio}</p>
+                        <h3 className="text-lg font-semibold text-gray-900">À propos</h3>
                       </div>
-                    )}
+                      {user.bio ? (
+                        <p className="text-gray-700 leading-relaxed">{user.bio}</p>
+                      ) : (
+                        <div className="bg-gray-50 rounded-xl p-4 text-center">
+                          <p className="text-gray-500 text-sm">Aucune description n'a encore été ajoutée à ce profil.</p>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Informations pratiques */}
                     <div>
                       <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Calendar className="w-4 h-4 text-blue-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900">Informations</h3>
                       </div>
-                                        <div className="space-y-3 text-gray-600">
-                    <p className="text-gray-700 leading-relaxed">
-                      Inscrit sur MusicLinks depuis {(() => {
-                        const createdDate = new Date(user.createdat);
-                        const now = new Date();
-                        const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
-                        
-                        if (monthsDiff < 1) {
-                          return "moins d'un mois";
-                        } else if (monthsDiff === 1) {
-                          return "1 mois";
-                        } else {
-                          return `${monthsDiff} mois`;
-                        }
-                      })()}
-                    </p>
-                  </div>
+                      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
+                              <Calendar className="w-3 h-3 text-green-600" />
+                            </div>
+                            <div>
+                              <div className="text-sm text-gray-600">Membre depuis</div>
+                              <div className="text-gray-900 font-medium">
+                                {(() => {
+                                  const createdDate = new Date(user.createdat);
+                                  const now = new Date();
+                                  const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
+                                  
+                                  if (monthsDiff < 1) {
+                                    return "moins d'un mois";
+                                  } else if (monthsDiff === 1) {
+                                    return "1 mois";
+                                  } else {
+                                    return `${monthsDiff} mois`;
+                                  }
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {user.location && (
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <MapPin className="w-3 h-3 text-purple-600" />
+                              </div>
+                              <div>
+                                <div className="text-sm text-gray-600">Localisation</div>
+                                <div className="text-gray-900 font-medium">{user.location}</div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {user.role && (
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <span className="text-orange-600 text-xs font-bold">
+                                  {user.role === 'artist' ? '🎤' : user.role === 'provider' ? '💼' : '🤝'}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-sm text-gray-600">Type de profil</div>
+                                <div className="text-gray-900 font-medium">
+                                  {user.role === 'artist' ? 'Artiste' : 
+                                   user.role === 'provider' ? 'Prestataire' : 
+                                   user.role === 'partner' ? 'Partenaire' : 'Utilisateur'}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Réseaux sociaux */}
-                    {user.social_links && user.social_links.length > 0 && (
-                      <div>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                            <ExternalLink className="w-4 h-4 text-green-600" />
-                          </div>
-                          <h3 className="text-lg font-semibold text-gray-900">Réseaux sociaux</h3>
+                    <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                          <ExternalLink className="w-4 h-4 text-green-600" />
                         </div>
+                        <h3 className="text-lg font-semibold text-gray-900">Réseaux sociaux</h3>
+                      </div>
+                      {user.social_links && user.social_links.length > 0 ? (
                         <div className="flex gap-3">
                           {user.social_links.map((url: string, i: number) => (
                             <a 
@@ -1180,8 +1269,12 @@ const UserProfile = () => {
                             </a>
                           ))}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="bg-gray-50 rounded-xl p-4 text-center">
+                          <p className="text-gray-500 text-sm">Aucun réseau social n'a encore été ajouté à ce profil.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 

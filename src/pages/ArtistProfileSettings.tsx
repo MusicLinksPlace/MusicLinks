@@ -705,6 +705,8 @@ const ArtistProfileSettings = () => {
         </div>
         {/* Contenu des onglets */}
         <div className="container mx-auto px-2 md:px-0 max-w-2xl md:max-w-3xl lg:max-w-4xl mt-2">
+
+          
           {activeTab === 'profil' && (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl flex flex-col p-6 md:p-10 gap-8 md:gap-10 mt-2">
               {/* Name */}
@@ -793,7 +795,7 @@ const ArtistProfileSettings = () => {
               {/* Prestation (dropdown) */}
               <div>
                 <Label htmlFor="subCategory" className="md:text-lg">Prestation</Label>
-                <Select value={formData.subCategory || ''} onValueChange={handleSubCategorySelect}>
+                <Select value={formData?.subCategory || ''} onValueChange={handleSubCategorySelect}>
                   <SelectTrigger id="subCategory" className="md:h-12 md:text-lg">
                     <SelectValue placeholder="Choisissez votre spécialité" />
                   </SelectTrigger>
@@ -807,12 +809,12 @@ const ArtistProfileSettings = () => {
               {/* Portfolio */}
               <div>
                 <Label htmlFor="portfolio_url" className="md:text-lg">Lien Portfolio / Site web</Label>
-                <Input id="portfolio_url" name="portfolio_url" value={formData.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com" className="md:h-12 md:text-lg"/>
+                <Input id="portfolio_url" name="portfolio_url" value={formData?.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com" className="md:h-12 md:text-lg"/>
               </div>
               {/* Styles musicaux (dropdown) */}
               <div>
                 <Label htmlFor="musicStyle" className="md:text-lg">Style musical</Label>
-                <Select value={formData.musicStyle || ''} onValueChange={val => setFormData((prev: any) => ({ ...prev, musicStyle: val }))}>
+                <Select value={formData?.musicStyle || ''} onValueChange={val => setFormData((prev: any) => ({ ...prev, musicStyle: val }))}>
                   <SelectTrigger id="musicStyle" className="md:h-12 md:text-lg">
                     <SelectValue placeholder="Sélectionnez votre style musical" />
                   </SelectTrigger>
@@ -830,9 +832,9 @@ const ArtistProfileSettings = () => {
                   {[0, 1, 2, 3].map(index => (
                     <div key={index} className="space-y-2">
                       <div className="relative group">
-                        {formData.galleryimages?.[index] ? (
+                        {formData?.galleryimages?.[index] ? (
                           <>
-                            <img src={formData.galleryimages[index]} alt={`Gallery image ${index + 1}`} className="w-full h-24 md:h-32 rounded-md object-cover bg-gray-200"/>
+                            <img src={formData?.galleryimages[index]} alt={`Gallery image ${index + 1}`} className="w-full h-24 md:h-32 rounded-md object-cover bg-gray-200"/>
                             <button 
                               type="button" 
                               onClick={() => handleDeleteGalleryImage(index)} 
@@ -874,11 +876,11 @@ const ArtistProfileSettings = () => {
                   {[0, 1, 2, 3].map(index => (
                     <div key={index} className="space-y-2">
                       <div className="relative group">
-                        {formData.galleryVideo && index === 0 ? (
+                        {formData?.galleryVideo && index === 0 ? (
                           <>
                             <div className="w-full h-24 md:h-32 rounded-md bg-gray-200 flex items-center justify-center relative overflow-hidden">
                               <video className="w-full h-full object-cover rounded-md">
-                                <source src={formData.galleryVideo} type="video/mp4" />
+                                <source src={formData?.galleryVideo} type="video/mp4" />
                               </video>
                               <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                 <Video className="w-6 h-6 text-white" />
@@ -932,7 +934,22 @@ const ArtistProfileSettings = () => {
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Mes Conversations</h2>
                 <p className="text-gray-600">Historique de toutes vos conversations</p>
               </div>
-              <ConversationList />
+              <div className="md:block">
+                <ConversationList />
+              </div>
+              <div className="md:hidden">
+                <div className="text-center py-8">
+                  <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Vos conversations</h3>
+                  <p className="text-gray-600 mb-4">Retrouvez ici tous vos échanges avec d'autres utilisateurs</p>
+                  <Button 
+                    onClick={() => navigate('/chat')} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Voir mes conversations
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
           {activeTab === 'likes' && (
@@ -941,7 +958,22 @@ const ArtistProfileSettings = () => {
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Mes Likes</h2>
                 <p className="text-gray-600">Profils que vous avez likés</p>
               </div>
-              <LikedProfiles />
+              <div className="md:block">
+                <LikedProfiles />
+              </div>
+              <div className="md:hidden">
+                <div className="text-center py-8">
+                  <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Vos likes</h3>
+                  <p className="text-gray-600 mb-4">Retrouvez ici tous les profils que vous avez likés</p>
+                  <Button 
+                    onClick={() => navigate('/')} 
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Découvrir des profils
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>

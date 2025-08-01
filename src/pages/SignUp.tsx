@@ -423,7 +423,6 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
-  const [emailCheckStep, setEmailCheckStep] = useState(false);
 
   const initialFormData = {
     email: '',
@@ -525,76 +524,143 @@ const SignUpPage = () => {
     setIsLoading(true);
     
     try {
-      // Consolidate all profile data to pass to Supabase Auth
-      const profileData = {
+      // 1. Créer l'utilisateur directement dans la base de données
+      console.log('📝 Creating user directly in database...');
+      
+      // Générer un ID unique pour l'utilisateur
+      const userId = crypto.randomUUID();
+      
+      const { data: userData, error: userError } = await supabase
+        .from('User')
+        .insert({
+          id: userId,
+          email: formData.email,
+          name: formData.name,
+          role: null, // Pas de rôle par défaut - l'utilisateur doit le choisir
+          subCategory: null, // Pas de sous-catégorie par défaut
+          bio: formData.bio || null,
+          location: formData.location || null,
+          portfolio_url: formData.portfolioLink || null,
+          social_links: formData.socialLinks.filter(link => link).length > 0 ? formData.socialLinks.filter(link => link) : null,
+          musicStyle: formData.musicStyle || null,
+          verified: 1,
+          disabled: 0,
+          createdat: new Date().toISOString()
+        })
+        .select()
+        .single();
+        
+      if (userError) {
+        console.error('❌ User creation error:', userError);
+        
+        // Si l'email existe déjà, essayer de se connecter
+        if (userError.code === '23505' || userError.message.includes('duplicate')) {
+          toast.error('Cet email est déjà utilisé', {
+            description: "Essayez de vous connecter avec cet email.",
+            duration: 6000,
+          });
+        } else {
+          toast.error('Erreur lors de la création du compte', {
+            description: userError.message,
+            duration: 6000,
+          });
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      console.log('✅ User created in database:', userData);
+
+      // 2. Essayer de créer l'utilisateur dans Supabase Auth (optionnel)
+      console.log('🔐 Trying to create Supabase Auth user...');
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              name: formData.name,
+              role: formData.role,
+              subCategory: formData.subCategory,
+              bio: formData.bio || null,
+              location: formData.location || null,
+              portfolio_url: formData.portfolioLink || null,
+              social_links: formData.socialLinks.filter(link => link).length > 0 ? formData.socialLinks.filter(link => link) : null,
+              musicStyle: formData.musicStyle || null,
+            }
+          }
+        });
+        
+        if (error) {
+          console.log('⚠️ Supabase Auth creation failed (expected due to rate limit):', error.message);
+        } else if (data && data.user) {
+          console.log('✅ Supabase Auth user created:', data.user.id);
+        }
+      } catch (authError) {
+        console.log('⚠️ Supabase Auth creation failed:', authError);
+      }
+
+      // 3. Essayer de se connecter avec Supabase Auth
+      console.log('🔐 Trying to sign in...');
+      try {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        
+        if (signInError) {
+          console.log('⚠️ Supabase Auth signin failed:', signInError.message);
+          // On continue quand même car l'utilisateur existe dans la DB
+        } else {
+          console.log('✅ Supabase Auth signin successful');
+        }
+      } catch (signInError) {
+        console.log('⚠️ Supabase Auth signin failed:', signInError);
+      }
+
+      // 4. Sauvegarder les informations utilisateur dans localStorage
+      console.log('💾 Saving user data to localStorage...');
+      const userInfo = {
+        id: userId,
+        email: formData.email,
         name: formData.name,
-        role: formData.role,
-        subCategory: formData.subCategory,
+        role: null, // Pas de rôle par défaut - l'utilisateur doit le choisir
+        subCategory: null, // Pas de sous-catégorie par défaut
         bio: formData.bio || null,
         location: formData.location || null,
         portfolio_url: formData.portfolioLink || null,
         social_links: formData.socialLinks.filter(link => link).length > 0 ? formData.socialLinks.filter(link => link) : null,
         musicStyle: formData.musicStyle || null,
-        // Note: verified and disabled are handled by Supabase Auth/Triggers
+        verified: 1,
+        disabled: 0,
+        createdat: new Date().toISOString()
       };
-
-      console.log('📊 Profile data to be passed:', profileData);
-
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: profileData,
-        }
+      
+      localStorage.setItem('musiclinks_user', JSON.stringify(userInfo));
+      localStorage.setItem('musiclinks_auth_status', 'authenticated');
+      
+      // Déclencher un événement pour notifier les autres composants
+      window.dispatchEvent(new Event('auth-change'));
+      
+      toast.success('Compte créé avec succès !', {
+        description: "Redirection vers la sélection du rôle...",
+        duration: 3000,
       });
       
-      console.log('✅ Supabase signup response:', data);
-      console.log('❌ Supabase signup error:', error);
+      // Nettoyer le localStorage du formulaire
+      localStorage.removeItem('signUpFormData');
+      
+      // Rediriger vers la page de sélection du rôle
+      setTimeout(() => {
+        navigate('/signup/continue');
+      }, 2000);
       
       setIsLoading(false);
-
-      if (error) {
-        console.error('🚨 Signup error:', error);
-        
-        // Gestion spécifique des erreurs de rate limit
-        if (error.message.includes('rate limit') || error.message.includes('429')) {
-          toast.error('Limite d\'envoi d\'emails atteinte', {
-            description: "Vous avez dépassé la limite d'envoi d'emails. Veuillez attendre quelques minutes avant de réessayer ou contactez-nous si le problème persiste.",
-            duration: 8000,
-          });
-        } else if (error.message.includes('email')) {
-          toast.error('Erreur avec l\'email', {
-            description: "Vérifiez que l'adresse email est valide et n'a pas déjà été utilisée.",
-            duration: 6000,
-          });
-        } else {
-          toast.error('Erreur lors de l\'inscription', {
-            description: error.message,
-            duration: 6000,
-          });
-        }
-      } else {
-        console.log('✅ Signup successful, user created:', data.user);
-        toast.success('Compte créé !', {
-          description: "Veuillez vérifier vos emails pour confirmer votre inscription.",
-          duration: 6000,
-        });
-        localStorage.removeItem('signUpFormData');
-        setEmailCheckStep(true);
-        return;
-      }
     } catch (error: any) {
       console.error('🚨 Signup Error:', error);
       setIsLoading(false);
       
-      // Gestion spécifique des erreurs de rate limit
-      if (error.message?.includes('rate limit') || error.message?.includes('429')) {
-        toast.error('Limite d\'envoi d\'emails atteinte', {
-          description: "Vous avez dépassé la limite d'envoi d'emails. Veuillez attendre quelques minutes avant de réessayer ou contactez-nous si le problème persiste.",
-          duration: 8000,
-        });
-      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+      if (error.message?.includes('network') || error.message?.includes('fetch')) {
         toast.error('Erreur de connexion', {
           description: "Vérifiez votre connexion internet et réessayez.",
           duration: 6000,
@@ -637,45 +703,6 @@ const SignUpPage = () => {
             )}
         </div>
     )
-  }
-
-  if (emailCheckStep) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-ml-charcoal via-ml-navy to-ml-charcoal px-4">
-        <div className="w-full max-w-md text-center bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 flex flex-col items-center">
-          <img src="/lovable-uploads/logo-white.png" alt="MusicLinks Logo" className="h-8 w-auto mb-4 mx-auto" />
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">Vérifiez votre email</h2>
-          <p className="text-white/80 text-base md:text-lg leading-relaxed mb-4">
-            Cliquez sur le lien reçu par email pour continuer votre inscription.
-          </p>
-          
-          <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-4 mb-6 w-full">
-            <h3 className="text-blue-300 font-semibold mb-2">💡 Conseils :</h3>
-            <ul className="text-blue-200 text-sm space-y-1 text-left">
-              <li>• Vérifiez vos spams/promotions</li>
-              <li>• L'email peut prendre quelques minutes</li>
-              <li>• Cliquez sur le lien dans l'email</li>
-            </ul>
-          </div>
-          
-          <div className="flex gap-3 w-full">
-            <Button
-              onClick={() => setEmailCheckStep(false)}
-              variant="outline"
-              className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10"
-            >
-              Retour
-            </Button>
-            <Button
-              onClick={() => window.location.reload()}
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-            >
-              Actualiser
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   return (

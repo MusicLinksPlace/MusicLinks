@@ -97,6 +97,53 @@ export const sendEmailVerification = async (email: string, verificationLink: str
   }
 };
 
+export const sendPasswordResetEmail = async (email: string, resetLink: string): Promise<boolean> => {
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'api-key': BREVO_API_KEY,
+      },
+      body: JSON.stringify({
+        to: [
+          {
+            email: email,
+            name: 'Utilisateur'
+          }
+        ],
+        subject: 'Réinitialisation de votre mot de passe - MusicLinks',
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1f2937;">Réinitialisation de mot de passe</h2>
+            <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous pour créer un nouveau mot de passe :</p>
+            <a href="${resetLink}" style="display: inline-block; background-color: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;">
+              Réinitialiser mon mot de passe
+            </a>
+            <p>Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :</p>
+            <p style="word-break: break-all; color: #6b7280;">${resetLink}</p>
+            <p>Ce lien expirera dans 1 heure.</p>
+            <p>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.</p>
+          </div>
+        `
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Erreur Brevo:', errorData);
+      return false;
+    }
+
+    console.log('Email de réinitialisation envoyé avec succès à:', email);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi de l\'email de réinitialisation:', error);
+    return false;
+  }
+};
+
 export const sendMessageNotification = async (notificationData: MessageNotificationData): Promise<boolean> => {
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {

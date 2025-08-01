@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
+import { sendPasswordResetEmail } from '@/lib/emailService';
 import { toast } from 'sonner';
 import { Loader2, ArrowLeft } from 'lucide-react';
 
@@ -17,14 +18,30 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`,
-      });
-
-      if (error) throw error;
+      // 1. Vérifier si l'utilisateur existe
+      const { data: { user }, error: userError } = await supabase.auth.admin.getUserByEmail(email);
       
-      setEmailSent(true);
-      toast.success("Un email de réinitialisation a été envoyé à votre adresse email");
+      if (userError || !user) {
+        toast.error('Email non trouvé', {
+          description: "Aucun compte associé à cette adresse email.",
+          duration: 6000,
+        });
+        return;
+      }
+
+      // 2. Envoyer l'email de réinitialisation via Brevo
+      const resetLink = `${window.location.origin}/update-password?token=${user.id}`;
+      const emailSent = await sendPasswordResetEmail(email, resetLink);
+      
+      if (emailSent) {
+        setEmailSent(true);
+        toast.success("Un email de réinitialisation a été envoyé à votre adresse email");
+      } else {
+        toast.error('Erreur lors de l\'envoi', {
+          description: "Impossible d'envoyer l'email de réinitialisation. Veuillez réessayer.",
+          duration: 6000,
+        });
+      }
 
     } catch (error: any) {
       console.error('🚨 ForgotPassword error:', error);

@@ -197,7 +197,7 @@ const PartnerProfileSettings = () => {
       console.log('[UPLOAD PROFILE] Starting immediate profile picture upload...');
       
       // Utiliser le bucket 'avatars'
-      const bucket = 'avatars';
+              const bucket = 'user-videos';
       
       // Sanitize filename
       const sanitizedFileName = croppedFile.name
