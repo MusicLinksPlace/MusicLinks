@@ -123,7 +123,6 @@ const PartnersPage = () => {
         .from('User')
         .select('*')
         .eq('role', 'partner')
-        .eq('verified', 1)
         .eq('disabled', 0);
 
       if (error) {

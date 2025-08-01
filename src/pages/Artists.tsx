@@ -225,7 +225,6 @@ const ArtistsPage = () => {
         .from('User')
         .select('*')
         .eq('role', 'artist')
-        .eq('verified', 1)
         .eq('disabled', 0);
 
       if (error) {

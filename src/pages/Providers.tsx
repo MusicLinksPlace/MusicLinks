@@ -302,7 +302,6 @@ const ProvidersPage = () => {
         .from('User')
         .select('*')
         .eq('role', 'provider')
-        .eq('verified', 1)
         .eq('disabled', 0);
 
       if (error) {

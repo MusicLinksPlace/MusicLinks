@@ -29,7 +29,6 @@ export const useProvidersQuery = (filters: ProviderFilters) => {
         .from('User')
         .select('*')
         .eq('role', 'provider')
-        .eq('verified', 1)
         .eq('disabled', 0);
 
       // Appliquer les filtres

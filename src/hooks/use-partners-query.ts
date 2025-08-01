@@ -27,7 +27,6 @@ export const usePartnersQuery = (filters: PartnerFilters) => {
         .from('User')
         .select('*')
         .eq('role', 'partner')
-        .eq('verified', 1)
         .eq('disabled', 0);
 
       // Appliquer les filtres

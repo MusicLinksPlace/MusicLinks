@@ -92,7 +92,7 @@ const App = () => {
                         social_links: meta.social_links || null,
                         musicStyle: meta.musicStyle || null,
                         verified: 0, 
-                        disabled: 1,
+                        disabled: 0,
                         createdat: new Date().toISOString(),
                     };
                     
