@@ -115,10 +115,10 @@ const Footer = () => {
                   Réseaux
                 </h3>
                 <div className="flex flex-row items-center gap-3">
-                  <a href="https://www.instagram.com/musiclinks.fr" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-pink-100 transition-colors p-2">
+                  <a href="https://www.instagram.com/musiclinksapp?igsh=MXEwYW9ybmh5ejIydA==" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-pink-100 transition-colors p-2">
                     <img src="/social-media/instagram.png" alt="Instagram" className="w-7 h-7" />
                   </a>
-                  <a href="https://www.tiktok.com/@musiclinksapp" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors p-2">
+                  <a href="https://www.tiktok.com/@musiclinksapp?_t=ZN-8yWj9SRuDqQ&_r=1" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors p-2">
                     <img src="/social-media/tiktok.png" alt="TikTok" className="w-7 h-7" />
                   </a>
                 </div>

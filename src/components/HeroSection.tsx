@@ -1,34 +1,13 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Search, Users, ArrowRight, Music, TrendingUp, Star } from 'lucide-react';
 
 const HeroSection = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    console.log('🎬 HeroSection monté');
-    
-    if (videoRef.current) {
-      const video = videoRef.current;
-      console.log('🎬 Élément vidéo:', video);
-      
-      video.addEventListener('loadstart', () => console.log('🎬 loadstart'));
-      video.addEventListener('loadedmetadata', () => console.log('🎬 loadedmetadata'));
-      video.addEventListener('loadeddata', () => console.log('🎬 loadeddata'));
-      video.addEventListener('canplay', () => console.log('🎬 canplay'));
-      video.addEventListener('play', () => console.log('🎬 play'));
-      video.addEventListener('error', (e) => {
-        console.error('🎬 Erreur vidéo:', e);
-        console.error('🎬 Erreur détail:', video.error);
-      });
-    }
-  }, []);
   return (
     <div className="relative w-full h-screen overflow-hidden">
       {/* Background vidéo */}
       <video
-        ref={videoRef}
         style={{
           position: 'absolute',
           top: 0,
@@ -42,15 +21,8 @@ const HeroSection = () => {
         loop
         muted
         playsInline
-        onLoadStart={() => console.log('🎬 onLoadStart')}
-        onLoadedMetadata={() => console.log('🎬 onLoadedMetadata')}
-        onLoadedData={() => console.log('🎬 onLoadedData')}
-        onCanPlay={() => console.log('🎬 onCanPlay')}
-        onPlay={() => console.log('🎬 onPlay')}
-        onError={(e) => console.error('🎬 onError:', e)}
       >
         <source src="/hero-video.mp4" type="video/mp4" />
-        Votre navigateur ne supporte pas la lecture de vidéos.
       </video>
 
       {/* Overlay sombre */}

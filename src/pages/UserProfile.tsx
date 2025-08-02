@@ -673,11 +673,12 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
 
 
 // Onglets modernes et élégants
-const ModernTabs = ({ activeTab, setActiveTab, isOwnProfile }: any) => {
-  // SUPPRIMER COMPLÈTEMENT L'ONGLET LIKES - IL NE DOIT JAMAIS APPARAÎTRE
+const ModernTabs = ({ activeTab, setActiveTab, isOwnProfile, userRole }: any) => {
+  // Filtrer les onglets selon le rôle de l'utilisateur
   const allTabs = [
     { id: 'informations', label: 'Informations' },
-    { id: 'services', label: 'Services' },
+    // Onglet Services uniquement pour les prestataires
+    ...(userRole === 'provider' ? [{ id: 'services', label: 'Services' }] : []),
     { id: 'avis', label: 'Avis' }
   ];
 
@@ -872,15 +873,12 @@ const UserProfile = () => {
     isOwnProfile: isOwnProfile
   });
 
-  // Rediriger vers informations si on essaie d'accéder à likes sur le profil d'un autre
+  // Rediriger vers informations si on essaie d'accéder à services mais n'est pas prestataire
   useEffect(() => {
-    // SUPPRIMÉ - L'ONGLET LIKES N'EXISTE PLUS
-  }, [activeTab, isOwnProfile]);
-
-  // Forcer l'onglet informations si ce n'est pas notre profil
-  useEffect(() => {
-    // SUPPRIMÉ - L'ONGLET LIKES N'EXISTE PLUS
-  }, [isOwnProfile, activeTab]);
+    if (activeTab === 'services' && user && user.role !== 'provider') {
+      setActiveTab('informations');
+    }
+  }, [activeTab, user]);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -993,7 +991,7 @@ const UserProfile = () => {
         {/* Onglets mobile */}
         <div className="bg-white">
           {/* Onglets */}
-          <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={isOwnProfile} />
+                        <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={isOwnProfile} userRole={user.role} />
           
           {/* Contenu mobile */}
           <div className="p-6 pb-8 bg-white">
@@ -1119,7 +1117,7 @@ const UserProfile = () => {
               </div>
             )}
 
-            {activeTab === 'services' && (
+            {activeTab === 'services' && user.role === 'provider' && (
               <ServicesSection 
                 price={user.price} 
                 serviceDescription={user.serviceDescription} 
@@ -1152,7 +1150,7 @@ const UserProfile = () => {
             {/* Colonne droite : Onglets et contenu */}
             <div className="md:col-span-1 bg-white">
               {/* Onglets */}
-              <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={isOwnProfile} />
+              <ModernTabs activeTab={activeTab} setActiveTab={setActiveTab} isOwnProfile={isOwnProfile} userRole={user.role} />
               
               {/* Contenu */}
               <div className="p-6 bg-white">
@@ -1278,7 +1276,7 @@ const UserProfile = () => {
                   </div>
                 )}
 
-                {activeTab === 'services' && (
+                {activeTab === 'services' && user.role === 'provider' && (
                   <ServicesSection 
                     price={user.price} 
                     serviceDescription={user.serviceDescription} 

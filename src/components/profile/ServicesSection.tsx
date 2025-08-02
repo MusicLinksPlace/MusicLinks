@@ -8,8 +8,13 @@ interface ServicesSectionProps {
 }
 
 const ServicesSection: React.FC<ServicesSectionProps> = ({ price, serviceDescription, userRole }) => {
-  // Pour les artistes, on ne montre pas la section des prix
-  const shouldShowPrice = userRole !== 'artist' && price;
+  // Vérification de sécurité : ne s'affiche que pour les prestataires
+  if (userRole !== 'provider') {
+    return null;
+  }
+  
+  // Pour les prestataires, on montre le prix s'il existe
+  const shouldShowPrice = price;
   
   if (!shouldShowPrice && !serviceDescription) {
     return (
@@ -75,34 +80,17 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({ price, serviceDescrip
       )}
 
       {/* Informations supplémentaires pour les prestataires */}
-      {userRole === 'provider' && (
-        <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-amber-600 text-xs">💡</span>
-            </div>
-            <div className="text-sm text-amber-800">
-              <div className="font-medium mb-1">Prestataire de services</div>
-              <div>Ce profil propose des services professionnels dans le domaine musical. Contactez directement pour discuter de vos besoins spécifiques.</div>
-            </div>
+      <div className="bg-amber-50 rounded-xl border border-amber-200 p-4 sm:p-6">
+        <div className="flex items-start gap-3">
+          <div className="w-6 h-6 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
+            <span className="text-amber-600 text-xs">💡</span>
+          </div>
+          <div className="text-sm text-amber-800">
+            <div className="font-medium mb-1">Prestataire de services</div>
+            <div>Ce profil propose des services professionnels dans le domaine musical. Contactez directement pour discuter de vos besoins spécifiques.</div>
           </div>
         </div>
-      )}
-
-      {/* Informations supplémentaires pour les partenaires */}
-      {userRole === 'partner' && (
-        <div className="bg-purple-50 rounded-xl border border-purple-200 p-4 sm:p-6">
-          <div className="flex items-start gap-3">
-            <div className="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-purple-600 text-xs">🤝</span>
-            </div>
-            <div className="text-sm text-purple-800">
-              <div className="font-medium mb-1">Partenaire stratégique</div>
-              <div>Ce profil représente une organisation ou un partenaire stratégique dans l'industrie musicale. Contactez pour des collaborations.</div>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
