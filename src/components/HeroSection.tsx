@@ -1,30 +1,85 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Search, Users, ArrowRight, Music, TrendingUp, Star } from 'lucide-react';
 
 const HeroSection = () => {
-  return (
-    <section 
-      className="relative overflow-hidden font-sans flex items-center justify-center min-h-screen"
-      style={{
-        backgroundImage: `url('/background/disque1.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-      }}
-    >
-      {/* Overlay pour assombrir légèrement l'image et améliorer la lisibilité */}
-      <div className="absolute inset-0 bg-black/30"></div>
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-      {/* Musical background elements */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-blue-400 rounded-full blur-3xl"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-purple-400 rounded-full blur-2xl"></div>
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-indigo-400 rounded-full blur-3xl"></div>
-      </div>
+  useEffect(() => {
+    console.log('🎬 HeroSection monté');
+    
+    if (videoRef.current) {
+      const video = videoRef.current;
+      console.log('🎬 Élément vidéo:', video);
       
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 md:-translate-y-8">
+      video.addEventListener('loadstart', () => console.log('🎬 loadstart'));
+      video.addEventListener('loadedmetadata', () => console.log('🎬 loadedmetadata'));
+      video.addEventListener('loadeddata', () => console.log('🎬 loadeddata'));
+      video.addEventListener('canplay', () => console.log('🎬 canplay'));
+      video.addEventListener('play', () => console.log('🎬 play'));
+      video.addEventListener('error', (e) => {
+        console.error('🎬 Erreur vidéo:', e);
+        console.error('🎬 Erreur détail:', video.error);
+      });
+    }
+  }, []);
+  return (
+    <div className="relative w-full h-screen overflow-hidden">
+      {/* Background vidéo */}
+      <video
+        ref={videoRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          zIndex: 0
+        }}
+        autoPlay
+        loop
+        muted
+        playsInline
+        onLoadStart={() => console.log('🎬 onLoadStart')}
+        onLoadedMetadata={() => console.log('🎬 onLoadedMetadata')}
+        onLoadedData={() => console.log('🎬 onLoadedData')}
+        onCanPlay={() => console.log('🎬 onCanPlay')}
+        onPlay={() => console.log('🎬 onPlay')}
+        onError={(e) => console.error('🎬 onError:', e)}
+      >
+        <source src="/hero-video.mp4" type="video/mp4" />
+        Votre navigateur ne supporte pas la lecture de vidéos.
+      </video>
+
+      {/* Overlay sombre */}
+      <div 
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          zIndex: 1
+        }}
+      ></div>
+
+      {/* Contenu principal */}
+      <div 
+        style={{
+          position: 'relative',
+          zIndex: 10,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100%',
+          textAlign: 'center',
+          padding: '0 1rem'
+        }}
+      >
         <h1 className="text-4xl sm:text-6xl md:text-7xl font-bold mb-8 leading-tight text-white">
           <span className="block">L'univers musical</span>
           <span className="block bg-gradient-to-r from-blue-300 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
@@ -33,8 +88,8 @@ const HeroSection = () => {
         </h1>
         
         <p className="text-lg md:text-xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-        La plateforme qui réunit artistes, prestataires et partenaires de confiance 
-        pour booster votre activité au sein du secteur musical.
+          La plateforme qui réunit artistes, prestataires et partenaires de confiance 
+          pour booster votre activité au sein du secteur musical.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
@@ -59,7 +114,7 @@ const HeroSection = () => {
           </Link>
         </div>
 
-        {/* Stats de réassurance - Layout horizontal compact */}
+        {/* Stats */}
         <div className="flex flex-nowrap justify-center items-center space-x-4 md:space-x-16 overflow-x-auto">
           <div className="text-center">
             <div className="flex items-center justify-center mb-2">
@@ -96,7 +151,7 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 

@@ -177,9 +177,14 @@
 
   /* Line clamp utilities */
   .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 🔥 Vidéo de fond - optionnel pour foncer un peu */
+video {
+  filter: brightness(0.8);
+}
 }
