@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { toast } from 'sonner';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -118,6 +119,16 @@ const App = () => {
             }
 
             if (profile) {
+                // Check if user account is disabled
+                if (profile.disabled === 1) {
+                    console.log(`[Auth] User account is disabled. Signing out user.`);
+                    await supabase.auth.signOut();
+                    localStorage.removeItem('musiclinks_user');
+                    localStorage.removeItem('musiclinks_authorized');
+                    toast.error("Votre compte a été désactivé. Vous ne pouvez plus vous connecter.");
+                    return;
+                }
+
                 // New logic: After fetching or creating, check if we need to update verification status.
                 if (session.user.email_confirmed_at && profile.verified === 0) {
                     console.log(`[Auth] Email is confirmed. Updating profile as verified in DB...`);

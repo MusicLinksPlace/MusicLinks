@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
-import { Loader2, Upload, Trash2, PlusCircle, User, Music, MessageSquare, Heart, Pencil, Mail, Video, X, Plus } from 'lucide-react';
+import { Loader2, Upload, Trash2, PlusCircle, User, Music, MessageSquare, Heart, Pencil, Mail, Video, X, Plus, AlertTriangle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,6 +28,7 @@ import { getImageUrlWithCacheBust } from '@/lib/utils';
 import ImageCropper from '@/components/ui/ImageCropper';
 import LikedProfiles from '@/components/profile/LikedProfiles';
 import { useIsMobile } from '@/hooks/use-mobile';
+import DeleteAccountDialog from '@/components/ui/DeleteAccountDialog';
 import { MUSIC_STYLES } from '@/lib/constants';
 
 const PARTNER_SUBCATEGORIES = [
@@ -74,6 +75,8 @@ const PartnerProfileSettings = () => {
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
   const [isDeletingVideo, setIsDeletingVideo] = useState(false);
   const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Configuration des tabs pour mobile
@@ -595,6 +598,45 @@ const PartnerProfileSettings = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (!formData) return;
+    
+    setIsDeletingAccount(true);
+    
+    try {
+      // Mettre à jour le statut disabled = 1
+      const { error } = await supabase
+        .from('users')
+        .update({ disabled: 1 })
+        .eq('id', formData.id);
+      
+      if (error) throw error;
+      
+      // Déconnecter l'utilisateur
+      await supabase.auth.signOut();
+      localStorage.removeItem('musiclinks_user');
+      localStorage.removeItem('musiclinks_authorized');
+      
+      toast({
+        title: "Compte supprimé",
+        description: "Votre compte a été désactivé avec succès.",
+      });
+      
+      // Rediriger vers la page d'accueil
+      navigate('/');
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer votre compte.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeletingAccount(false);
+      setShowDeleteAccountDialog(false);
+    }
+  };
+
   if (isLoading || !formData) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -855,7 +897,15 @@ const PartnerProfileSettings = () => {
                       Formats acceptés : MP4, AVI, MOV. Taille maximale : 100MB.
                     </p>
                   </div>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteAccountDialog(true)}
+                  className="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-2 transition-colors"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  Supprimer mon compte
+                </button>
                 <Button type="submit" disabled={isSaving || isUploadingVideo} className="md:h-12 md:text-lg md:px-8">
                   {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
                   Enregistrer les modifications
@@ -893,6 +943,14 @@ const PartnerProfileSettings = () => {
           title="Recadrer votre photo de profil"
         />
       )}
+
+      {/* Delete Account Dialog */}
+      <DeleteAccountDialog
+        open={showDeleteAccountDialog}
+        onOpenChange={setShowDeleteAccountDialog}
+        onConfirm={handleDeleteAccount}
+        isLoading={isDeletingAccount}
+      />
     </>
   );
 };
