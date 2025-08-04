@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
-import { Loader2, Upload, Trash2, PlusCircle, User, Music, MessageSquare, Heart, Pencil, Mail, Video, X, Plus, AlertTriangle } from 'lucide-react';
+import { Loader2, Upload, Trash2, PlusCircle, User, Music, MessageSquare, Heart, Pencil, Mail, Video, X, Plus, AlertTriangle, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -666,6 +666,19 @@ const PartnerProfileSettings = () => {
             <span>{formData.email}</span>
           </div>
           <div className="mt-1 md:mt-2 text-blue-600 font-semibold text-sm md:text-base">Compte actif depuis {months} mois</div>
+          
+          {/* Bouton "Voir mon profil en tant que membre" */}
+          <div className="mt-4 md:mt-6">
+            <Button
+              onClick={() => navigate(`/profile/${formData.id}`)}
+              variant="outline"
+              size="sm"
+              className="text-gray-600 hover:text-gray-800 border-gray-300 hover:border-gray-400"
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Voir mon profil en tant que membre
+            </Button>
+          </div>
         </div>
         {/* Toggle onglets */}
         <div className="flex justify-center mt-2 mb-4 md:mt-4 md:mb-8">

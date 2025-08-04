@@ -23,7 +23,8 @@ import {
   Users,
   X,
   Image,
-  User
+  User,
+  Pencil
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -575,6 +576,34 @@ const ModernProfileHeader = ({ user, rating, reviewCount }: any) => {
         </button>
         
         <div className="flex gap-2">
+          {/* Bouton Modifier pour le propriétaire du profil */}
+          {(() => {
+            const currentUserStr = localStorage.getItem('musiclinks_user');
+            const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+            const isOwnProfile = currentUser && currentUser.id === user.id;
+            
+            if (isOwnProfile) {
+              return (
+                <button 
+                  onClick={() => {
+                    if (user.role === 'artist') {
+                      window.location.href = '/artist-settings';
+                    } else if (user.role === 'provider') {
+                      window.location.href = '/provider-settings';
+                    } else if (user.role === 'partner') {
+                      window.location.href = '/partner-settings';
+                    }
+                  }}
+                  className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  title="Modifier mon profil"
+                >
+                  <Pencil className="w-5 h-5 text-gray-600" />
+                </button>
+              );
+            }
+            return null;
+          })()}
+          
           <button 
             onClick={() => toggleLike(user.id)}
             disabled={likeLoading}
