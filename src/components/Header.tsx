@@ -825,7 +825,7 @@ const Header = () => {
             <h3 className="text-lg font-semibold mb-4">Suivez-nous sur les réseaux sociaux</h3>
             <div className="grid grid-cols-2 gap-4">
               <a
-                href="https://www.instagram.com/musiclinks.fr"
+                href="https://www.instagram.com/musiclinksapp?igsh=MXEwYW9ybmh5ejIydA=="
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
@@ -834,7 +834,7 @@ const Header = () => {
                 <span className="font-medium">Instagram</span>
               </a>
               <a
-                href="https://www.tiktok.com/@musiclinks.fr"
+                href="https://www.tiktok.com/@musiclinksapp?_t=ZN-8yWj9SRuDqQ&_r=1"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
