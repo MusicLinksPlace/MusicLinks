@@ -370,10 +370,10 @@ const Chat = () => {
         // Upload du fichier
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `attachments/${fileName}`;
+        const filePath = `${fileName}`;
         
         // Choisir le bucket selon le type de fichier
-        let bucketName = 'attachments';
+        let bucketName = 'media-files';
         if (selectedFile.type.startsWith('video/') || selectedFile.type.startsWith('audio/')) {
           bucketName = 'media-files';
         }
