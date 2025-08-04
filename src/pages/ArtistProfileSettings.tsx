@@ -669,7 +669,7 @@ const ArtistProfileSettings = () => {
     try {
       // Mettre à jour le statut disabled = 1
       const { error } = await supabase
-        .from('users')
+        .from('User')
         .update({ disabled: 1 })
         .eq('id', formData.id);
       
