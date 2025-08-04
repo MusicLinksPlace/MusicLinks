@@ -312,8 +312,37 @@ const Chat = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Vérifier la taille du fichier (50MB max)
+      if (file.size > 50 * 1024 * 1024) {
+        toast({ 
+          title: "Fichier trop volumineux", 
+          description: "La taille maximale est de 50MB", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
+      // Vérifier le type de fichier
+      const allowedTypes = [
+        'image/', 'video/', 'audio/', 
+        'application/pdf', 'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ];
+      
+      const isAllowed = allowedTypes.some(type => file.type.startsWith(type));
+      if (!isAllowed) {
+        toast({ 
+          title: "Type de fichier non supporté", 
+          description: "Formats acceptés : images, vidéos, audio, PDF, Word", 
+          variant: "destructive" 
+        });
+        return;
+      }
+
       setSelectedFile(file);
-      if (file.type.startsWith('image/')) {
+      
+      // Prévisualisation pour images, vidéos et audio
+      if (file.type.startsWith('image/') || file.type.startsWith('video/') || file.type.startsWith('audio/')) {
         const reader = new FileReader();
         reader.onload = (e) => setFilePreview(e.target?.result as string);
         reader.readAsDataURL(file);
@@ -343,8 +372,14 @@ const Chat = () => {
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `attachments/${fileName}`;
         
+        // Choisir le bucket selon le type de fichier
+        let bucketName = 'attachments';
+        if (selectedFile.type.startsWith('video/') || selectedFile.type.startsWith('audio/')) {
+          bucketName = 'media-files';
+        }
+        
         const { error: uploadError } = await supabase.storage
-          .from('attachments')
+          .from(bucketName)
           .upload(filePath, selectedFile);
         
         if (uploadError) {
@@ -353,17 +388,27 @@ const Chat = () => {
         
         // Récupérer l'URL publique
         const { data } = supabase.storage
-          .from('attachments')
+          .from(bucketName)
           .getPublicUrl(filePath);
         
         attachmentUrl = data.publicUrl;
-        attachmentType = selectedFile.type.startsWith('image/') ? 'image' : 'file';
+        
+        // Déterminer le type d'attachement
+        if (selectedFile.type.startsWith('image/')) {
+          attachmentType = 'image';
+        } else if (selectedFile.type.startsWith('video/')) {
+          attachmentType = 'video';
+        } else if (selectedFile.type.startsWith('audio/')) {
+          attachmentType = 'audio';
+        } else {
+          attachmentType = 'file';
+        }
       }
       
       const messageData = {
         senderId: currentUser.id,
         receiverId: selectedUserId,
-        content: newMessage.trim() || `[${attachmentType === 'image' ? 'Image' : 'Fichier'} envoyé(e)]`,
+        content: newMessage.trim() || `[${attachmentType === 'image' ? 'Image' : attachmentType === 'video' ? 'Vidéo' : attachmentType === 'audio' ? 'Audio' : 'Fichier'} envoyé(e)]`,
         attachmentUrl,
         attachmentType
       };
@@ -655,6 +700,26 @@ const Chat = () => {
                               />
                             </div>
                           )}
+                          {message.attachmentType === 'video' && message.attachmentUrl && (
+                            <div className="mb-2">
+                              <video
+                                controls
+                                className="max-w-full h-auto rounded"
+                                style={{ maxHeight: '300px' }}
+                              >
+                                <source src={message.attachmentUrl} type="video/mp4" />
+                                Votre navigateur ne supporte pas la lecture de vidéos.
+                              </video>
+                            </div>
+                          )}
+                          {message.attachmentType === 'audio' && message.attachmentUrl && (
+                            <div className="mb-2">
+                              <audio controls className="w-full">
+                                <source src={message.attachmentUrl} type="audio/mpeg" />
+                                Votre navigateur ne supporte pas la lecture audio.
+                              </audio>
+                            </div>
+                          )}
                           {message.attachmentType === 'file' && message.attachmentUrl && (
                             <div className="mb-2">
                               <a
@@ -686,14 +751,42 @@ const Chat = () => {
                   {/* Input pour nouveau message */}
                   <div className="border-t border-gray-200 p-4">
                     {selectedFile && (
-                      <div className="mb-2 p-2 bg-gray-100 rounded-lg flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Paperclip className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm text-gray-700">{selectedFile.name}</span>
+                      <div className="mb-2 p-2 bg-gray-100 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <Paperclip className="h-4 w-4 text-gray-500" />
+                            <span className="text-sm text-gray-700">{selectedFile.name}</span>
+                          </div>
+                          <Button onClick={removeFile} variant="ghost" size="sm">
+                            ✕
+                          </Button>
                         </div>
-                        <Button onClick={removeFile} variant="ghost" size="sm">
-                          ✕
-                        </Button>
+                        {filePreview && (
+                          <div className="mt-2">
+                            {selectedFile.type.startsWith('image/') && (
+                              <img
+                                src={filePreview}
+                                alt="Preview"
+                                className="max-w-full h-auto rounded"
+                                style={{ maxHeight: '150px' }}
+                              />
+                            )}
+                            {selectedFile.type.startsWith('video/') && (
+                              <video
+                                controls
+                                className="max-w-full h-auto rounded"
+                                style={{ maxHeight: '150px' }}
+                              >
+                                <source src={filePreview} type={selectedFile.type} />
+                              </video>
+                            )}
+                            {selectedFile.type.startsWith('audio/') && (
+                              <audio controls className="w-full">
+                                <source src={filePreview} type={selectedFile.type} />
+                              </audio>
+                            )}
+                          </div>
+                        )}
                       </div>
                     )}
                     <div className="flex space-x-2">
@@ -709,7 +802,7 @@ const Chat = () => {
                         ref={fileInputRef}
                         onChange={handleFileChange}
                         className="hidden"
-                        accept="image/*,.pdf,.doc,.docx,.txt"
+                        accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt"
                       />
                       <Button
                         onClick={() => fileInputRef.current?.click()}

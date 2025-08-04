@@ -720,20 +720,7 @@ const PartnerProfileSettings = () => {
                 <Label htmlFor="bio" className="md:text-lg">Biographie</Label>
                 <Textarea id="bio" name="bio" value={formData.bio || ''} onChange={handleInputChange} placeholder="Parlez de vous, de votre activité..." rows={5} className="md:text-lg md:h-32"/>
               </div>
-              {/* Description du service */}
-              <div>
-                <Label htmlFor="serviceDescription" className="md:text-lg">Description du service proposé</Label>
-                <Textarea 
-                  id="serviceDescription" 
-                  name="serviceDescription" 
-                  value={formData.serviceDescription || ''} 
-                  onChange={handleInputChange} 
-                  placeholder="Décrivez en détail les services que vous proposez, vos conditions, votre approche..." 
-                  rows={4} 
-                  className="md:text-lg md:h-28"
-                />
-                <p className="text-sm text-gray-500 mt-1">Précisez ce que vous offrez et comment vous travaillez</p>
-              </div>
+
 
                 {/* --- Social Links --- */}
                 {(formData.social_links && formData.social_links.length > 0) && (
