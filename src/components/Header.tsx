@@ -520,7 +520,6 @@ const Header = () => {
                 <TooltipTrigger asChild>
                   <Button onClick={handleChatClick} variant="ghost" size="icon" className="rounded-full p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 relative flex items-center justify-center" style={{ height: '48px', width: '48px' }}>
                     <span className="text-2xl">💬</span>
-                    <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" align="center" className="text-xs font-medium">

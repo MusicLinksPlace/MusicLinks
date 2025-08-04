@@ -122,6 +122,11 @@ const HeroSection = () => {
             </p>
           </div>
         </div>
+        
+        {/* Phrase discrète */}
+        <p className="text-xs text-gray-300/70 mt-4 font-light">
+          (c'est ce qu'on vise avant la fin de l'année !)
+        </p>
       </div>
     </div>
   );

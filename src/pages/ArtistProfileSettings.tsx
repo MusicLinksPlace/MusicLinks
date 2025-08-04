@@ -1003,22 +1003,7 @@ const ArtistProfileSettings = () => {
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Mes Likes</h2>
                 <p className="text-gray-600">Profils que vous avez likés</p>
               </div>
-              <div className="md:block">
-                <LikedProfiles />
-              </div>
-              <div className="md:hidden">
-                <div className="text-center py-8">
-                  <Heart className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Vos likes</h3>
-                  <p className="text-gray-600 mb-4">Retrouvez ici tous les profils que vous avez likés</p>
-                  <Button 
-                    onClick={() => navigate('/')} 
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                  >
-                    Découvrir des profils
-                  </Button>
-                </div>
-              </div>
+              <LikedProfiles />
             </div>
           )}
         </div>

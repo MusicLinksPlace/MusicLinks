@@ -109,6 +109,60 @@ const LikedProfiles: React.FC = () => {
     );
   }
 
+  // Récupérer le rôle de l'utilisateur connecté
+  const getCurrentUserRole = () => {
+    const userStr = localStorage.getItem('musiclinks_user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      return user.role;
+    }
+    return null;
+  };
+
+  const currentUserRole = getCurrentUserRole();
+
+  // Déterminer le lien de redirection selon le rôle
+  const getRedirectLink = () => {
+    switch (currentUserRole) {
+      case 'artist':
+        return '/providers';
+      case 'provider':
+        return '/artists';
+      case 'partner':
+        return '/artists';
+      default:
+        return '/artists';
+    }
+  };
+
+  // Déterminer le texte du bouton selon le rôle
+  const getButtonText = () => {
+    switch (currentUserRole) {
+      case 'artist':
+        return 'Découvrir les prestataires';
+      case 'provider':
+        return 'Découvrir les artistes';
+      case 'partner':
+        return 'Découvrir les artistes';
+      default:
+        return 'Découvrir les artistes';
+    }
+  };
+
+  // Déterminer l'icône selon le rôle
+  const getButtonIcon = () => {
+    switch (currentUserRole) {
+      case 'artist':
+        return '🎛️';
+      case 'provider':
+        return '🎵';
+      case 'partner':
+        return '🎵';
+      default:
+        return '🎵';
+    }
+  };
+
   if (likedProfiles.length === 0) {
     return (
       <div className="text-center py-12">
@@ -118,11 +172,11 @@ const LikedProfiles: React.FC = () => {
           Vous n'avez pas encore liké de profils. Commencez à explorer et likez vos favoris !
         </p>
         <Link
-          to="/artists"
+          to={getRedirectLink()}
           className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          <Music className="w-5 h-5" />
-          Découvrir des artistes
+          <span className="text-lg">{getButtonIcon()}</span>
+          {getButtonText()}
         </Link>
       </div>
     );

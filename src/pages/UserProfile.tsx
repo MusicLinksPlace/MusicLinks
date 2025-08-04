@@ -1077,6 +1077,26 @@ const UserProfile = () => {
                           </div>
                         </div>
                       )}
+                      
+                      {user.portfolio_url && (
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <ExternalLink className="w-3 h-3 text-indigo-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm text-gray-600">Portfolio</div>
+                            <a 
+                              href={user.portfolio_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-indigo-600 hover:text-indigo-700 font-medium text-sm transition-colors inline-flex items-center gap-1"
+                            >
+                              Voir le portfolio
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1233,6 +1253,26 @@ const UserProfile = () => {
                                    user.role === 'provider' ? 'Prestataire' : 
                                    user.role === 'partner' ? 'Partenaire' : 'Utilisateur'}
                                 </div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {user.portfolio_url && (
+                            <div className="flex items-center gap-3">
+                              <div className="w-6 h-6 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                <ExternalLink className="w-3 h-3 text-indigo-600" />
+                              </div>
+                              <div className="flex-1">
+                                <div className="text-sm text-gray-600">Portfolio</div>
+                                <a 
+                                  href={user.portfolio_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-indigo-600 hover:text-indigo-700 font-medium text-sm transition-colors inline-flex items-center gap-1"
+                                >
+                                  Voir le portfolio
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
                               </div>
                             </div>
                           )}

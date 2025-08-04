@@ -17,9 +17,10 @@ interface UserWhoLiked {
 interface UsersWhoLikedProps {
   targetUserId: string;
   className?: string;
+  userRole?: string; // Ajout du rôle de l'utilisateur
 }
 
-const UsersWhoLiked: React.FC<UsersWhoLikedProps> = ({ targetUserId, className = "" }) => {
+const UsersWhoLiked: React.FC<UsersWhoLikedProps> = ({ targetUserId, className = "", userRole }) => {
   const [users, setUsers] = useState<UserWhoLiked[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,13 +121,65 @@ const UsersWhoLiked: React.FC<UsersWhoLikedProps> = ({ targetUserId, className =
     );
   }
 
+  // Utiliser le rôle passé en props ou par défaut
+  const profileRole = userRole || 'artist';
+
+  // Déterminer le lien de redirection selon le rôle du profil
+  const getRedirectLink = () => {
+    switch (profileRole) {
+      case 'artist':
+        return '/providers';
+      case 'provider':
+        return '/artists';
+      case 'partner':
+        return '/artists';
+      default:
+        return '/artists';
+    }
+  };
+
+  // Déterminer le texte du bouton selon le rôle du profil
+  const getButtonText = () => {
+    switch (profileRole) {
+      case 'artist':
+        return 'Découvrir les prestataires';
+      case 'provider':
+        return 'Découvrir les artistes';
+      case 'partner':
+        return 'Découvrir les artistes';
+      default:
+        return 'Découvrir les artistes';
+    }
+  };
+
+  // Déterminer l'icône selon le rôle du profil
+  const getButtonIcon = () => {
+    switch (profileRole) {
+      case 'artist':
+        return '🎛️';
+      case 'provider':
+        return '🎵';
+      case 'partner':
+        return '🎵';
+      default:
+        return '🎵';
+    }
+  };
+
   if (users.length === 0) {
     return (
       <div className={`text-center py-8 ${className}`}>
         <div className="text-gray-400 mb-2">
           <Heart className="w-8 h-8 mx-auto" />
         </div>
-        <p className="text-gray-600">Aucun like pour le moment</p>
+        <p className="text-gray-600 mb-4">Aucun like pour le moment</p>
+        <Link
+          to={getRedirectLink()}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+        >
+          <span className="text-base">{getButtonIcon()}</span>
+          {getButtonText()}
+        </Link>
       </div>
     );
   }
