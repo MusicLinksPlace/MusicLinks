@@ -433,7 +433,7 @@ const Chat = () => {
           .single();
 
         if (receiverData && receiverData.email) {
-          const messagePreview = newMessage.trim() || `[${attachmentType === 'image' ? 'Image' : 'Fichier'} envoyé(e)]`;
+          const messagePreview = newMessage.trim() || `[${attachmentType === 'image' ? 'Image' : attachmentType === 'video' ? 'Vidéo' : attachmentType === 'audio' ? 'Audio' : 'Fichier'} envoyé(e)]`;
           const conversationUrl = `${window.location.origin}/chat?userId=${currentUser.id}`;
           
           await sendMessageNotification({
