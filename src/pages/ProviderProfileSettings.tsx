@@ -29,15 +29,28 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import DeleteAccountDialog from '@/components/ui/DeleteAccountDialog';
 import { MUSIC_STYLES } from '@/lib/constants';
 
-const PROVIDER_SPECIALTIES = [
-  { id: 'studio', label: 'Studio d\'enregistrement' },
-  { id: 'mixage', label: 'Mixage & Mastering' },
-  { id: 'production', label: 'Production musicale' },
-  { id: 'instruments', label: 'Location d\'instruments' },
-  { id: 'salle', label: 'Salle de répétition' },
-  { id: 'technique', label: 'Technicien son' },
-  { id: 'autre', label: 'Autre' }
-];
+const PROVIDER_SUB_CATEGORIES = {
+  'Promotion & marketing': [
+    { id: 'radio_curator', label: 'Programmateur radio / playlist' },
+    { id: 'community_manager', label: 'Community manager' },
+    { id: 'media', label: 'Médias' },
+  ],
+  'Visuel': [
+    { id: 'clipmaker', label: 'Clipmaker' },
+    { id: 'video_editor', label: 'Monteur vidéo' },
+    { id: 'photographer', label: 'Photographe' },
+    { id: 'graphic_designer', label: 'Graphiste' },
+  ],
+  'Droits & Distribution': [
+    { id: 'distributor', label: 'Distributeur' },
+    { id: 'music_lawyer', label: 'Avocat spécialisé' },
+  ],
+  'Formation': [
+    { id: 'vocal_coach', label: 'Coach vocal' },
+    { id: 'music_workshop', label: 'Ateliers de musique' },
+    { id: 'danseur', label: 'Chorégraphe' },
+  ],
+};
 
 interface UserProfileData {
   id: string;
@@ -80,6 +93,7 @@ const ProviderProfileSettings = () => {
   const [isDeletingVideo, setIsDeletingVideo] = useState(false);
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Configuration des tabs pour mobile
@@ -120,6 +134,16 @@ const ProviderProfileSettings = () => {
         if (error) throw error;
         const userData = data;
         setFormData(userData);
+
+        // Initialize selected domain based on existing subCategory
+        if (userData.subCategory) {
+          for (const [domain, subCategories] of Object.entries(PROVIDER_SUB_CATEGORIES)) {
+            if (subCategories.some(sub => sub.id === userData.subCategory)) {
+              setSelectedDomain(domain);
+              break;
+            }
+          }
+        }
       } catch (error) {
         console.error('Error fetching user:', error);
       } finally {
@@ -1117,39 +1141,69 @@ const ProviderProfileSettings = () => {
               )}
               {activeTab === 'activite' && (
                 <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl flex flex-col p-6 md:p-10 gap-8 md:gap-10 mt-2">
-                  {/* Prestation (dropdown) */}
-                  <div>
-                    <Label htmlFor="subCategory" className="md:text-lg">Prestation</Label>
-                    <Select value={formData?.subCategory || ''} onValueChange={val => setFormData((prev: UserProfileData | null) => prev ? ({ ...prev, subCategory: val }) : null)}>
-                      <SelectTrigger id="subCategory" className="md:h-12 md:text-lg">
-                        <SelectValue placeholder="Choisissez votre prestation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PROVIDER_SPECIALTIES.map(opt => (
-                          <SelectItem key={opt.id} value={opt.id} className="md:text-lg">{opt.label}</SelectItem>
+                  {/* Prestation (sous-catégories) */}
+                  <div className="space-y-6">
+                    <div>
+                      <Label className="md:text-lg">Domaine d'activité</Label>
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        {Object.keys(PROVIDER_SUB_CATEGORIES).map(domain => (
+                          <Button
+                            key={domain}
+                            type="button"
+                            variant="outline"
+                            onClick={() => { 
+                              setSelectedDomain(domain); 
+                              setFormData((prev: UserProfileData | null) => prev ? ({ ...prev, subCategory: null }) : null);
+                            }}
+                            className={cn(
+                              "h-auto py-3 whitespace-normal text-center border transition-colors focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0",
+                              selectedDomain === domain
+                                ? 'bg-ml-teal border-ml-teal hover:bg-ml-teal/90 text-white'
+                                : 'bg-white border-gray-300 hover:bg-gray-50'
+                            )}
+                          >
+                            {domain}
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
+
+                    {selectedDomain && (
+                      <div>
+                        <Label className="md:text-lg">Spécialité</Label>
+                        <div className="space-y-3 mt-3">
+                          {PROVIDER_SUB_CATEGORIES[selectedDomain].map((sub) => (
+                            <Label 
+                              key={sub.id} 
+                              htmlFor={sub.id} 
+                              className={cn(
+                                "flex items-center gap-3 border rounded-xl p-3 cursor-pointer transition-colors",
+                                formData?.subCategory === sub.id
+                                  ? 'bg-ml-teal/10 border-ml-teal'
+                                  : 'bg-white border-gray-300 hover:bg-gray-50'
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                id={sub.id}
+                                name="subCategory"
+                                value={sub.id}
+                                checked={formData?.subCategory === sub.id}
+                                onChange={(e) => setFormData((prev: UserProfileData | null) => prev ? ({ ...prev, subCategory: e.target.value }) : null)}
+                                className="text-ml-teal border-gray-300"
+                              />
+                              <span className="font-medium">{sub.label}</span>
+                            </Label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   {/* Portfolio */}
                   <div>
                     <Label htmlFor="portfolio_url" className="md:text-lg">Lien Portfolio / Site web</Label>
                     <Input id="portfolio_url" name="portfolio_url" value={formData?.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com" className="md:h-12 md:text-lg"/>
-                  </div>
-                  {/* Styles musicaux (dropdown) */}
-                  <div>
-                    <Label htmlFor="musicStyle" className="md:text-lg">Style musical</Label>
-                    <Select value={formData?.musicStyle || ''} onValueChange={val => setFormData((prev: UserProfileData | null) => prev ? ({ ...prev, musicStyle: val }) : null)}>
-                      <SelectTrigger id="musicStyle" className="md:h-12 md:text-lg">
-                        <SelectValue placeholder="Sélectionnez votre style musical" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MUSIC_STYLES.map(opt => (
-                          <SelectItem key={opt.value} value={opt.value} className="md:text-lg">{opt.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+
                   {/* Images */}
                   <div>
                     <Label className="md:text-lg">Images de présentation</Label>

@@ -164,7 +164,6 @@ const Step2RoleSelection = ({ formData, onRoleChangeAndNext }) => {
         <div className="space-y-6">
             <div className="text-center mb-6">
                 <h2 className="text-xl font-bold text-white">Type de profil</h2>
-                <p className="text-white/70 text-sm">Sélectionnez le type de profil qui vous correspond</p>
             </div>
             <div className="space-y-3">
                 {ROLES.map((role) => (

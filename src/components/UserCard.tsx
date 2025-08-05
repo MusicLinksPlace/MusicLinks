@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Star, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { MUSIC_STYLES } from '@/lib/constants';
+
 import { getImageUrlWithCacheBust } from '@/lib/utils';
 
 interface User {
@@ -22,7 +22,7 @@ interface UserCardProps {
 
 const UserCard: React.FC<UserCardProps> = ({ user }) => {
   const subCategoryLabel = user.subCategory?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-  const musicStyleLabel = MUSIC_STYLES.find(style => style.value === user.musicStyle)?.label;
+  const musicStyleLabel = user.musicStyle?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   const isPlaceholder = !(user.profilepicture && 
                         user.profilepicture.startsWith('http') && 
@@ -53,7 +53,7 @@ const UserCard: React.FC<UserCardProps> = ({ user }) => {
               {subCategoryLabel}
             </Badge>
           )}
-          {musicStyleLabel && (
+          {musicStyleLabel && !subCategoryLabel && (
             <Badge
               variant="default"
               className="absolute top-3 right-3 bg-black/30 backdrop-blur-sm text-white border-white/20"
