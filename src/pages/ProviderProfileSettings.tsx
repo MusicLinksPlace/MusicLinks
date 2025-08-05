@@ -1141,7 +1141,7 @@ const ProviderProfileSettings = () => {
               )}
               {activeTab === 'activite' && (
                 <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-xl flex flex-col p-6 md:p-10 gap-8 md:gap-10 mt-2">
-                  {/* Prestation (sous-catégories) */}
+                  {/* Type de profil (sous-catégories) */}
                   <div className="space-y-6">
                     <div>
                       <Label className="md:text-lg">Domaine d'activité</Label>
@@ -1170,7 +1170,7 @@ const ProviderProfileSettings = () => {
 
                     {selectedDomain && (
                       <div>
-                        <Label className="md:text-lg">Spécialité</Label>
+                        <Label className="md:text-lg">Type de profil</Label>
                         <div className="space-y-3 mt-3">
                           {PROVIDER_SUB_CATEGORIES[selectedDomain].map((sub) => (
                             <Label 
