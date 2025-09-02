@@ -1203,6 +1203,7 @@ const ProviderProfileSettings = () => {
                   <div>
                     <Label htmlFor="portfolio_url" className="md:text-lg">Lien Portfolio / Site web</Label>
                     <Input id="portfolio_url" name="portfolio_url" value={formData?.portfolio_url || ''} onChange={handleInputChange} placeholder="https://votresite.com" className="md:h-12 md:text-lg"/>
+                  </div>
 
                   {/* Images */}
                   <div>
