@@ -37,12 +37,11 @@ import Chat from './pages/Chat';
 import AdminUsers from './pages/AdminUsers';
 import ErrorBoundary from './components/ErrorBoundary';
 import VideoTest from './components/VideoTest';
-import PasswordProtection from './components/PasswordProtection';
+
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
 
   // Log global au démarrage de l'app
   useEffect(() => {
@@ -200,14 +199,7 @@ const App = () => {
     syncProfile();
   }, []);
 
-  // Si pas autorisé, afficher la protection par mot de passe
-  if (!isAuthorized) {
-    return (
-      <ErrorBoundary>
-        <PasswordProtection onSuccess={() => setIsAuthorized(true)} />
-      </ErrorBoundary>
-    );
-  }
+  // Protection par mot de passe supprimée pour permettre l'accès libre
 
   return (
   <ErrorBoundary>
