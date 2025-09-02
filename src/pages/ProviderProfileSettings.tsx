@@ -694,7 +694,7 @@ const ProviderProfileSettings = () => {
   );
 
   return (
-    <div>
+    <React.Fragment>
       <Header />
       <div className="bg-gray-100 min-h-screen pb-8">
         {/* Partie haute sur fond gris */}
@@ -1370,7 +1370,7 @@ const ProviderProfileSettings = () => {
         onConfirm={handleDeleteAccount}
         isLoading={isDeletingAccount}
       />
-    </div>
+    </React.Fragment>
   );
 };
 
