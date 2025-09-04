@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
+import { authServiceSimple as authService, SignUpData } from '@/lib/authServiceSimple';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -439,15 +440,7 @@ const SignUpPage = () => {
     musicStyle: '',
   };
 
-  const [step, setStep] = useState(() => {
-    const savedState = localStorage.getItem('signUpFormData');
-    if (savedState) {
-      try {
-        return JSON.parse(savedState).step || 1;
-      } catch (e) { return 1; }
-    }
-    return 1;
-  });
+  const [step, setStep] = useState(1); // Toujours commencer à l'étape 1 (inscription de base)
 
   const [formData, setFormData] = useState(() => {
     const savedState = localStorage.getItem('signUpFormData');
@@ -523,136 +516,40 @@ const SignUpPage = () => {
     setIsLoading(true);
     
     try {
-      // 1. Créer l'utilisateur directement dans la base de données
-      console.log('📝 Creating user directly in database...');
+      // Utiliser le nouveau service d'authentification (inscription de base seulement)
+      const signUpData: SignUpData = {
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        role: 'artist', // Rôle par défaut, sera défini dans l'onboarding
+        subCategory: null,
+        bio: null,
+        location: null,
+        portfolioLink: null,
+        socialLinks: [],
+        musicStyle: null
+      };
+
+      const result = await authService.signUp(signUpData);
       
-      // Générer un ID unique pour l'utilisateur
-      const userId = crypto.randomUUID();
-      
-      const { data: userData, error: userError } = await supabase
-        .from('User')
-        .insert({
-          id: userId,
-          email: formData.email,
-          name: formData.name,
-          role: null, // Pas de rôle par défaut - l'utilisateur doit le choisir
-          subCategory: null, // Pas de sous-catégorie par défaut
-          bio: formData.bio || null,
-          location: formData.location || null,
-          portfolio_url: formData.portfolioLink || null,
-          social_links: formData.socialLinks.filter(link => link).length > 0 ? formData.socialLinks.filter(link => link) : null,
-          musicStyle: formData.musicStyle || null,
-          verified: 1,
-          disabled: 0,
-          createdat: new Date().toISOString()
-        })
-        .select()
-        .single();
-        
-      if (userError) {
-        console.error('❌ User creation error:', userError);
-        
-        // Si l'email existe déjà, essayer de se connecter
-        if (userError.code === '23505' || userError.message.includes('duplicate')) {
-          toast.error('Cet email est déjà utilisé', {
-            description: "Essayez de vous connecter avec cet email.",
-            duration: 6000,
-          });
-        } else {
-          toast.error('Erreur lors de la création du compte', {
-            description: userError.message,
-            duration: 6000,
-          });
-        }
+      if (!result.success) {
+        toast.error('Erreur lors de la création du compte', {
+          description: result.error || 'Une erreur inattendue s\'est produite.',
+          duration: 6000,
+        });
         setIsLoading(false);
         return;
       }
 
-      console.log('✅ User created in database:', userData);
+      console.log('✅ User created successfully:', result.user);
 
-      // 2. Essayer de créer l'utilisateur dans Supabase Auth (optionnel)
-      console.log('🔐 Trying to create Supabase Auth user...');
-      try {
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              name: formData.name,
-              role: formData.role,
-              subCategory: formData.subCategory,
-              bio: formData.bio || null,
-              location: formData.location || null,
-              portfolio_url: formData.portfolioLink || null,
-              social_links: formData.socialLinks.filter(link => link).length > 0 ? formData.socialLinks.filter(link => link) : null,
-              musicStyle: formData.musicStyle || null,
-            }
-          }
-        });
-        
-        if (error) {
-          console.log('⚠️ Supabase Auth creation failed (expected due to rate limit):', error.message);
-        } else if (data && data.user) {
-          console.log('✅ Supabase Auth user created:', data.user.id);
-        }
-      } catch (authError) {
-        console.log('⚠️ Supabase Auth creation failed:', authError);
-      }
-
-      // 3. Essayer de se connecter avec Supabase Auth
-      console.log('🔐 Trying to sign in...');
-      try {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        
-        if (signInError) {
-          console.log('⚠️ Supabase Auth signin failed:', signInError.message);
-          // On continue quand même car l'utilisateur existe dans la DB
-        } else {
-          console.log('✅ Supabase Auth signin successful');
-        }
-      } catch (signInError) {
-        console.log('⚠️ Supabase Auth signin failed:', signInError);
-      }
-
-      // 4. Sauvegarder les informations utilisateur dans localStorage
-      console.log('💾 Saving user data to localStorage...');
-      const userInfo = {
-        id: userId,
-        email: formData.email,
-        name: formData.name,
-        role: null, // Pas de rôle par défaut - l'utilisateur doit le choisir
-        subCategory: null, // Pas de sous-catégorie par défaut
-        bio: formData.bio || null,
-        location: formData.location || null,
-        portfolio_url: formData.portfolioLink || null,
-        social_links: formData.socialLinks.filter(link => link).length > 0 ? formData.socialLinks.filter(link => link) : null,
-        musicStyle: formData.musicStyle || null,
-        verified: 1,
-        disabled: 0,
-        createdat: new Date().toISOString()
-      };
-      
-      localStorage.setItem('musiclinks_user', JSON.stringify(userInfo));
-      localStorage.setItem('musiclinks_auth_status', 'authenticated');
-      
-      // Déclencher un événement pour notifier les autres composants
-      window.dispatchEvent(new Event('auth-change'));
-      
-      toast.success('Compte créé avec succès !', {
-        description: "Redirection vers la sélection du rôle...",
-        duration: 3000,
+      toast.success("Compte créé avec succès !", {
+        description: "Redirection vers l'onboarding...",
+        duration: 4000,
       });
       
-      // Nettoyer le localStorage du formulaire
-      localStorage.removeItem('signUpFormData');
-      
-      // Rediriger vers la page de sélection du rôle
-      setTimeout(() => {
-        navigate('/signup/continue');
-      }, 2000);
+      // Rediriger directement vers l'onboarding
+      navigate('/signup/continue');
       
       setIsLoading(false);
     } catch (error: any) {
@@ -675,11 +572,8 @@ const SignUpPage = () => {
   
   const handleRoleChangeAndNext = (role) => {
     setFormData(prev => ({ ...prev, role, subCategory: null }));
-    if (role === 'artist') {
-      setStep(4);
-    } else {
-      setStep(step + 1);
-    }
+    // L'onboarding se fera après la vérification de l'email
+    handleSubmit();
   };
 
   const ActionButtons = () => {
@@ -695,9 +589,9 @@ const SignUpPage = () => {
                     Précédent
                 </Button>
             )}
-            {step === 4 && (
+            {step === 1 && (
                 <Button onClick={handleSubmit} className={mainButtonClass}>
-                    Terminer l'inscription
+                    Créer mon compte
                 </Button>
             )}
         </div>

@@ -747,16 +747,7 @@ const Header = () => {
                         <span className="text-base">Déconnexion</span>
                       </button>
                       
-                      <button
-                        onClick={() => {
-                          localStorage.removeItem('musiclinks_authorized');
-                          window.location.reload();
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className="w-full text-left py-3 text-orange-600 hover:text-orange-700 transition-colors"
-                      >
-                        <span className="text-base">Quitter la version privée</span>
-                      </button>
+
                     </>
                   ) : (
                     <>

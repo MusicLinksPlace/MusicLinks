@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
+import { authServiceMinimal as authService, LoginData } from '@/lib/authServiceMinimal';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import GoogleLoginButton from '@/components/ui/GoogleLoginButton';
@@ -59,53 +60,22 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Connexion simplifiée - chercher l'utilisateur directement dans la base
-      const { data: userData, error } = await supabase
-        .from('User')
-        .select('*')
-        .eq('email', email)
-        .eq('disabled', 0)
-        .single();
+      // Utiliser le nouveau service d'authentification
+      const loginData: LoginData = {
+        email: email,
+        password: password
+      };
 
-      if (error || !userData) {
-        // Si l'utilisateur n'existe pas, créer un utilisateur de test
-        console.log('Utilisateur non trouvé, création d\'un utilisateur de test...');
-        
-        const testUser = {
-          id: `user-${Date.now()}`,
-          email: email,
-          name: email.split('@')[0],
-          role: 'artist',
-          verified: 1,
-          disabled: 0,
-          createdat: new Date().toISOString()
-        };
-
-        const { error: insertError } = await supabase
-          .from('User')
-          .insert([testUser]);
-
-        if (insertError) {
-          console.error('Erreur création utilisateur:', insertError);
-          toast.error("Erreur lors de la création de l'utilisateur");
-          return;
-        }
-
-        // Utiliser l'utilisateur créé
-        localStorage.setItem('musiclinks_user', JSON.stringify(testUser));
-        localStorage.setItem('musiclinks_authorized', 'true');
-        window.dispatchEvent(new Event('auth-change'));
-        
-        toast.success("Connexion réussie !");
-        navigate(from);
+      const result = await authService.signIn(loginData);
+      
+      if (!result.success) {
+        toast.error("Erreur lors de la connexion", {
+          description: result.error || "Vérifiez vos identifiants.",
+          duration: 6000,
+        });
         return;
       }
 
-      // Utilisateur trouvé, se connecter
-      localStorage.setItem('musiclinks_user', JSON.stringify(userData));
-      localStorage.setItem('musiclinks_authorized', 'true');
-      window.dispatchEvent(new Event('auth-change'));
-      
       toast.success("Connexion réussie !");
       navigate(from);
 

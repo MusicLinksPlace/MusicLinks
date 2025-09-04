@@ -138,36 +138,41 @@ export default function SignUpContinue() {
       try {
         console.log("🔍 SignUpContinue - Vérification de l'authentification");
         
-        // Vérifier d'abord l'authentification via localStorage
-        const authStatus = localStorage.getItem('musiclinks_auth_status');
-        const userData = localStorage.getItem('musiclinks_user');
+        // Vérifier d'abord la session Supabase
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        console.log("📊 SignUpContinue - Auth status:", authStatus);
-        console.log("📊 SignUpContinue - User data exists:", !!userData);
+        console.log("📊 SignUpContinue - Session exists:", !!session);
+        console.log("📊 SignUpContinue - Session error:", sessionError);
+        console.log("📊 SignUpContinue - User email:", session?.user?.email);
+        console.log("📊 SignUpContinue - Email confirmed:", session?.user?.email_confirmed_at);
         
-        if (authStatus !== 'authenticated' || !userData) {
-          console.log('❌ SignUpContinue - Pas d\'authentification locale, redirection vers /login');
+        if (sessionError || !session) {
+          console.log('❌ SignUpContinue - Pas de session Supabase, redirection vers /login');
           console.log('➡️ SignUpContinue - Redirection vers /login');
           safeNavigate('/login');
           return;
         }
 
-        // Parser les données utilisateur
-        let user;
-        try {
-          user = JSON.parse(userData);
-          console.log('✅ SignUpContinue - User data parsed:', user);
-        } catch (parseError) {
-          console.error('❌ SignUpContinue - Error parsing user data:', parseError);
+        // Récupérer les données utilisateur depuis la base de données
+        const { data: userData, error: userError } = await supabase
+          .from('User')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (userError || !userData) {
+          console.error('❌ SignUpContinue - Erreur récupération utilisateur:', userError);
           safeNavigate('/login');
           return;
         }
 
-        console.log('✅ SignUpContinue - Utilisateur authentifié localement');
-        setUser(user);
+        console.log('✅ SignUpContinue - Utilisateur récupéré:', userData);
+
+        console.log('✅ SignUpContinue - Utilisateur authentifié via Supabase');
+        setUser(userData);
 
         // Vérifier si l'utilisateur a déjà un rôle
-        if (user.role) {
+        if (userData.role) {
           console.log('✅ SignUpContinue - Utilisateur avec rôle, redirection vers /');
           console.log('➡️ SignUpContinue - Redirection vers /');
           safeNavigate('/');
@@ -239,6 +244,7 @@ export default function SignUpContinue() {
       // Mettre à jour les données utilisateur dans localStorage
       const updatedUser = { ...user, role: role, subCategory: subCategory };
       localStorage.setItem('musiclinks_user', JSON.stringify(updatedUser));
+      localStorage.setItem('musiclinks_authorized', 'true');
       
       // Déclencher un événement pour notifier les autres composants
       window.dispatchEvent(new Event('auth-change'));

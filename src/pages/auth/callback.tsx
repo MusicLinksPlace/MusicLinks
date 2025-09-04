@@ -1,166 +1,113 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-import DebugLogger from "../../components/DebugLogger";
 
 export default function AuthCallback() {
-  const [status, setStatus] = useState<'checking' | 'success' | 'error'>('checking');
+  const [status, setStatus] = useState('loading');
 
   useEffect(() => {
-    console.log("🌐 AuthCallback - Page chargée :", window.location.href);
-    console.log("🌐 AuthCallback - Hash :", window.location.hash);
-    console.log("🌐 AuthCallback - Search :", window.location.search);
-    console.log("🌐 AuthCallback - Pathname :", window.location.pathname);
+    console.log("🚀 CALLBACK - Page chargée :", window.location.href);
+    console.log("🚀 CALLBACK - Hash :", window.location.hash);
+    console.log("🚀 CALLBACK - Search :", window.location.search);
+    console.log("🚀 CALLBACK - Pathname :", window.location.pathname);
 
-    const checkSession = async () => {
+    const handleEmailConfirmation = async () => {
       try {
-        console.log('🔄 AuthCallback - Début de checkSession');
+        console.log('🔄 CALLBACK - Début handleEmailConfirmation');
         
-        // Vérifier la session
-        console.log('🔍 AuthCallback - Appel de supabase.auth.getSession()');
+        // Attendre un peu pour que Supabase traite l'URL
+        console.log('⏳ CALLBACK - Attente de 1 seconde...');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Récupérer la session depuis l'URL
+        console.log('🔍 CALLBACK - Récupération de la session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        console.log('📊 AuthCallback - Résultat getSession:', { 
-          hasSession: !!session, 
-          hasError: !!error, 
+        console.log('📊 CALLBACK - Résultat getSession:', {
+          hasSession: !!session,
+          hasError: !!error,
+          errorMessage: error?.message,
           userEmail: session?.user?.email,
-          userId: session?.user?.id 
+          userId: session?.user?.id,
+          emailConfirmed: session?.user?.email_confirmed_at
         });
         
         if (error) {
-          console.error('❌ AuthCallback - Session check error:', error);
+          console.error('❌ CALLBACK - Erreur session:', error);
           setStatus('error');
-          console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage erreur');
+          setTimeout(() => window.location.href = "/login", 2000);
           return;
         }
 
-        if (session && session.user) {
-          console.log('✅ AuthCallback - Session valide trouvée');
-          console.log('👤 AuthCallback - User:', {
-            id: session.user.id,
-            email: session.user.email,
-            metadata: session.user.user_metadata
-          });
-          console.log('🔑 AuthCallback - Access Token:', session.access_token ? 'PRESENT' : 'MISSING');
-          console.log('🔄 AuthCallback - Refresh Token:', session.refresh_token ? 'PRESENT' : 'MISSING');
-          console.log('⏰ AuthCallback - Expires At:', session.expires_at);
-          
+        if (!session || !session.user) {
+          console.log('❌ CALLBACK - Pas de session, redirection vers login');
+          setStatus('error');
+          setTimeout(() => window.location.href = "/login", 2000);
+          return;
+        }
+
+        console.log('✅ CALLBACK - Session trouvée pour:', session.user.email);
+        console.log('📧 CALLBACK - Email confirmé:', session.user.email_confirmed_at);
+
+        // Le trigger a déjà synchronisé l'utilisateur, pas besoin de mise à jour manuelle
+        console.log('📧 CALLBACK - Email confirmé, utilisateur synchronisé automatiquement');
+
+        // Vérifier si l'utilisateur a un rôle
+        console.log('🔍 CALLBACK - Vérification du rôle...');
+        const { data: profile, error: profileError } = await supabase
+          .from('User')
+          .select('role, verified')
+          .eq('id', session.user.id)
+          .single();
+
+        console.log('📊 CALLBACK - Profil utilisateur:', {
+          profile,
+          profileError,
+          hasRole: profile?.role,
+          verified: profile?.verified
+        });
+
+        if (profileError) {
+          console.error('❌ CALLBACK - Erreur récupération profil:', profileError);
+          setStatus('error');
+          setTimeout(() => window.location.href = "/login", 2000);
+          return;
+        }
+
+        if (profile && profile.role) {
+          console.log('👤 CALLBACK - Utilisateur avec rôle, redirection vers /');
           setStatus('success');
-          
-          // PAUSE DE 2 SECONDES POUR VOIR LES LOGS
-          console.log('⏳ AuthCallback - Pause de 2 secondes pour voir les logs...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Vérifier si l'utilisateur a déjà un profil
-          console.log('🔍 AuthCallback - Vérification du profil utilisateur');
-          const { data: profile, error: profileError } = await supabase
-            .from('User')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          console.log('📊 AuthCallback - Résultat profil:', {
-            hasProfile: !!profile,
-            hasError: !!profileError,
-            profileRole: profile?.role,
-            profileName: profile?.name
-          });
-
-          // PAUSE DE 1 SECONDE POUR VOIR LES LOGS
-          console.log('⏳ AuthCallback - Pause de 1 seconde pour voir les logs...');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-
-          if (profileError && profileError.code === 'PGRST116') {
-            // Profil non trouvé - créer un profil de base
-            console.log('📝 AuthCallback - Profil non trouvé, création du profil de base');
-            const { data: newProfile, error: createError } = await supabase
-              .from('User')
-              .insert({
-                id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Nouvel utilisateur',
-                role: session.user.user_metadata?.role || null,
-                subCategory: session.user.user_metadata?.subCategory || null,
-                bio: session.user.user_metadata?.bio || null,
-                location: session.user.user_metadata?.location || null,
-                portfolio_url: session.user.user_metadata?.portfolio_url || null,
-                social_links: session.user.user_metadata?.social_links || null,
-                musicStyle: session.user.user_metadata?.musicStyle || null,
-                verified: 1, // Email vérifié automatiquement
-                disabled: 0,
-                createdat: new Date().toISOString()
-              })
-              .select()
-              .single();
-
-            if (createError) {
-              console.error('❌ AuthCallback - Erreur création profil:', createError);
-              setStatus('error');
-              return;
-            }
-
-            console.log('✅ AuthCallback - Profil créé avec succès');
-            
-            // Si l'utilisateur a déjà un rôle, rediriger vers la page d'accueil
-            if (session.user.user_metadata?.role) {
-              console.log('👤 AuthCallback - Utilisateur avec rôle, redirection vers /');
-              setTimeout(() => {
-                console.log('➡️ AuthCallback - Redirection vers /');
-                window.location.href = "/";
-              }, 1000);
-            } else {
-              // Sinon, rediriger vers la sélection du rôle
-              console.log('🎭 AuthCallback - Utilisateur sans rôle, redirection vers /signup/continue');
-              setTimeout(() => {
-                console.log('➡️ AuthCallback - Redirection vers /signup/continue');
-                window.location.href = "/signup/continue";
-              }, 1000);
-            }
-          } else if (profile && profile.role) {
-            console.log('👤 AuthCallback - Profil existant avec rôle trouvé, redirection vers /');
-            setTimeout(() => {
-              console.log('➡️ AuthCallback - Redirection vers /');
-              window.location.href = "/";
-            }, 1000);
-          } else if (profile && !profile.role) {
-            console.log('⚠️ AuthCallback - Profil trouvé mais sans rôle, redirection vers /signup/continue');
-            setTimeout(() => {
-              console.log('➡️ AuthCallback - Redirection vers /signup/continue');
-              window.location.href = "/signup/continue";
-            }, 1000);
-          } else {
-            console.log('❌ AuthCallback - Erreur inattendue lors de la vérification du profil');
-            setStatus('error');
-          }
+          setTimeout(() => window.location.href = "/", 1000);
         } else {
-          console.log('❌ AuthCallback - Pas de session valide');
-          console.log('⚠️ AuthCallback - PAS DE REDIRECTION (DEBUG) - Affichage erreur');
-          setStatus('error');
+          console.log('📝 CALLBACK - Pas de rôle, redirection vers onboarding');
+          setStatus('success');
+          setTimeout(() => window.location.href = "/signup/continue", 1000);
         }
-              } catch (error) {
-          console.error('❌ AuthCallback - Erreur générale:', error);
-          setStatus('error');
-        }
+
+      } catch (error) {
+        console.error('❌ CALLBACK - Erreur générale:', error);
+        setStatus('error');
+        setTimeout(() => window.location.href = "/login", 2000);
+      }
     };
 
-    checkSession();
+    handleEmailConfirmation();
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 flex items-center justify-center">
-      <DebugLogger pageName="AuthCallback" />
       <div className="text-center text-white">
-        {status === 'checking' && (
+        {status === 'loading' && (
           <>
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-lg">Connexion en cours...</p>
-            <p className="text-sm text-gray-300 mt-2">Vérification de votre session</p>
+            <p className="text-lg">Finalisation de votre inscription...</p>
+            <p className="text-sm text-gray-300 mt-2">Vérification en cours</p>
           </>
         )}
         
         {status === 'success' && (
           <>
             <div className="text-green-400 text-4xl mb-4">✓</div>
-            <p className="text-lg">Connexion réussie !</p>
+            <p className="text-lg">Inscription confirmée !</p>
             <p className="text-sm text-gray-300 mt-2">Redirection en cours...</p>
           </>
         )}
@@ -168,8 +115,8 @@ export default function AuthCallback() {
         {status === 'error' && (
           <>
             <div className="text-red-400 text-4xl mb-4">✗</div>
-            <p className="text-lg">Erreur de connexion</p>
-            <p className="text-sm text-gray-300 mt-2">Redirection vers la page de connexion...</p>
+            <p className="text-lg">Erreur de confirmation</p>
+            <p className="text-sm text-gray-300 mt-2">Redirection vers la connexion...</p>
           </>
         )}
       </div>

@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
+import { authServiceMinimal as authService, UpdatePasswordData } from '@/lib/authServiceMinimal';
 import { toast } from 'sonner';
 import { Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -98,11 +99,20 @@ const UpdatePassword = () => {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      // Utiliser le nouveau service d'authentification
+      const updateData: UpdatePasswordData = {
         password: password
-      });
+      };
 
-      if (error) throw error;
+      const result = await authService.updatePassword(updateData);
+      
+      if (!result.success) {
+        toast.error('Erreur lors de la mise à jour du mot de passe', {
+          description: result.error || 'Une erreur est survenue lors de la mise à jour du mot de passe',
+          duration: 6000,
+        });
+        return;
+      }
       
       toast.success('Mot de passe mis à jour avec succès !');
       
