@@ -543,13 +543,20 @@ const SignUpPage = () => {
 
       console.log('✅ User created successfully:', result.user);
 
-      toast.success("Compte créé avec succès !", {
-        description: "Redirection vers l'onboarding...",
-        duration: 4000,
-      });
-      
-      // Rediriger directement vers l'onboarding
-      navigate('/signup/continue');
+      if (result.needsVerification) {
+        toast.success("Compte créé avec succès !", {
+          description: "Vérifiez votre email et cliquez sur le lien pour continuer.",
+          duration: 6000,
+        });
+      } else {
+        toast.success("Compte créé avec succès !", {
+          description: "Redirection vers l'onboarding...",
+          duration: 4000,
+        });
+        
+        // Rediriger directement vers l'onboarding
+        navigate('/signup/continue');
+      }
       
       setIsLoading(false);
     } catch (error: any) {

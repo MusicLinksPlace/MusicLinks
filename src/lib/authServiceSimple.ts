@@ -121,7 +121,17 @@ class AuthServiceSimple {
         insertedUser = userData; // Utiliser les données locales
       }
 
-      // 3. Connecter l'utilisateur directement
+      // 3. Vérifier si l'email est confirmé
+      if (!authData.user.email_confirmed_at) {
+        console.log('📧 Email de confirmation envoyé, redirection vers onboarding');
+        return { 
+          success: true, 
+          user: insertedUser, 
+          needsVerification: true 
+        };
+      }
+
+      // 4. Si l'email est confirmé, connecter l'utilisateur
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
@@ -132,7 +142,7 @@ class AuthServiceSimple {
         return { success: false, error: 'Erreur lors de la connexion automatique' };
       }
 
-      // 4. Sauvegarder en localStorage
+      // 5. Sauvegarder en localStorage
       localStorage.setItem('musiclinks_user', JSON.stringify(insertedUser));
       localStorage.setItem('musiclinks_authorized', 'true');
       window.dispatchEvent(new Event('auth-change'));
@@ -182,40 +192,99 @@ class AuthServiceSimple {
   /**
    * Connexion d'un utilisateur
    */
-  async signIn(data: LoginData): Promise<{ success: boolean; user?: AuthUser; error?: string }> {
+  async signIn(data: LoginData): Promise<{ success: boolean; user?: AuthUser; error?: string; needsOnboarding?: boolean }> {
     try {
       console.log('🔐 Starting signin process for:', data.email);
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
       });
 
-      if (error) {
-        console.error('❌ Signin error:', error);
-        return { success: false, error: error.message };
+      if (authError) {
+        console.error('❌ Signin error:', authError);
+        return { success: false, error: authError.message };
       }
 
-      if (!data.user) {
+      if (!authData.user) {
         return { success: false, error: 'Erreur lors de la connexion' };
       }
 
       // Récupérer les données utilisateur depuis notre table
-      const { data: userData, error: userError } = await supabase
+      let { data: userData, error: userError } = await supabase
         .from('User')
         .select('*')
-        .eq('id', data.user.id)
+        .eq('id', authData.user.id)
         .single();
 
       if (userError || !userData) {
         console.error('❌ User data not found:', userError);
-        return { success: false, error: 'Profil utilisateur non trouvé' };
+        
+        // Si l'utilisateur n'existe pas dans User, le créer
+        if (userError?.code === 'PGRST116') {
+          console.log('👤 SIGNIN - Utilisateur non trouvé dans User, création...');
+          
+          const newUserData = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: authData.user.user_metadata?.name || authData.user.email,
+            verified: 1,
+            disabled: 0,
+            role: null,
+            subCategory: null,
+            bio: null,
+            location: null,
+            profilepicture: null,
+            galleryimages: null,
+            portfolio_url: null,
+            social_links: null,
+            musicStyle: null,
+            galleryVideo: null,
+            star: 0,
+            isAdmin: false,
+            price: null,
+            serviceDescription: null,
+            likeCount: 0,
+            created_at: new Date().toISOString()
+          };
+
+          const { data: createdUser, error: createError } = await supabase
+            .from('User')
+            .insert([newUserData])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('❌ SIGNIN - Erreur création utilisateur:', createError);
+            return { success: false, error: 'Erreur lors de la création du profil' };
+          }
+
+          console.log('✅ SIGNIN - Utilisateur créé:', createdUser);
+          userData = createdUser;
+        } else {
+          return { success: false, error: 'Profil utilisateur non trouvé' };
+        }
       }
 
       // Vérifier si le compte est désactivé
       if (userData.disabled === 1) {
         console.log('❌ Account disabled');
         return { success: false, error: 'Ce compte a été désactivé' };
+      }
+
+      // Vérifier si l'utilisateur a un rôle (profil complet)
+      if (!userData.role) {
+        console.log('⚠️ User has no role, needs onboarding');
+        // Sauvegarder quand même pour afficher le bouton d'onboarding
+        localStorage.setItem('musiclinks_user', JSON.stringify(userData));
+        localStorage.setItem('musiclinks_authorized', 'true');
+        window.dispatchEvent(new Event('auth-change'));
+        
+        return { 
+          success: true, 
+          user: userData, 
+          needsOnboarding: true 
+        };
       }
 
       // Sauvegarder en localStorage

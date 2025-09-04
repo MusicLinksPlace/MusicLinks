@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabaseClient';
-import { authServiceMinimal as authService, LoginData } from '@/lib/authServiceMinimal';
+import { authServiceSimple as authService, LoginData } from '@/lib/authServiceSimple';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import GoogleLoginButton from '@/components/ui/GoogleLoginButton';
@@ -73,6 +73,16 @@ const Login = () => {
           description: result.error || "Vérifiez vos identifiants.",
           duration: 6000,
         });
+        return;
+      }
+
+      // Vérifier si l'utilisateur a besoin de compléter son profil
+      if (result.needsOnboarding) {
+        toast.success("Connexion réussie !", {
+          description: "Complétez votre profil pour continuer.",
+          duration: 4000,
+        });
+        navigate('/signup/continue');
         return;
       }
 

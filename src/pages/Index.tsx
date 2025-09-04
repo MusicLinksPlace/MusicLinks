@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
 import Header from '@/components/Header';
@@ -7,76 +7,62 @@ import HeroSection from '@/components/HeroSection';
 import ServiceCategories from '@/components/ServiceCategories';
 import HowItWorks from '@/components/HowItWorks';
 import TopUsersSection from '@/components/TopUsersSection';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [showOnboardingButton, setShowOnboardingButton] = useState(false);
 
   useEffect(() => {
-    const checkEmailConfirmation = async () => {
+    const checkUserStatus = async () => {
       try {
-        console.log('🔍 Index - Vérification de confirmation d\'email');
-        
-        // Vérifier si on a une session (confirmation d'email)
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (session && session.user && session.user.email_confirmed_at) {
-          console.log('📧 Index - Email confirmé détecté, redirection vers onboarding');
+        // Vérifier si l'utilisateur est connecté
+        const userData = localStorage.getItem('musiclinks_user');
+        if (userData) {
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
           
-          // Mettre à jour le statut verified dans notre table
-          const { error: updateError } = await supabase
-            .from('User')
-            .update({ verified: 1 })
-            .eq('id', session.user.id);
-
-          if (updateError) {
-            console.error('❌ Index - Erreur mise à jour verified:', updateError);
-          } else {
-            console.log('✅ Index - Statut verified mis à jour');
-          }
-
-          // Vérifier si l'utilisateur a un rôle
-          const { data: userData, error: userError } = await supabase
-            .from('User')
-            .select('role')
-            .eq('id', session.user.id)
-            .single();
-
-          if (userError) {
-            console.error('❌ Index - Erreur récupération utilisateur:', userError);
-            return;
-          }
-
-          if (!userData.role) {
-            console.log('🎭 Index - Pas de rôle, redirection vers onboarding');
-            navigate('/signup/continue');
-            return;
-          } else {
-            console.log('✅ Index - Utilisateur avec rôle, connexion automatique');
-            // Connecter l'utilisateur
-            localStorage.setItem('musiclinks_user', JSON.stringify({
-              id: session.user.id,
-              email: session.user.email,
-              name: session.user.user_metadata?.name || session.user.email?.split('@')[0],
-              role: userData.role,
-              verified: 1
-            }));
-            localStorage.setItem('musiclinks_authorized', 'true');
-            window.dispatchEvent(new Event('auth-change'));
+          // Si l'utilisateur n'a pas de rôle, afficher le bouton d'onboarding
+          if (!parsedUser.role) {
+            setShowOnboardingButton(true);
           }
         }
       } catch (error) {
-        console.error('❌ Index - Erreur vérification confirmation:', error);
+        console.error('❌ Index - Erreur vérification utilisateur:', error);
       }
     };
 
-    checkEmailConfirmation();
-  }, [navigate]);
+    checkUserStatus();
+  }, []);
 
   return (
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen bg-white">
       <Header />
       <main>
         <HeroSection />
+        
+        {/* Bouton d'onboarding visible si l'utilisateur n'a pas de rôle */}
+        {showOnboardingButton && (
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-16">
+            <div className="max-w-4xl mx-auto px-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Finalisez votre profil
+              </h2>
+              <p className="text-xl text-blue-100 mb-8">
+                Complétez votre profil pour commencer à utiliser la plateforme
+              </p>
+              <Button 
+                onClick={() => navigate('/signup/continue')}
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 text-lg font-semibold"
+              >
+                Commencer la création du compte
+              </Button>
+            </div>
+          </div>
+        )}
+        
         <TopUsersSection role="artist" title="Top artistes du moment" />
         <ServiceCategories />
         <TopUsersSection role="provider" title="Top prestataires du moment" />

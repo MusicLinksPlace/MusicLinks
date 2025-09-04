@@ -51,9 +51,9 @@ export default function AuthCallback() {
         // Le trigger a déjà synchronisé l'utilisateur, pas besoin de mise à jour manuelle
         console.log('📧 CALLBACK - Email confirmé, utilisateur synchronisé automatiquement');
 
-        // Vérifier si l'utilisateur a un rôle
-        console.log('🔍 CALLBACK - Vérification du rôle...');
-        const { data: profile, error: profileError } = await supabase
+        // Vérifier si l'utilisateur existe dans notre table User
+        console.log('🔍 CALLBACK - Vérification du profil...');
+        let { data: profile, error: profileError } = await supabase
           .from('User')
           .select('role, verified')
           .eq('id', session.user.id)
@@ -66,12 +66,83 @@ export default function AuthCallback() {
           verified: profile?.verified
         });
 
-        if (profileError) {
+        // Si l'utilisateur n'existe pas dans User, le créer
+        if (profileError && profileError.code === 'PGRST116') {
+          console.log('👤 CALLBACK - Utilisateur non trouvé dans User, création...');
+          
+          const newUserData = {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.email,
+            verified: 1,
+            disabled: 0,
+            role: null,
+            subCategory: null,
+            bio: null,
+            location: null,
+            profilepicture: null,
+            galleryimages: null,
+            portfolio_url: null,
+            social_links: null,
+            musicStyle: null,
+            galleryVideo: null,
+            star: 0,
+            isAdmin: false,
+            price: null,
+            serviceDescription: null,
+            likeCount: 0,
+            created_at: new Date().toISOString()
+          };
+
+          const { data: createdUser, error: createError } = await supabase
+            .from('User')
+            .insert([newUserData])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('❌ CALLBACK - Erreur création utilisateur:', createError);
+            // Continuer avec les données locales
+            profile = { role: null, verified: 1 };
+          } else {
+            console.log('✅ CALLBACK - Utilisateur créé:', createdUser);
+            profile = createdUser;
+          }
+        } else if (profileError) {
           console.error('❌ CALLBACK - Erreur récupération profil:', profileError);
           setStatus('error');
           setTimeout(() => window.location.href = "/login", 2000);
           return;
         }
+
+        // Sauvegarder l'utilisateur en localStorage
+        const userData = {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata?.name || session.user.email,
+          verified: 1,
+          disabled: 0,
+          role: profile?.role || null,
+          subCategory: null,
+          bio: null,
+          location: null,
+          profilepicture: null,
+          galleryimages: null,
+          portfolio_url: null,
+          social_links: null,
+          musicStyle: null,
+          galleryVideo: null,
+          star: 0,
+          isAdmin: false,
+          price: null,
+          serviceDescription: null,
+          likeCount: 0,
+          created_at: new Date().toISOString()
+        };
+
+        localStorage.setItem('musiclinks_user', JSON.stringify(userData));
+        localStorage.setItem('musiclinks_authorized', 'true');
+        window.dispatchEvent(new Event('auth-change'));
 
         if (profile && profile.role) {
           console.log('👤 CALLBACK - Utilisateur avec rôle, redirection vers /');

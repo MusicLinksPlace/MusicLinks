@@ -55,19 +55,36 @@ const App = () => {
 
   useEffect(() => {
     // Utiliser le nouveau service d'authentification
-    const { data: { subscription } } = authService.onAuthStateChange((user) => {
-      console.log('[Auth] Auth state changed:', user ? user.email : 'No user');
+    const { data: { subscription } } = authService.onAuthStateChange((event, session) => {
+      console.log('[Auth] Auth state changed:', event, session?.user?.email || 'No user');
       
-      if (user) {
-        // Vérifier si le compte est désactivé
-        if (user.disabled === 1 || user.disabled === true) {
-          console.log('[Auth] User account is disabled. Signing out user.');
-          authService.signOut();
-          toast.error("Votre compte a été désactivé. Vous ne pouvez plus vous connecter.");
-          return;
+      if (session?.user) {
+        // Récupérer les données utilisateur depuis localStorage
+        const userData = localStorage.getItem('musiclinks_user');
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+            
+            // Vérifier si le compte est désactivé
+            if (user.disabled === 1 || user.disabled === true) {
+              console.log('[Auth] User account is disabled. Signing out user.');
+              authService.signOut();
+              toast.error("Votre compte a été désactivé. Vous ne pouvez plus vous connecter.");
+              return;
+            }
+            
+            // Vérifier si l'utilisateur a un rôle (profil complet)
+            if (!user.role && window.location.pathname !== '/signup/continue') {
+              console.log('[Auth] User has no role, redirecting to onboarding');
+              window.location.href = '/signup/continue';
+              return;
+            }
+            
+            console.log('[Auth] User authenticated:', user.email);
+          } catch (error) {
+            console.error('[Auth] Error parsing user data:', error);
+          }
         }
-        
-        console.log('[Auth] User authenticated:', user.email);
       } else {
         console.log('[Auth] User signed out');
       }

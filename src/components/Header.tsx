@@ -555,16 +555,6 @@ const Header = () => {
                     <LogOut className="w-4 h-4" />
                     Déconnexion
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => {
-                      localStorage.removeItem('musiclinks_authorized');
-                      window.location.reload();
-                    }} 
-                    className="flex items-center gap-2 py-2 text-gray-700 hover:text-orange-600 cursor-pointer"
-                  >
-                    <Shield className="w-4 h-4" />
-                    Quitter la version privée
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
