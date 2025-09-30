@@ -6,14 +6,15 @@ import { ArrowRight, Users, Target, Heart, Sparkles } from 'lucide-react';
 
 export default function About() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen">
       <Header />
       
-      {/* Hero Section with Background Image */}
-      <section 
-        className="relative bg-center bg-cover flex-1 min-h-screen flex items-center justify-center"
-        style={{ backgroundImage: "url('/background/about-us-bk.png')" }}
-      >
+      <main>
+        {/* Hero Section with Background Image */}
+        <section 
+          className="relative bg-center bg-cover min-h-screen flex items-center justify-center"
+          style={{ backgroundImage: "url('/background/about-us-bk.png')" }}
+        >
         <div className="absolute inset-0 bg-black/50"></div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 py-16 md:py-24 text-center">
@@ -170,6 +171,7 @@ export default function About() {
           </div>
         </div>
       </section>
+      </main>
 
       <Footer />
     </div>

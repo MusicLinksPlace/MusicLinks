@@ -167,12 +167,12 @@ const PartnersPage = () => {
   const managers = filteredPartners.filter(p => ['manager', 'directeur artistique'].includes(p.subCategory || ''));
 
   return (
-    <PageTransition>
-      <div className="min-h-screen bg-gray-50 flex flex-col">
-        <Header />
-        <main className="flex-1">
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <PageTransition>
+        <main>
           <div className="relative bg-center bg-cover" style={{ backgroundImage: "url('/background/disque4.png')" }}>
-            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="absolute inset-0 bg-black/60"></div>
             <div className="relative max-w-7xl mx-auto px-4 w-full py-16 md:py-24 z-10">
               <StaggeredAnimation delay={200}>
                 <div className="text-center">
@@ -246,10 +246,10 @@ const PartnersPage = () => {
             </div>
           )}
         </div>
-      </main>
-      <Footer />
+        </main>
+        <Footer />
+      </PageTransition>
     </div>
-    </PageTransition>
   );
 };
 

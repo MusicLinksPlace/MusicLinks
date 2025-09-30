@@ -106,6 +106,7 @@ const navIcons = {
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
   const [currentSubMenu, setCurrentSubMenu] = useState<any>(null);
@@ -121,32 +122,31 @@ const Header = () => {
   const closeMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
   const openMenuTimeout = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Détecter si on est sur une page profil
-  const isProfilePage = location.pathname.startsWith('/profile/');
+  // Animation du header uniforme sur toutes les pages
 
-  // Hook pour gérer le scroll sur les pages profil
+  // Hook pour gérer le scroll et l'animation du header
   useEffect(() => {
-    if (!isProfilePage) {
-      setIsScrolled(false);
-      return;
-    }
-
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      setScrollY(currentScrollY);
       
-      // Si on scrolle vers le bas (plus de 100px), masquer le header
-      if (currentScrollY > 100) {
+      // Seuil pour l'animation (100px) - cohérent avec la home page
+      const threshold = 100;
+      
+      if (currentScrollY > threshold) {
         setIsScrolled(true);
-      } 
-      // Si on scrolle vers le haut ou on est en haut, afficher le header
-      else {
+      } else {
         setIsScrolled(false);
       }
     };
 
+    // Déclencher immédiatement au montage pour vérifier la position
+    handleScroll();
+
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isProfilePage]);
+  }, []);
+
 
   // Nettoyage des timeouts lors du démontage du composant
   useEffect(() => {
@@ -330,17 +330,31 @@ const Header = () => {
   return (
     <>
       {/* Header Desktop */}
-      <header className={`${isProfilePage ? 'fixed' : 'sticky'} top-0 z-50 hidden md:block transition-all duration-500 ${
-        isProfilePage && isScrolled ? '-translate-y-full' : 'translate-y-0'
-      }`} style={isProfilePage ? { position: 'fixed', top: 0, left: 0, right: 0 } : {}}>
-        {/* Background moderne avec gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-50/95 via-gray-50/95 to-slate-50/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg shadow-black/5"></div>
+      <header className={`fixed top-0 left-0 right-0 z-50 hidden md:block transition-all duration-700 ease-out ${
+        isScrolled 
+          ? 'translate-y-0 shadow-2xl shadow-black/10' 
+          : 'translate-y-0'
+      }`}>
+        {/* Background animé - transparent en haut, moderne en scrollé */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-out ${
+          isScrolled 
+            ? 'bg-gradient-to-r from-slate-900/95 via-gray-900/95 to-slate-900/95 backdrop-blur-xl border-b border-gray-700/50' 
+            : 'bg-transparent'
+        }`}></div>
         
-        {/* Pattern overlay subtil */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5"></div>
+        {/* Overlay de brillance animé */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-out ${
+          isScrolled 
+            ? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10' 
+            : 'bg-gradient-to-r from-transparent via-white/5 to-transparent'
+        }`}></div>
         
-        {/* Effet de brillance subtil */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-30"></div>
+        {/* Effet de particules subtil */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-out ${
+          isScrolled 
+            ? 'bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-50' 
+            : 'opacity-0'
+        }`}></div>
         
         <div className="relative flex items-center justify-between w-full px-8 h-20">
           {/* Logo à gauche avec animation */}
@@ -350,9 +364,15 @@ const Header = () => {
                 <img 
                   src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
                   alt="MusicLinks" 
-                  className="h-8 w-auto transition-all duration-300 group-hover:scale-105"
+                  className={`w-auto transition-all duration-700 ease-out group-hover:scale-105 ${
+                    isScrolled ? 'h-8' : 'h-10'
+                  }`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className={`absolute inset-0 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out ${
+                  isScrolled 
+                    ? 'bg-gradient-to-r from-blue-400/30 to-purple-400/30' 
+                    : 'bg-gradient-to-r from-blue-600/20 to-purple-600/20'
+                }`}></div>
               </div>
             </Link>
           </div>
@@ -369,23 +389,30 @@ const Header = () => {
                     onMouseLeave={handleMenuLeave}
                   >
                     <button
-                      className={`group flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 font-medium text-gray-700 hover:text-white bg-transparent border-none focus:outline-none relative overflow-hidden ${
-                        isSelected 
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
-                          : 'hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 hover:shadow-md hover:shadow-blue-500/10'
+                      className={`group flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-700 ease-out font-medium border-none focus:outline-none relative overflow-hidden ${
+                        isScrolled 
+                          ? `text-white ${isSelected 
+                              ? 'bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg shadow-blue-500/25' 
+                              : 'hover:bg-white/10 hover:shadow-md hover:shadow-white/10'
+                            }`
+                          : `text-gray-700 ${isSelected 
+                              ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/25' 
+                              : 'hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-purple-500/10 hover:shadow-md hover:shadow-blue-500/10'
+                            }`
                       }`}
                       style={{ fontSize: '0.95rem', position: 'relative' }}
                       onClick={() => navigate(item.link)}
                     >
                       {/* Background animé */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+                      <div className={`absolute inset-0 rounded-2xl transition-all duration-700 ease-out ${
+                        isScrolled 
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-500 opacity-0 group-hover:opacity-100' 
+                          : 'bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100'
+                      }`}></div>
                       
                       {/* Contenu */}
                       <div className="relative flex items-center gap-2">
-                        <span className="text-lg flex items-center justify-center transition-transform duration-300 group-hover:scale-110" style={{ lineHeight: 1 }}>
-                          {navIcons[item.type]}
-                        </span>
-                        <span className="truncate font-semibold" style={{ lineHeight: 1 }}>
+                        <span className="truncate font-semibold transition-all duration-700 ease-out" style={{ lineHeight: 1 }}>
                           {item.type === 'providers' ? 'Prestataires' : item.type === 'partners' ? 'Partenaires' : item.label}
                         </span>
                       </div>
@@ -393,7 +420,9 @@ const Header = () => {
                       {/* Indicateur de sélection */}
                       {isSelected && (
                         <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
-                          <div className="w-1.5 h-1.5 rounded-full bg-white shadow-lg"></div>
+                          <div className={`w-1.5 h-1.5 rounded-full shadow-lg transition-all duration-700 ease-out ${
+                            isScrolled ? 'bg-white' : 'bg-white'
+                          }`}></div>
                         </div>
                       )}
                     </button>
@@ -405,7 +434,7 @@ const Header = () => {
                         onMouseLeave={handleMenuLeave}
                         style={{ pointerEvents: 'auto' }}
                       >
-                        <div className="w-full bg-white/95 backdrop-blur-xl shadow-2xl shadow-black/10 rounded-b-3xl border-t-0 border border-white/20 pt-8 pb-10 px-0">
+                        <div className="w-full backdrop-blur-xl shadow-2xl rounded-b-3xl border-t-0 pt-8 pb-10 px-0 transition-all duration-500 bg-slate-900/95 border-gray-700/50 shadow-black/20">
                           <div className="max-w-7xl mx-auto px-8">
                             <div className="grid grid-cols-4 gap-6">
                               {[
@@ -420,7 +449,7 @@ const Header = () => {
                                     navigate(`/artists?location=${option.value}`);
                                     setHoveredMenu(null);
                                   }}
-                                  className="group flex flex-col items-center justify-center gap-4 text-gray-800 hover:text-white text-lg font-semibold py-8 px-6 rounded-3xl transition-all duration-300 border border-gray-100 hover:border-transparent bg-white/50 hover:bg-gradient-to-br hover:shadow-xl hover:shadow-black/10 relative overflow-hidden"
+                                  className="group flex flex-col items-center justify-center gap-4 text-lg font-semibold py-8 px-6 rounded-3xl transition-all duration-500 border relative overflow-hidden text-gray-200 hover:text-white border-gray-700/50 hover:border-transparent bg-slate-800/50 hover:bg-gradient-to-br hover:shadow-xl hover:shadow-black/20"
                                   style={{ minHeight: 140 }}
                                 >
                                   {/* Background gradient au hover */}
@@ -428,7 +457,7 @@ const Header = () => {
                                   
                                   {/* Contenu */}
                                   <div className="relative z-10 flex flex-col items-center gap-3">
-                                    <div className="w-20 h-20 rounded-2xl bg-gray-50 group-hover:bg-white/20 flex items-center justify-center transition-all duration-300 group-hover:scale-110">
+                                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 bg-slate-700/50 group-hover:bg-white/20">
                                       <img src={option.icon} alt={option.label} className="w-12 h-12 object-contain" />
                                     </div>
                                     <span className="text-center font-bold text-sm leading-tight">{option.label}</span>
@@ -451,7 +480,7 @@ const Header = () => {
                         onMouseLeave={handleMenuLeave}
                         style={{ pointerEvents: 'auto' }}
                       >
-                        <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                        <div className="w-full backdrop-blur-xl shadow-2xl rounded-b-3xl border-t-0 pt-8 pb-10 px-0 transition-all duration-500 bg-slate-900/95 border-gray-700/50 shadow-black/20">
                           <div className="max-w-7xl mx-auto px-8">
                             <div className="grid grid-cols-3 gap-8">
                               {[
@@ -465,7 +494,7 @@ const Header = () => {
                                     navigate(`/partners?subCategory=${option.value}`);
                                     setHoveredMenu(null);
                                   }}
-                                  className="flex flex-col items-center justify-center gap-3 text-neutral-800 hover:text-blue-600 text-lg font-semibold py-8 px-4 rounded-2xl transition-colors border border-transparent hover:border-blue-200 bg-white shadow-sm hover:shadow-lg"
+                                  className="flex flex-col items-center justify-center gap-3 text-lg font-semibold py-8 px-4 rounded-2xl transition-all duration-500 border shadow-sm hover:shadow-lg text-gray-200 hover:text-white border-gray-700/50 hover:border-transparent bg-slate-800/50 hover:bg-gradient-to-br hover:shadow-black/20"
                                   style={{ minHeight: 120 }}
                                 >
                                   <img src={option.icon} alt={option.label} className="w-32 h-32 object-contain" />
@@ -485,7 +514,7 @@ const Header = () => {
                         onMouseLeave={handleMenuLeave}
                         style={{ pointerEvents: 'auto' }}
                       >
-                        <div className="w-full bg-white shadow-2xl rounded-b-3xl border-t-0 border border-neutral-100 pt-8 pb-10 px-0">
+                        <div className="w-full backdrop-blur-xl shadow-2xl rounded-b-3xl border-t-0 pt-8 pb-10 px-0 transition-all duration-500 bg-slate-900/95 border-gray-700/50 shadow-black/20">
                           <div className="max-w-7xl mx-auto px-8">
                             <div className="grid grid-cols-3 gap-12">
                               {providerMegaMenu.map(cat => {
@@ -498,7 +527,7 @@ const Header = () => {
                                 if (cat.title === "Droits") emoji = '⚖️';
                                 return (
                                   <div key={cat.title} className="space-y-4">
-                                    <h3 className="text-sm font-semibold text-gray-900 mb-3 border-b border-gray-100 pb-2 flex items-center gap-3">
+                                    <h3 className="text-sm font-semibold mb-3 border-b pb-2 flex items-center gap-3 transition-all duration-500 text-white border-gray-700/50">
                                       {emoji && <span className="text-2xl">{emoji}</span>}
                                       {cat.title}
                                     </h3>
@@ -514,7 +543,7 @@ const Header = () => {
                                                 navigate(`/providers?subCategory=${encodeURIComponent(subCat)}`);
                                                 setHoveredMenu(null);
                                               }}
-                                              className="flex items-center text-sm text-gray-700 hover:text-gray-900 py-1.5 px-1 rounded transition-colors w-full text-left"
+                                              className="flex items-center text-sm py-1.5 px-1 rounded transition-all duration-500 w-full text-left text-gray-300 hover:text-white hover:bg-white/10"
                                             >
                                               <span className="font-normal">{sub}</span>
                                             </button>
@@ -536,9 +565,13 @@ const Header = () => {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="group flex items-center gap-2 px-4 py-2.5 rounded-2xl text-gray-700 hover:text-white bg-transparent hover:bg-gradient-to-r hover:from-gray-500/10 hover:to-gray-600/10 hover:shadow-md transition-all duration-300 font-semibold">
+                <Button variant="ghost" className={`group flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-transparent hover:shadow-md transition-all duration-700 ease-out font-semibold ${
+                  isScrolled 
+                    ? 'text-white hover:text-white hover:bg-white/10 hover:shadow-white/10' 
+                    : 'text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-gray-500/10 hover:to-gray-600/10 hover:shadow-blue-500/10'
+                }`}>
                   <span>Découvrir</span>
-                  <Sparkles className="w-3 h-3 opacity-60" />
+                  <Sparkles className="w-3 h-3 transition-all duration-700 ease-out opacity-80" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="center" className="w-64 bg-slate-50/95 backdrop-blur-xl border border-gray-200/50 shadow-xl shadow-black/10 rounded-2xl p-2">
@@ -584,13 +617,19 @@ const Header = () => {
                     onClick={handleChatClick} 
                     variant="ghost" 
                     size="icon" 
-                    className="group relative rounded-2xl p-3 text-gray-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 transition-all duration-300 flex items-center justify-center shadow-sm hover:shadow-lg hover:shadow-blue-500/25" 
+                    className={`group relative rounded-2xl p-3 transition-all duration-700 ease-out flex items-center justify-center shadow-sm hover:shadow-lg ${
+                      isScrolled 
+                        ? 'text-white hover:text-white hover:bg-white/10 hover:shadow-white/25' 
+                        : 'text-gray-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:shadow-blue-500/25'
+                    }`} 
                     style={{ height: '48px', width: '48px' }}
                   >
                     <div className="relative">
-                      <MessageCircle className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+                      <MessageCircle className="w-5 h-5 transition-transform duration-700 ease-out group-hover:scale-110" />
                       {/* Notification dot */}
-                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out ${
+                        isScrolled ? 'bg-red-400' : 'bg-red-500'
+                      }`}></div>
                     </div>
                   </Button>
                 </TooltipTrigger>
@@ -602,17 +641,19 @@ const Header = () => {
             {currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="group flex items-center gap-3 px-4 py-2.5 rounded-2xl text-gray-700 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 transition-all duration-300 font-semibold shadow-sm hover:shadow-lg hover:shadow-blue-500/25">
+                  <Button variant="ghost" className="group flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-700 ease-out font-semibold shadow-sm hover:shadow-lg text-white hover:text-white hover:bg-white/10 hover:shadow-white/25">
                     <div className="relative">
-                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg border-2 border-white group-hover:scale-110 transition-transform duration-300">
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg border-2 border-white group-hover:scale-110 transition-all duration-700 ease-out bg-gradient-to-br from-blue-400 to-purple-500">
                         <span className="text-white font-bold text-sm uppercase tracking-wider">
                           {currentUser.name?.[0] || 'U'}
                         </span>
                       </div>
                       {/* Online indicator */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white transition-all duration-700 ease-out ${
+                        isScrolled ? 'bg-green-400' : 'bg-green-500'
+                      }`}></div>
                     </div>
-                    <span className="font-semibold">{currentUser.name}</span>
+                    <span className="font-semibold transition-all duration-700 ease-out">{currentUser.name}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 bg-slate-50/95 backdrop-blur-xl border border-gray-200/50 shadow-xl shadow-black/10 rounded-2xl p-2">
@@ -658,13 +699,21 @@ const Header = () => {
             ) : (
               <div className="flex items-center gap-3">
                 <Link to="/login">
-                  <Button variant="outline" className="group rounded-2xl px-6 py-2.5 text-sm font-semibold border-gray-200 hover:border-blue-500 hover:text-blue-600 bg-white/50 hover:bg-blue-50/50 shadow-sm hover:shadow-md transition-all duration-300">
-                    <span className="group-hover:scale-105 transition-transform duration-200">Connexion</span>
+                  <Button variant="outline" className={`group rounded-2xl px-6 py-2.5 text-sm font-semibold shadow-sm hover:shadow-md transition-all duration-700 ease-out ${
+                    isScrolled 
+                      ? 'border-white/30 hover:border-white text-white hover:text-white bg-white/10 hover:bg-white/20' 
+                      : 'border-gray-200 hover:border-blue-500 hover:text-blue-600 bg-white/50 hover:bg-blue-50/50'
+                  }`}>
+                    <span className="group-hover:scale-105 transition-transform duration-700 ease-out">Connexion</span>
                   </Button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="group rounded-2xl px-6 py-2.5 text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300">
-                    <span className="group-hover:scale-105 transition-transform duration-200">S'inscrire</span>
+                  <Button className={`group rounded-2xl px-6 py-2.5 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-700 ease-out ${
+                    isScrolled 
+                      ? 'bg-gradient-to-r from-blue-400 to-purple-500 hover:from-blue-500 hover:to-purple-600 hover:shadow-blue-400/25' 
+                      : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-blue-500/25'
+                  }`}>
+                    <span className="group-hover:scale-105 transition-transform duration-700 ease-out">S'inscrire</span>
                   </Button>
                 </Link>
               </div>
@@ -674,17 +723,31 @@ const Header = () => {
       </header>
 
       {/* Header Mobile */}
-      <header className={`${isProfilePage ? 'fixed' : 'sticky'} top-0 z-50 md:hidden transition-all duration-500 ${
-        isProfilePage && isScrolled ? '-translate-y-full' : 'translate-y-0'
-      }`} style={isProfilePage ? { position: 'fixed', top: 0, left: 0, right: 0 } : {}}>
-        {/* Background moderne avec gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-50/95 via-gray-50/95 to-slate-50/95 backdrop-blur-xl border-b border-gray-200/50 shadow-lg shadow-black/5"></div>
+      <header className={`fixed top-0 left-0 right-0 z-50 md:hidden transition-all duration-700 ease-out ${
+        isScrolled 
+          ? 'shadow-2xl shadow-black/10' 
+          : 'shadow-none'
+      }`}>
+        {/* Background animé - transparent en haut, moderne en scrollé */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-out ${
+          isScrolled 
+            ? 'bg-gradient-to-r from-slate-900/95 via-gray-900/95 to-slate-900/95 backdrop-blur-xl border-b border-gray-700/50' 
+            : 'bg-transparent'
+        }`}></div>
         
-        {/* Pattern overlay subtil */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-purple-500/5"></div>
+        {/* Overlay de brillance animé */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-out ${
+          isScrolled 
+            ? 'bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10' 
+            : 'bg-gradient-to-r from-transparent via-white/5 to-transparent'
+        }`}></div>
         
-        {/* Effet de brillance subtil */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-30"></div>
+        {/* Effet de particules subtil */}
+        <div className={`absolute inset-0 transition-all duration-700 ease-out ${
+          isScrolled 
+            ? 'bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-50' 
+            : 'opacity-0'
+        }`}></div>
         
         <div className="relative w-full px-4 flex items-center h-16 justify-between">
           {/* Logo avec animation */}
@@ -693,9 +756,15 @@ const Header = () => {
               <img 
                 src="/lovable-uploads/952112ae-fc5d-48cc-ade8-53267f24bc4d.png" 
                 alt="MusicLinks" 
-                className="h-7 w-auto transition-all duration-300 group-hover:scale-105"
+                className={`w-auto transition-all duration-700 ease-out group-hover:scale-105 ${
+                  isScrolled ? 'h-6' : 'h-7'
+                }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className={`absolute inset-0 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out ${
+                isScrolled 
+                  ? 'bg-gradient-to-r from-blue-400/30 to-purple-400/30' 
+                  : 'bg-gradient-to-r from-blue-600/20 to-purple-600/20'
+              }`}></div>
             </div>
           </Link>
 
@@ -705,7 +774,11 @@ const Header = () => {
             {currentUser && (
               <button
                 onClick={handleChatClick}
-                className="p-2 rounded-xl text-gray-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 transition-all duration-300 shadow-sm hover:shadow-lg hover:shadow-blue-500/25"
+                className={`p-2 rounded-xl transition-all duration-700 ease-out shadow-sm hover:shadow-lg ${
+                  isScrolled 
+                    ? 'text-white hover:text-white hover:bg-white/10 hover:shadow-white/25' 
+                    : 'text-gray-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:shadow-blue-500/25'
+                }`}
               >
                 <MessageCircle className="w-5 h-5" />
               </button>
@@ -714,11 +787,15 @@ const Header = () => {
             {/* Bouton menu mobile */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="group p-2.5 rounded-xl hover:bg-gradient-to-r hover:from-gray-500/10 hover:to-gray-600/10 transition-all duration-300"
+              className={`group p-2.5 rounded-xl transition-all duration-700 ease-out ${
+                isScrolled 
+                  ? 'hover:bg-white/10' 
+                  : 'hover:bg-gradient-to-r hover:from-gray-500/10 hover:to-gray-600/10'
+              }`}
             >
               <div className="relative w-6 h-6">
-                <Menu className={`w-6 h-6 text-gray-700 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'}`} />
-                <X className={`w-6 h-6 text-gray-700 absolute inset-0 transition-all duration-300 ${isMobileMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'}`} />
+                <Menu className={`w-6 h-6 transition-all duration-700 ease-out ${isMobileMenuOpen ? 'opacity-0 rotate-90' : 'opacity-100 rotate-0'} text-white`} />
+                <X className={`w-6 h-6 absolute inset-0 transition-all duration-700 ease-out ${isMobileMenuOpen ? 'opacity-100 rotate-0' : 'opacity-0 -rotate-90'} text-white`} />
               </div>
             </button>
           </div>
@@ -726,15 +803,19 @@ const Header = () => {
 
         {/* Menu mobile drawer principal */}
         <Drawer open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <DrawerContent className="h-full w-80 top-0 mt-0 transition-none ml-auto">
-            <DrawerHeader className="text-left pb-4">
+          <DrawerContent className="h-full w-80 top-0 mt-0 transition-none ml-auto transition-all duration-500 bg-slate-900/95 backdrop-blur-xl border-l border-gray-700/50 shadow-2xl shadow-black/20">
+            <DrawerHeader className="text-left pb-4 transition-all duration-500 bg-gradient-to-r from-slate-800/50 to-gray-800/50 border-b border-gray-700/50">
               <div className="flex justify-between items-center">
-                <DrawerTitle className="text-lg font-medium text-gray-800">Menu</DrawerTitle>
+                <DrawerTitle className="text-lg font-medium transition-all duration-500 text-gray-200">Menu</DrawerTitle>
                 <button 
                   onClick={() => setIsMobileMenuOpen(false)} 
-                  className="p-1 rounded hover:bg-gray-100 transition-colors"
+                  className={`p-1 rounded transition-all duration-500 ${
+                    isScrolled 
+                      ? 'hover:bg-white/10' 
+                      : 'hover:bg-gray-100'
+                  }`}
                 >
-                  <X className="w-5 h-5 text-gray-600" />
+                  <X className="w-5 h-5 transition-all duration-500 text-gray-400" />
                 </button>
               </div>
             </DrawerHeader>
@@ -744,10 +825,10 @@ const Header = () => {
                 <div>
                   <button
                     onClick={() => openSubMenu('artists')}
-                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 flex items-center justify-between transition-colors"
+                    className="w-full text-left py-3 flex items-center justify-between transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">Artistes</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <span className="text-base font-medium">Artistes</span>
+                    <ChevronRight className="w-4 h-4 transition-all duration-500 text-gray-400" />
                   </button>
                 </div>
 
@@ -755,10 +836,10 @@ const Header = () => {
                 <div>
                   <button
                     onClick={() => openSubMenu('providers')}
-                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 flex items-center justify-between transition-colors"
+                    className="w-full text-left py-3 flex items-center justify-between transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">Prestataires</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <span className="text-base font-medium">Prestataires</span>
+                    <ChevronRight className="w-4 h-4 transition-all duration-500 text-gray-400" />
                   </button>
                 </div>
 
@@ -766,55 +847,55 @@ const Header = () => {
                 <div>
                   <button
                     onClick={() => openSubMenu('partners')}
-                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 flex items-center justify-between transition-colors"
+                    className="w-full text-left py-3 flex items-center justify-between transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">Partenaires</span>
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <span className="text-base font-medium">Partenaires</span>
+                    <ChevronRight className="w-4 h-4 transition-all duration-500 text-gray-400" />
                   </button>
                 </div>
 
                 {/* Séparateur */}
-                <div className="border-t border-gray-200 my-2"></div>
+                <div className="border-t my-2 transition-all duration-500 border-gray-700/50"></div>
 
                 {/* Liens supplémentaires */}
                 <div className="space-y-1">
                   <Link 
                     to="/Project" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="flex items-center gap-2 py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 transition-all duration-500 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
-                    <span className="text-base">Projets</span>
+                    <span className="text-base font-medium">Projets</span>
                   </Link>
                   <Link 
                     to="/how-it-works" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="block py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">Comment ça marche</span>
+                    <span className="text-base font-medium">Comment ça marche</span>
                   </Link>
                   <Link 
                     to="/about" 
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="block py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">Qui sommes-nous ?</span>
+                    <span className="text-base font-medium">Qui sommes-nous ?</span>
                   </Link>
                   <button
                     onClick={() => {
                       setShowSocialDialog(true);
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="w-full text-left py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">Suivez-nous</span>
+                    <span className="text-base font-medium">Suivez-nous</span>
                   </button>
                 </div>
 
                 {/* Séparateur */}
-                <div className="border-t border-gray-200 my-2"></div>
+                <div className="border-t my-2 transition-all duration-500 border-gray-700/50"></div>
 
                 {/* Actions utilisateur - en bas */}
                 <div className="space-y-1">
@@ -823,9 +904,9 @@ const Header = () => {
                       <Link 
                         to="/mon-compte" 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                        className="block py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                       >
-                        <span className="text-base">Mon profil</span>
+                        <span className="text-base font-medium">Mon profil</span>
                       </Link>
                       
                       <button
@@ -833,24 +914,24 @@ const Header = () => {
                           handleChatClick();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="w-full text-left py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                        className="w-full text-left py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                       >
-                        <span className="text-base">Messages</span>
+                        <span className="text-base font-medium">Messages</span>
                       </button>
                       
                       {currentUser.isAdmin && (
                         <Link 
                           to="/admin/users" 
                           onClick={() => setIsMobileMenuOpen(false)}
-                          className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                          className="block py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                         >
-                          <span className="text-base">Administration</span>
+                          <span className="text-base font-medium">Administration</span>
                         </Link>
                       )}
                       
-                      <div className="py-3">
-                        <div className="text-sm text-gray-500">{currentUser.name}</div>
-                        <div className="text-xs text-gray-400">Connecté</div>
+                      <div className="py-3 transition-all duration-500 text-gray-400">
+                        <div className="text-sm">{currentUser.name}</div>
+                        <div className="text-xs">Connecté</div>
                       </div>
                       
                       <button
@@ -858,9 +939,9 @@ const Header = () => {
                           handleSignOut();
                           setIsMobileMenuOpen(false);
                         }}
-                        className="w-full text-left py-3 text-red-600 hover:text-red-700 transition-colors"
+                        className="w-full text-left py-3 transition-all duration-500 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                       >
-                        <span className="text-base">Déconnexion</span>
+                        <span className="text-base font-medium">Déconnexion</span>
                       </button>
                       
 
@@ -870,16 +951,16 @@ const Header = () => {
                       <Link 
                         to="/login" 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                        className="block py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                       >
-                        <span className="text-base">Connexion</span>
+                        <span className="text-base font-medium">Connexion</span>
                       </Link>
                       <Link 
                         to="/signup" 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="block py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                        className="block py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                       >
-                        <span className="text-base">S'inscrire</span>
+                        <span className="text-base font-medium">S'inscrire</span>
                       </Link>
                     </>
                   )}
@@ -891,17 +972,21 @@ const Header = () => {
 
         {/* Drawer sous-menu */}
         <Drawer open={isSubMenuOpen} onOpenChange={setIsSubMenuOpen}>
-          <DrawerContent className="h-full w-80 top-0 mt-0 transition-none ml-auto">
-            <DrawerHeader className="text-left pb-4">
+          <DrawerContent className="h-full w-80 top-0 mt-0 transition-none ml-auto transition-all duration-500 bg-slate-900/95 backdrop-blur-xl border-l border-gray-700/50 shadow-2xl shadow-black/20">
+            <DrawerHeader className="text-left pb-4 transition-all duration-500 bg-gradient-to-r from-slate-800/50 to-gray-800/50 border-b border-gray-700/50">
               <div className="flex items-center gap-3">
                 <button
                   onClick={goBackToMainMenu}
-                  className="p-1 rounded hover:bg-gray-100 transition-colors"
+                  className={`p-1 rounded transition-all duration-500 ${
+                    isScrolled 
+                      ? 'hover:bg-white/10' 
+                      : 'hover:bg-gray-100'
+                  }`}
                 >
-                  <ChevronLeft className="w-5 h-5 text-gray-600" />
+                  <ChevronLeft className="w-5 h-5 transition-all duration-500 text-gray-400" />
                 </button>
                 {currentSubMenu && (
-                  <DrawerTitle className="text-lg font-medium text-gray-800">{currentSubMenu.title}</DrawerTitle>
+                  <DrawerTitle className="text-lg font-medium transition-all duration-500 text-gray-200">{currentSubMenu.title}</DrawerTitle>
                 )}
               </div>
             </DrawerHeader>
@@ -911,9 +996,9 @@ const Header = () => {
                   <button
                     key={index}
                     onClick={() => navigateAndClose(item.link)}
-                    className="w-full text-left py-3 text-gray-700 hover:text-gray-900 transition-colors"
+                    className="w-full text-left py-3 transition-all duration-500 text-gray-200 hover:text-white hover:bg-white/10"
                   >
-                    <span className="text-base">{item.label}</span>
+                    <span className="text-base font-medium">{item.label}</span>
                   </button>
                 ))}
               </div>
