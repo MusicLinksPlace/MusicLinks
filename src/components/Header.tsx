@@ -610,34 +610,36 @@ const Header = () => {
           </nav>
           {/* Actions à droite */}
           <div className="flex items-center gap-3">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={handleChatClick} 
-                    variant="ghost" 
-                    size="icon" 
-                    className={`group relative rounded-2xl p-3 transition-all duration-700 ease-out flex items-center justify-center shadow-sm hover:shadow-lg ${
-                      isScrolled 
-                        ? 'text-white hover:text-white hover:bg-white/10 hover:shadow-white/25' 
-                        : 'text-gray-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:shadow-blue-500/25'
-                    }`} 
-                    style={{ height: '48px', width: '48px' }}
-                  >
-                    <div className="relative">
-                      <MessageCircle className="w-5 h-5 transition-transform duration-700 ease-out group-hover:scale-110" />
-                      {/* Notification dot */}
-                      <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out ${
-                        isScrolled ? 'bg-red-400' : 'bg-red-500'
-                      }`}></div>
-                    </div>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" align="center" className="text-xs font-medium bg-gray-900 text-white rounded-lg px-2 py-1">
-                  Messages
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <div className="hidden md:block">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={handleChatClick} 
+                      variant="ghost" 
+                      size="icon" 
+                      className={`group relative rounded-2xl p-3 transition-all duration-700 ease-out flex items-center justify-center shadow-sm hover:shadow-lg ${
+                        isScrolled 
+                          ? 'text-white hover:text-white hover:bg-white/10 hover:shadow-white/25' 
+                          : 'text-gray-500 hover:text-white hover:bg-gradient-to-r hover:from-blue-500 hover:to-purple-500 hover:shadow-blue-500/25'
+                      }`} 
+                      style={{ height: '48px', width: '48px' }}
+                    >
+                      <div className="relative">
+                        <MessageCircle className="w-5 h-5 transition-transform duration-700 ease-out group-hover:scale-110" />
+                        {/* Notification dot */}
+                        <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 ease-out ${
+                          isScrolled ? 'bg-red-400' : 'bg-red-500'
+                        }`}></div>
+                      </div>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center" className="text-xs font-medium bg-gray-900 text-white rounded-lg px-2 py-1">
+                    Messages
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             {currentUser ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

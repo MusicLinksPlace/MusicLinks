@@ -1,8 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabaseClient';
-import Header from '@/components/Header';
-import { Loader2, Send, ArrowLeft, Search, Paperclip, MessageCircle } from 'lucide-react';
+import { Loader2, Send, ArrowLeft, Search, Paperclip, MessageCircle, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -562,9 +561,22 @@ const Chat = () => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <Header />
-        <Loader2 className="h-8 w-8 animate-spin text-gray-500 mt-20" />
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 relative">
+        {/* Bouton de retour élégant */}
+        <div className="absolute top-4 right-4 z-10">
+          <Button
+            onClick={() => navigate('/')}
+            variant="ghost"
+            className="group flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white hover:scale-105"
+          >
+            <Home className="w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
+            <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-300">
+              Accueil
+            </span>
+          </Button>
+        </div>
+        
+        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
         <p className="mt-4">Chargement des conversations...</p>
       </div>
     );
@@ -574,14 +586,27 @@ const Chat = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      {/* Bouton de retour élégant */}
+      <div className="absolute top-4 right-4 z-10">
+        <Button
+          onClick={() => navigate('/')}
+          variant="ghost"
+          className="group flex items-center gap-2 px-4 py-2 rounded-2xl bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-white hover:scale-105"
+        >
+          <Home className="w-4 h-4 text-gray-600 group-hover:text-blue-600 transition-colors duration-300" />
+          <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-300">
+            Accueil
+          </span>
+        </Button>
+      </div>
+      
       <div className="flex-1 container mx-auto p-4 flex">
         <div className="flex-1 max-w-6xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden h-[calc(100vh-120px)] flex">
+          <div className="bg-white rounded-lg shadow-lg overflow-hidden h-[calc(100vh-32px)] flex">
             {/* Liste des conversations */}
             <div className={`w-full md:w-1/3 border-r border-gray-200 ${selectedUserId && isMobile ? 'hidden' : 'block'}`}>
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">Messages</h2>
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold text-gray-800 mb-6">Messages</h2>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
@@ -597,6 +622,11 @@ const Chat = () => {
                 {isLoading ? (
                   <div className="flex items-center justify-center h-32">
                     <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  </div>
+                ) : conversations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-32 text-center">
+                    <MessageCircle className="h-8 w-8 text-gray-400 mb-2" />
+                    <p className="text-gray-500 text-sm">Pas de conversations pour le moment</p>
                   </div>
                 ) : (
                   <div className="space-y-1">
